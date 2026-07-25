@@ -112,6 +112,9 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
     }
 
     local body = Fill(template, slots)
+    if InCharacter.Voice and InCharacter.Voice.MaybeApplyChronicle then
+        body = InCharacter.Voice.MaybeApplyChronicle(body)
+    end
     local title
     if kind == "QUEST" then
         title = facts.questName or "Quest completed"

@@ -168,8 +168,20 @@ local function BuildManualDialog()
 end
 
 local function BuildUI()
-    journal = InCharacter.UI.JournalFrame.Create("InCharacterJournal", "Traveler's Chronicle")
-    journal:SetSubtitle("Quests, feats, titles, craft — a story told in order")
+    local parent
+    local embedded = false
+    if InCharacter.TomeHub and InCharacter.TomeHub.GetChronicleParent then
+        parent = InCharacter.TomeHub.GetChronicleParent()
+        embedded = parent ~= nil
+    end
+    journal = InCharacter.UI.JournalFrame.Create("InCharacterJournal", "Traveler's Chronicle", {
+        parent = parent,
+        embedded = embedded,
+    })
+    if not embedded then
+        journal:SetSubtitle("Quests, feats, titles, craft — a story told in order")
+    end
+    journal:Show()
 
     -- Search
     journal.searchBox = CreateFrame("EditBox", nil, journal.leftHost, "InputBoxTemplate")
@@ -343,44 +355,64 @@ local function BuildUI()
     }
 end
 
+function InCharacter.Chronicle.UI.EnsureBuilt()
+    if not journal then
+        BuildUI()
+    end
+    return journal
+end
+
 function InCharacter.Chronicle.UI.Init()
-    BuildUI()
+    -- Built on first hub open so TomeHub host exists first.
+end
+
+function InCharacter.Chronicle.UI.OnHubShow()
+    InCharacter.Chronicle.UI.EnsureBuilt()
+    RefreshList()
+    local list = InCharacter.Chronicle.Store.List({ oldestFirst = oldestFirst })
+    if #list > 0 and not selectedId then
+        ShowEntry(list[1])
+    elseif selectedId then
+        local e = InCharacter.Chronicle.Store.GetById(selectedId)
+        if e then ShowEntry(e) end
+    end
 end
 
 function InCharacter.Chronicle.UI.Refresh()
-    if journal and journal:IsShown() then
+    if journal then
         RefreshList()
     end
 end
 
 function InCharacter.Chronicle.UI.Toggle()
-    if not journal then
-        BuildUI()
+    if InCharacter.TomeHub and InCharacter.TomeHub.Toggle then
+        InCharacter.TomeHub.Toggle("chronicle")
+        return
     end
+    InCharacter.Chronicle.UI.EnsureBuilt()
     if journal:IsShown() then
         journal:Hide()
     else
-        RefreshList()
-        local list = InCharacter.Chronicle.Store.List({ oldestFirst = oldestFirst })
-        if #list > 0 and not selectedId then
-            ShowEntry(list[1])
-        elseif selectedId then
-            local e = InCharacter.Chronicle.Store.GetById(selectedId)
-            if e then ShowEntry(e) end
-        end
+        InCharacter.Chronicle.UI.OnHubShow()
         journal:Show()
     end
 end
 
 function InCharacter.Chronicle.UI.Show()
-    if not journal then BuildUI() end
-    RefreshList()
+    if InCharacter.TomeHub and InCharacter.TomeHub.Show then
+        InCharacter.TomeHub.Show("chronicle")
+        return
+    end
+    InCharacter.Chronicle.UI.EnsureBuilt()
+    InCharacter.Chronicle.UI.OnHubShow()
     journal:Show()
 end
 
 function InCharacter.Chronicle.UI.OnNewEntry(entry)
-    if journal and journal:IsShown() then
+    if journal then
         RefreshList()
-        if entry then ShowEntry(entry) end
+        if entry and InCharacter.TomeHub and InCharacter.TomeHub.IsShown and InCharacter.TomeHub.IsShown() then
+            ShowEntry(entry)
+        end
     end
 end

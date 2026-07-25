@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 1.0.0 (multi-package split) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 1.1.0 (Tome Theme 2.0 · Voice · Bulletin polish) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,9 +13,38 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Character-select AddOns lists **four** entries: In Character, Presence, Tome, Survival (all enabled)
 - [ ] Minimap book icon visible
-- [ ] `/ic packages` shows Presence, Tome, Survival and version **1.0.0**
+- [ ] `/ic packages` shows Presence, Tome, Survival and version **1.1.0**
 - [ ] Disable Presence only → `/ic` hints to enable Presence; `/ic tome` still works
 - [ ] Disable Tome only → right-click minimap hints; Presence still works
+
+---
+
+## Phase 1.1 — Tome Theme 2.0 · Voice · Bulletins
+
+### Traveler’s Tome hub
+
+- [ ] Right-click minimap opens **Traveler’s Tome** (book chrome, spine/ribbon)
+- [ ] Tabs: Pages, Lineage, Honor, Road, Realms, Voice, Share
+- [ ] Pages tab shows chronicle index + page body
+- [ ] Lineage / Honor / Road / Realms tabs show summary + open full panel
+- [ ] `/ic tome` toggles hub; `/ic voice` opens Voice tab
+- [ ] Esc closes hub (`UISpecialFrames`)
+
+### Voice
+
+- [ ] Voice tab: accent dropdown (auto / none / race profiles / afrikaans)
+- [ ] Auto follows player race
+- [ ] Sample line updates when accent changes
+- [ ] New chronicle auto-page uses accent when “apply to chronicle” is checked
+- [ ] Accent is one profile only (no mixing)
+
+### Bulletin polish
+
+- [ ] Wax seal labels [P]/[C]/[G]/[R] on board list
+- [ ] Known boards list from board panel / post editor
+- [ ] Boards registered beyond SW/Org/Dalaran (e.g. Valdrakken, Dornogal)
+- [ ] Soft OOC lint on post (`lfg`, `ooc:`, etc.) → confirm dialog
+- [ ] Post still requires board proximity
 
 ---
 

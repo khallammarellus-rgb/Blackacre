@@ -4,7 +4,7 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, expedition roadmaps, PvP field reports, and TRP3-friendly export — plus discovery beacons and bulletin boards. Complements Total RP 3; never rewrites TRP3 data.
 
-**Version:** 1.0.0 (multi-package split)  
+**Version:** 1.1.0 (Tome Theme 2.0 · Voice · Bulletin polish)  
 **Target:** Retail WoW 12.0.7+  
 **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
@@ -16,7 +16,7 @@ Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, ex
 |---|---|---|
 | `InCharacter` | **In Character** | Core — SavedVariables, comms, lifecycle, minimap, theme |
 | `InCharacter_Presence` | In Character **Presence** | Beacons (talking-head, anti-spam) & Bulletins |
-| `InCharacter_Tome` | In Character **Tome** | Chronicle, hardcore, afterlife, roadmap, PvP, lineage, share |
+| `InCharacter_Tome` | In Character **Tome** | Traveler’s Tome hub, chronicle, hardcore, voice, share… |
 | `InCharacter_Survival` | In Character **Survival** | Hunger / thirst / exposure meters |
 
 Child packages declare `## RequiredDeps: InCharacter`. Disable a package to drop that feature set without loading its UI.
@@ -27,16 +27,19 @@ Child packages declare `## RequiredDeps: InCharacter`. Disable a package to drop
 
 | Module | Package | Status |
 |---|---|---|
-| **Chronicle** — auto log + editable IC prose + parchment journal | Tome | 0.2+ |
-| **Hardcore honor log** — 6-slot bags, mount/fly rites, deaths | Tome | 0.3+ |
-| **Survival** — hunger, thirst, exposure by zone climate | Survival | 0.4+ |
-| **Afterlife** — IC return rites by realm of death | Tome | 0.5+ |
-| **Roadmap** — leveling expedition chart + lock prompts | Tome | 0.6+ |
-| **PvP** — battleground/arena after-action field reports | Tome | 0.7+ |
-| **Share** — clipboard export + peer summary cards | Tome | 0.7+ |
-| **Lineage** — birth year (ADP/BDP), age bands | Tome | 0.8+ |
-| **Presence** — Beacons lite + **Bulletins** | Presence | 0.9+ |
-| **Multi-package layout** | all | **1.0.0** |
+| **Chronicle** — auto log + editable IC prose | Tome | 0.2+ |
+| **Hardcore honor log** — 6-slot bags, mount/fly rites | Tome | 0.3+ |
+| **Survival** — hunger, thirst, exposure | Survival | 0.4+ |
+| **Afterlife** — IC return rites | Tome | 0.5+ |
+| **Roadmap** — expedition chart | Tome | 0.6+ |
+| **PvP** — field reports | Tome | 0.7+ |
+| **Share** — export + peer cards | Tome | 0.7+ |
+| **Lineage** — birth year (ADP/BDP) | Tome | 0.8+ |
+| **Presence** — Beacons lite + Bulletins | Presence | 0.9+ |
+| **Multi-package layout** | all | 1.0.0 |
+| **Tome Theme 2.0** — book hub + tabs | Tome | **1.1.0** |
+| **Voice** — race accents (one profile, never mixed) | Tome | **1.1.0** |
+| **Bulletin polish** — more boards, wax seals, OOC lint | Presence | **1.1.0** |
 
 ---
 
@@ -68,7 +71,8 @@ Character select → AddOns → enable **In Character**, **Presence**, **Tome**,
 | `/ic beacon` | Emit / withdraw beacon (no chat text) |
 | `/ic bulletin` | Post a bulletin at a board |
 | `/ic beacons on` / `off` | Receive beacons (default on) |
-| `/ic tome` / `/ic chronicle` | Traveler’s journal |
+| `/ic tome` / `/ic chronicle` | Traveler’s Tome hub (tabs) |
+| `/ic voice` | Accent / IC voice settings |
 | `/ic birth` | Lineage / birth year |
 | `/ic roadmap` | Expedition chart |
 | `/ic hardcore` | Hardcore compact / rites |

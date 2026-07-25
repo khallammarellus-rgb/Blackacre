@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "1.0.0"
+InCharacter.VERSION = "1.1.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -228,10 +228,18 @@ SlashCmdList["INCHARACTER"] = function(msg)
     elseif msg == "history" then
         InCharacter.History.Show()
     elseif msg == "tome" or msg == "chronicle" or msg == "log" or msg == "journal" then
-        if InCharacter.Chronicle and InCharacter.Chronicle.UI then
+        if InCharacter.TomeHub and InCharacter.TomeHub.Toggle then
+            InCharacter.TomeHub.Toggle(msg == "tome" and nil or "chronicle")
+        elseif InCharacter.Chronicle and InCharacter.Chronicle.UI then
             InCharacter.Chronicle.UI.Toggle()
         else
             NeedPackage("In Character Tome", "The Tome")
+        end
+    elseif msg == "voice" or msg == "accent" then
+        if InCharacter.TomeHub and InCharacter.TomeHub.Show then
+            InCharacter.TomeHub.Show("voice")
+        else
+            NeedPackage("In Character Tome", "Voice")
         end
     elseif msg == "sample" then
         if InCharacter.Chronicle and InCharacter.Chronicle.Capture then
@@ -371,6 +379,6 @@ SlashCmdList["INCHARACTER"] = function(msg)
             InCharacter.Print("Enable |cffc9a227In Character Presence|r for the presence panel. /ic packages")
         end
     else
-        InCharacter.Print("Commands: /ic, /ic beacon, /ic bulletin, /ic tome, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export, /ic packages")
+        InCharacter.Print("Commands: /ic, /ic beacon, /ic bulletin, /ic tome, /ic voice, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export, /ic packages")
     end
 end

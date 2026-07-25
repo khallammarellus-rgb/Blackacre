@@ -225,7 +225,7 @@ local function BuildBulletinEditor()
     post:SetScript("OnClick", function()
         local nearby = InCharacter.Boards.GetNearbyBoard()
         if not nearby then
-            InCharacter.Print("Stand near a bulletin board to post.")
+            InCharacter.Print("Stand near a bulletin board to post. Use View board → Known boards for the map.")
             return
         end
         local titleText = bulletinFrame.titleEdit:GetText() or ""
@@ -235,24 +235,53 @@ local function BuildBulletinEditor()
         end
 
         local function doPost()
+            if InCharacter.Voice and InCharacter.Voice.MaybeApplyBulletin then
+                bodyText = InCharacter.Voice.MaybeApplyBulletin(bodyText)
+                titleText = InCharacter.Voice.MaybeApplyBulletin(titleText)
+            end
             local scopeIndex = UIDropDownMenu_GetSelectedID(bulletinFrame.scopeDropdown) or 1
             local bulletin = InCharacter.Lifecycle.CreateBulletin(titleText, bodyText, nearby.id, scopes[scopeIndex])
             InCharacter.Lifecycle.PostBulletin(bulletin)
-            InCharacter.Print("Bulletin posted to " .. nearby.displayName .. ".")
+            local short = "P"
+            if InCharacter.UI and InCharacter.UI.Theme and InCharacter.UI.Theme.SealLabel then
+                local _, s = InCharacter.UI.Theme.SealLabel(scopes[scopeIndex])
+                short = s or "P"
+            end
+            InCharacter.Print(string.format("Bulletin sealed [%s] at %s.", short, nearby.displayName))
             bulletinFrame:Hide()
             if InCharacter.BoardView and InCharacter.BoardView.Show then
                 InCharacter.BoardView.Show()
             end
         end
 
-        if InCharacter.ProfanityFilter.ValidateBulletin
-            and InCharacter.ProfanityFilter.ValidateBulletin(titleText, bodyText, doPost) then
-            doPost()
-        elseif InCharacter.ProfanityFilter.ValidateNotice
-            and InCharacter.ProfanityFilter.ValidateNotice(titleText, bodyText, doPost) then
-            doPost()
-        elseif not InCharacter.ProfanityFilter.ValidateBulletin and not InCharacter.ProfanityFilter.ValidateNotice then
-            doPost()
+        local function afterOOC()
+            if InCharacter.ProfanityFilter.ValidateBulletin
+                and InCharacter.ProfanityFilter.ValidateBulletin(titleText, bodyText, doPost) then
+                doPost()
+            elseif InCharacter.ProfanityFilter.ValidateNotice
+                and InCharacter.ProfanityFilter.ValidateNotice(titleText, bodyText, doPost) then
+                doPost()
+            elseif not InCharacter.ProfanityFilter.ValidateBulletin and not InCharacter.ProfanityFilter.ValidateNotice then
+                doPost()
+            end
+        end
+
+        local oocWarn = InCharacter.Voice and InCharacter.Voice.SoftOOCLint
+            and InCharacter.Voice.SoftOOCLint(titleText .. " " .. bodyText)
+        if oocWarn then
+            StaticPopupDialogs["INCHARACTER_OOC_BULLETIN"] = {
+                text = oocWarn,
+                button1 = "Post anyway",
+                button2 = "Revise",
+                OnAccept = function() afterOOC() end,
+                timeout = 0,
+                whileDead = true,
+                hideOnEscape = true,
+                preferredIndex = 3,
+            }
+            StaticPopup_Show("INCHARACTER_OOC_BULLETIN")
+        else
+            afterOOC()
         end
     end)
 
@@ -263,6 +292,16 @@ local function BuildBulletinEditor()
     boardBtn:SetScript("OnClick", function()
         if InCharacter.BoardView and InCharacter.BoardView.Show then
             InCharacter.BoardView.Show()
+        end
+    end)
+
+    local knownBtn = CreateFrame("Button", nil, bulletinFrame, "UIPanelButtonTemplate")
+    knownBtn:SetSize(110, 24)
+    knownBtn:SetPoint("LEFT", boardBtn, "RIGHT", 8, 0)
+    knownBtn:SetText("Known boards")
+    knownBtn:SetScript("OnClick", function()
+        if InCharacter.BoardView and InCharacter.BoardView.ShowKnownBoards then
+            InCharacter.BoardView.ShowKnownBoards()
         end
     end)
 end

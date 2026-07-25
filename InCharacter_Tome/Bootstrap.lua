@@ -2,8 +2,17 @@
 InCharacter = InCharacter or {}
 
 local function InitTome()
+    InCharacter.CharDB = InCharacter.CharDB or {}
+    InCharacter.CharDB.voice = InCharacter.CharDB.voice or {
+        accent = "auto",
+        applyToChronicle = true,
+        applyToBulletins = false,
+    }
     if InCharacter.YearCalendar and InCharacter.YearCalendar.EnsureIdentity then
         InCharacter.YearCalendar.EnsureIdentity()
+    end
+    if InCharacter.TomeHub and InCharacter.TomeHub.Init then
+        InCharacter.TomeHub.Init()
     end
     if InCharacter.Chronicle then
         if InCharacter.Chronicle.Store and InCharacter.Chronicle.Store.Init then

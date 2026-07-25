@@ -19,7 +19,9 @@ function InCharacter.MinimapButton.Init()
                         InCharacter.Print("Enable In Character Presence for beacons.")
                     end
                 else
-                    if InCharacter.Chronicle and InCharacter.Chronicle.UI then
+                    if InCharacter.TomeHub and InCharacter.TomeHub.Toggle then
+                        InCharacter.TomeHub.Toggle()
+                    elseif InCharacter.Chronicle and InCharacter.Chronicle.UI then
                         InCharacter.Chronicle.UI.Toggle()
                     else
                         InCharacter.Print("Enable In Character Tome for the journal.")
@@ -36,7 +38,7 @@ function InCharacter.MinimapButton.Init()
         OnTooltipShow = function(tooltip)
             tooltip:AddLine("In Character")
             tooltip:AddLine("Left-click: Presence (beacons & bulletins)", 1, 1, 1)
-            tooltip:AddLine("Right-click: Tome (chronicle)", 1, 1, 1)
+            tooltip:AddLine("Right-click: Traveler’s Tome", 1, 1, 1)
             tooltip:AddLine("Shift+Right-click: emit beacon", 0.8, 0.8, 0.8)
             if unread > 0 then
                 tooltip:AddLine(unread .. " new nearby", 0.8, 0.7, 0.2)

@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: In Character
 ## Notes: Core — comms, presence lifecycle, shared UI theme (enable Presence, Tome, Survival packages)
-## Version: 1.0.0
+## Version: 1.1.0
 ## Author: khallammarellus-rgb
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
 ## SavedVariables: InCharacterDB
