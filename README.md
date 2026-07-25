@@ -4,7 +4,7 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, expedition roadmaps, PvP field reports, and TRP3-friendly export — plus discovery beacons and notice boards. Complements Total RP 3; never rewrites TRP3 data.
 
-**Version:** 0.8.0 (Phase H — Lineage / birth year lore path)  
+**Version:** 0.9.0 (Beacons lite + Bulletins)  
 **Target:** Retail WoW 12.0.7+  
 **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
@@ -21,8 +21,8 @@ Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, ex
 | **Roadmap** — leveling expedition chart + lock prompts | 0.6.0 |
 | **PvP** — battleground/arena after-action field reports | 0.7.0 |
 | **Share** — clipboard export + peer summary cards | 0.7.0 |
-| **Lineage** — birth year (ADP/BDP), age bands, lore path suggestions | **0.8.0** |
-| Discovery — beacons & notice boards | Shipped |
+| **Lineage** — birth year (ADP/BDP), age bands, lore path suggestions | 0.8.0 |
+| **Presence** — Beacons (lite talking-head, anti-spam) & **Bulletins** | **0.9.0** |
 
 ---
 
@@ -48,21 +48,22 @@ Enable **In Character** → `/reload`
 
 | Command | Description |
 |---|---|
-| `/ic birth` | Lineage / birth year (`/ic identity`, `/ic lineage`) |
-| `/ic chronicle` | Traveler’s journal |
-| `/ic roadmap` | Expedition chart · **From lineage** charts a path from birth |
+| `/ic` | Presence panel (beacon list, emit, bulletin) |
+| `/ic beacon` | Emit / withdraw beacon (no chat text) |
+| `/ic bulletin` | Post a bulletin at a board |
+| `/ic beacons on` / `off` | Receive beacons (default on) |
+| `/ic tome` / `/ic chronicle` | Traveler’s journal |
+| `/ic birth` | Lineage / birth year |
+| `/ic roadmap` | Expedition chart |
 | `/ic hardcore` | Hardcore compact / rites |
 | `/ic survival` | Condition meters |
 | `/ic afterlife` / `/ic realms` | Death return rites |
-| `/ic export` | Copy summary for TRP3 About/Notes |
-| `/ic share PlayerName` | Request peer IC summary card |
-| `/ic pvpsample` | Sample field report (dev) |
-| `/ic pvp on` / `off` | Toggle auto PvP reports |
+| `/ic export` | Copy summary for TRP3 paste |
+| `/ic share PlayerName` | Peer IC summary card |
 | `/ic eat` / `drink` / `rest` | Survival recovery |
-| `/ic beacon` / `/ic notice` | Discovery |
-| `/ic ping` | Comms test |
+| `/ic ping` | Invisible comms test |
 
-**Minimap:** Left = flyout · Right = chronicle · Shift+Right = beacon
+**Minimap:** Left = Presence · Right = Tome · Shift+Right = emit beacon
 
 ---
 

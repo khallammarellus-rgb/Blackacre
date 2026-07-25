@@ -23,9 +23,9 @@ function InCharacter.MinimapButton.Init()
         end,
         OnTooltipShow = function(tooltip)
             tooltip:AddLine("In Character")
-            tooltip:AddLine("Left-click: discovery flyout", 1, 1, 1)
-            tooltip:AddLine("Right-click: traveler's chronicle", 1, 1, 1)
-            tooltip:AddLine("Shift+Right-click: broadcast beacon", 0.8, 0.8, 0.8)
+            tooltip:AddLine("Left-click: Presence (beacons & bulletins)", 1, 1, 1)
+            tooltip:AddLine("Right-click: Tome (chronicle)", 1, 1, 1)
+            tooltip:AddLine("Shift+Right-click: emit beacon", 0.8, 0.8, 0.8)
             if unread > 0 then
                 tooltip:AddLine(unread .. " new nearby", 0.8, 0.7, 0.2)
             end

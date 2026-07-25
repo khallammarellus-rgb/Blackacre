@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: In Character
-## Notes: Immersive RP suite — lineage, chronicle, roadmap, survival, afterlife, share
-## Version: 0.8.0
+## Notes: Immersive RP suite — presence beacons & bulletins, tome, survival
+## Version: 0.9.0
 ## Author: khallammarellus-rgb
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
 ## SavedVariables: InCharacterDB
@@ -31,6 +31,7 @@ Data\HookTemplates.lua
 Data\ZoneClimate.lua
 Data\AfterlifePaths.lua
 Data\RoadmapZones.lua
+Data\BeaconDisplay.lua
 Core\ProfanityFilter.lua
 Core\TRP3Bridge.lua
 Core\Comms.lua
@@ -42,6 +43,8 @@ UI\MinimapButton.lua
 UI\Flyout.lua
 UI\BoardView.lua
 UI\PostEditor.lua
+Presence\BeaconHead.lua
+Presence\BeaconPins.lua
 Chronicle\Store.lua
 Chronicle\Hooks.lua
 Chronicle\Capture.lua

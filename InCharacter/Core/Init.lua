@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.8.0"
+InCharacter.VERSION = "0.9.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -23,7 +23,8 @@ InCharacter.SCOPE = {
 
 InCharacterDB = InCharacterDB or {
     beacons = {},
-    notices = {},
+    bulletins = {},
+    notices = {}, -- legacy alias migrated to bulletins
     cache = {},
     mutes = {},
     history = {},
@@ -34,6 +35,7 @@ InCharacterCharDB = InCharacterCharDB or {
     filters = { hardExclude = {}, softPriority = {} },
     settings = {
         noticeTTLDays = 3,
+        bulletinTTLDays = 3,
         quietNotifications = false,
         yearKCBase = 42,
         yearKCOffset = 0,
@@ -171,6 +173,13 @@ function addon:OnInitialize()
         lastReports = {},
     }
     InCharacter.YearCalendar.EnsureIdentity()
+    InCharacter.CharDB.presence = InCharacter.CharDB.presence or {
+        receiveBeacons = true,
+        lastEmitAt = nil,
+        activeBeaconId = nil,
+        showNameZone = true,
+        showNameProximity = true,
+    }
 
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
@@ -189,6 +198,8 @@ function addon:OnInitialize()
     InCharacter.Roadmap.UI.Init()
     InCharacter.PvP.AfterAction.Init()
     InCharacter.LineageUI.Init()
+    InCharacter.BeaconHead.Init()
+    InCharacter.BeaconPins.Init()
     InCharacter.MinimapButton.Init()
     InCharacter.Flyout.Init()
     InCharacter.BoardView.Init()
@@ -206,11 +217,11 @@ SlashCmdList["INCHARACTER"] = function(msg)
         InCharacter.Comms.SendPing()
     elseif msg == "beacon" then
         InCharacter.PostEditor.ShowBeaconEditor()
-    elseif msg == "notice" then
-        InCharacter.PostEditor.ShowNoticeEditor()
+    elseif msg == "bulletin" then
+        InCharacter.PostEditor.ShowBulletinEditor()
     elseif msg == "history" then
         InCharacter.History.Show()
-    elseif msg == "chronicle" or msg == "log" or msg == "journal" then
+    elseif msg == "tome" or msg == "chronicle" or msg == "log" or msg == "journal" then
         InCharacter.Chronicle.UI.Toggle()
     elseif msg == "sample" then
         InCharacter.Chronicle.Capture.DebugAddSample()
@@ -265,9 +276,16 @@ SlashCmdList["INCHARACTER"] = function(msg)
     elseif msg == "pvp on" then
         InCharacter.PvP.AfterAction.SetEnabled(true)
         InCharacter.Print("PvP after-action reports enabled.")
+    elseif msg == "beacons off" then
+        InCharacter.Lifecycle.EnsurePresenceDB().receiveBeacons = false
+        InCharacter.Print("Beacon receive off.")
+        if InCharacter.BeaconPins then InCharacter.BeaconPins.Refresh() end
+    elseif msg == "beacons on" then
+        InCharacter.Lifecycle.EnsurePresenceDB().receiveBeacons = true
+        InCharacter.Print("Beacon receive on.")
     elseif msg == "" then
         InCharacter.Flyout.Toggle()
     else
-        InCharacter.Print("Commands: /ic birth, /ic chronicle, /ic roadmap, /ic export, /ic share Name, /ic hardcore, /ic survival, /ic afterlife")
+        InCharacter.Print("Commands: /ic, /ic beacon, /ic bulletin, /ic tome, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export")
     end
 end

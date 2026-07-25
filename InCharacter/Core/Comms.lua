@@ -130,22 +130,33 @@ function InCharacter.Comms.SendPing()
 end
 
 function InCharacter.Comms.BroadcastBeacon(beacon)
-    local ctx = InCharacter.GetZoneContext()
-    local ping = table.concat({
-        "BP", beacon.id, beacon.zoneId, beacon.subzone,
-        string.format("%.4f", beacon.coords.x),
-        string.format("%.4f", beacon.coords.y),
-        beacon.shortText,
-    }, SEP)
-    if #ping > 240 then
-        ping = "BP" .. SEP .. beacon.id .. SEP .. beacon.zoneId .. SEP .. beacon.subzone .. SEP .. beacon.shortText
+    -- Invisible addon CHANNEL only — never say/yell/player chat.
+    local breadcrumb = beacon.breadcrumb or beacon.shortText or ""
+    if #breadcrumb > 120 then breadcrumb = breadcrumb:sub(1, 117) .. "..." end
+    local nameField = ""
+    if beacon.showNameZone or beacon.showNameProximity then
+        nameField = beacon.charName or UnitName("player") or ""
     end
+    local ping = table.concat({
+        "BP",
+        beacon.id,
+        tostring(beacon.zoneId or 0),
+        string.format("%.4f", (beacon.coords and beacon.coords.x) or 0),
+        string.format("%.4f", (beacon.coords and beacon.coords.y) or 0),
+        breadcrumb,
+        tostring(beacon.expiresAt or 0),
+        beacon.showNameZone and "1" or "0",
+        beacon.showNameProximity and "1" or "0",
+        nameField,
+        beacon.ownerGUID or UnitGUID("player") or "",
+    }, SEP)
     SendOnChannel(ping)
     CacheEntry("beacon", beacon)
     InCharacterDB.beacons[beacon.id] = beacon
 end
 
 function InCharacter.Comms.BroadcastRetract(id, kind)
+    if kind == "notice" then kind = "bulletin" end
     SendOnChannel("RT" .. SEP .. kind .. SEP .. id)
 end
 
@@ -153,74 +164,126 @@ function InCharacter.Comms.BroadcastBoardQuery(boardId)
     SendOnChannel("BQ" .. SEP .. boardId)
 end
 
-function InCharacter.Comms.SendNoticeFull(target, notice)
-    local payload = EncodePayload({ opcode = "NF", notice = notice })
+function InCharacter.Comms.SendBulletinFull(target, bulletin)
+    local payload = EncodePayload({ opcode = "NF", bulletin = bulletin, notice = bulletin })
     SendWhisper(target, payload, true, "BULK")
 end
 
-function InCharacter.Comms.SendBeaconFull(target, beacon)
-    local payload = EncodePayload({ opcode = "BF", beacon = beacon })
-    SendWhisper(target, payload, false, "NORMAL")
+InCharacter.Comms.SendNoticeFull = InCharacter.Comms.SendBulletinFull
+
+function InCharacter.Comms.RequestBulletinFull(sender, bulletinId)
+    SendWhisper(sender, "FN" .. SEP .. bulletinId, false)
 end
 
-function InCharacter.Comms.RequestBeaconFull(sender, beaconId)
-    SendWhisper(sender, "FB" .. SEP .. beaconId, false)
-end
+InCharacter.Comms.RequestNoticeFull = InCharacter.Comms.RequestBulletinFull
 
-function InCharacter.Comms.RequestNoticeFull(sender, noticeId)
-    SendWhisper(sender, "FN" .. SEP .. noticeId, false)
-end
-
-function InCharacter.Comms.AnnounceNotice(notice)
+function InCharacter.Comms.AnnounceBulletin(bulletin)
     local summary = table.concat({
-        "NS", notice.id, notice.boardId, notice.title, notice.scopeTier,
-        tostring(notice.expiresAt),
+        "NS", bulletin.id, bulletin.boardId, bulletin.title, bulletin.scopeTier,
+        tostring(bulletin.expiresAt),
     }, SEP)
     SendOnChannel(summary)
-    CacheEntry("notice", notice)
-    InCharacterDB.notices[notice.id] = notice
+    CacheEntry("bulletin", bulletin)
+    InCharacterDB.bulletins = InCharacterDB.bulletins or {}
+    InCharacterDB.bulletins[bulletin.id] = bulletin
+    InCharacterDB.notices = InCharacterDB.bulletins
+end
+
+InCharacter.Comms.AnnounceNotice = InCharacter.Comms.AnnounceBulletin
+
+local function ReceiveBeaconsEnabled()
+    local p = InCharacter.CharDB and InCharacter.CharDB.presence
+    if p and p.receiveBeacons == false then return false end
+    return true
 end
 
 local function HandleBeaconPing(fields, sender)
-    local id, zoneId, subzone, x, y, shortText = fields[2], tonumber(fields[3]), fields[4], tonumber(fields[5]), tonumber(fields[6]), fields[7]
+    if not ReceiveBeaconsEnabled() then return end
+    -- BP id zoneId x y breadcrumb expiresAt showNameZone showNameProximity name guid
+    local id = fields[2]
+    local zoneId = tonumber(fields[3])
+    local x = tonumber(fields[4])
+    local y = tonumber(fields[5])
+    local breadcrumb = fields[6] or "A presence stirs nearby."
+    local expiresAt = tonumber(fields[7])
+    local showNameZone = fields[8] == "1"
+    local showNameProximity = fields[9] == "1"
+    local nameField = fields[10] or ""
+    local guid = fields[11] or sender
     if not id then return end
-    if not ZoneMatches(zoneId, subzone) then return end
+    if expiresAt and expiresAt < time() then return end
+    -- Zone-only filter (no subzone required for lite beacons)
+    local ctx = InCharacter.GetZoneContext()
+    if zoneId and zoneId ~= 0 and ctx.zoneId ~= zoneId then return end
     if InCharacter.IsMuted(sender) then return end
+
+    local displayName = nil
+    if nameField ~= "" and (showNameZone or showNameProximity) then
+        displayName = nameField
+    end
 
     local beacon = {
         id = id,
-        ownerGUID = UnitGUID(sender) or sender,
-        charName = sender,
-        shortText = shortText or "Nearby presence",
+        ownerGUID = guid,
+        charName = displayName,
+        senderName = sender,
+        shortText = breadcrumb,
+        breadcrumb = breadcrumb,
         zoneId = zoneId,
-        subzone = subzone or "",
         coords = { x = x or 0, y = y or 0 },
+        expiresAt = expiresAt,
+        showNameZone = showNameZone,
+        showNameProximity = showNameProximity,
         status = InCharacter.STATUS.ACTIVE,
         receivedAt = time(),
     }
+    -- Dedupe by ownerGUID: one beacon per emitter
+    InCharacterDB.beacons = InCharacterDB.beacons or {}
+    for bid, b in pairs(InCharacterDB.beacons) do
+        if b.ownerGUID == guid and bid ~= id then
+            InCharacterDB.beacons[bid] = nil
+            if InCharacterDB.cache and InCharacterDB.cache.beacon then
+                InCharacterDB.cache.beacon[bid] = nil
+            end
+        end
+    end
+    InCharacterDB.beacons[id] = beacon
     CacheEntry("beacon", beacon)
-    InCharacter.Flyout.OnBeaconDiscovered(beacon)
+    if InCharacter.Flyout and InCharacter.Flyout.OnBeaconDiscovered then
+        InCharacter.Flyout.OnBeaconDiscovered(beacon)
+    end
+    if InCharacter.BeaconHead and InCharacter.BeaconHead.OnCacheChanged then
+        InCharacter.BeaconHead.OnCacheChanged()
+    end
+    if InCharacter.BeaconPins and InCharacter.BeaconPins.Refresh then
+        InCharacter.BeaconPins.Refresh()
+    end
 end
 
-local function HandleNoticeSummary(fields, sender)
+local function HandleBulletinSummary(fields, sender)
     local id, boardId, title, scopeTier, expiresAt = fields[2], fields[3], fields[4], fields[5], tonumber(fields[6])
     if not id or not boardId then return end
     if expiresAt and expiresAt < time() then return end
     if InCharacter.IsMuted(sender) then return end
 
-    local notice = {
+    local bulletin = {
         id = id,
         ownerGUID = UnitGUID(sender) or sender,
         charName = sender,
-        title = title or "Notice",
+        title = title or "Bulletin",
         scopeTier = scopeTier or InCharacter.SCOPE.INDIVIDUAL,
         boardId = boardId,
         expiresAt = expiresAt,
         status = InCharacter.STATUS.ACTIVE,
         receivedAt = time(),
     }
-    CacheEntry("notice", notice)
-    InCharacter.BoardView.OnNoticeDiscovered(notice)
+    CacheEntry("bulletin", bulletin)
+    CacheEntry("notice", bulletin)
+    if InCharacter.BoardView and InCharacter.BoardView.OnBulletinDiscovered then
+        InCharacter.BoardView.OnBulletinDiscovered(bulletin)
+    elseif InCharacter.BoardView and InCharacter.BoardView.OnNoticeDiscovered then
+        InCharacter.BoardView.OnNoticeDiscovered(bulletin)
+    end
 end
 
 function addon:OnCommReceived(prefix, message, distribution, sender)
@@ -240,12 +303,15 @@ function addon:OnCommReceived(prefix, message, distribution, sender)
 
     local decoded = DecodePayload(message)
     if decoded then
-        if decoded.opcode == "BF" and decoded.beacon then
-            CacheEntry("beacon", decoded.beacon)
-            InCharacter.Flyout.OnBeaconFullReceived(decoded.beacon)
-        elseif decoded.opcode == "NF" and decoded.notice then
-            CacheEntry("notice", decoded.notice)
-            InCharacter.BoardView.OnNoticeFullReceived(decoded.notice)
+        if decoded.opcode == "NF" and (decoded.bulletin or decoded.notice) then
+            local b = decoded.bulletin or decoded.notice
+            CacheEntry("bulletin", b)
+            CacheEntry("notice", b)
+            if InCharacter.BoardView and InCharacter.BoardView.OnBulletinFullReceived then
+                InCharacter.BoardView.OnBulletinFullReceived(b)
+            elseif InCharacter.BoardView and InCharacter.BoardView.OnNoticeFullReceived then
+                InCharacter.BoardView.OnNoticeFullReceived(b)
+            end
         elseif decoded.opcode == "IC_SUM" then
             if InCharacter.Share and InCharacter.Share.OnPeerSummary then
                 InCharacter.Share.OnPeerSummary(sender, decoded)
@@ -261,6 +327,7 @@ function addon:OnCommReceived(prefix, message, distribution, sender)
         HandleBeaconPing(fields, sender)
     elseif opcode == "RT" then
         local kind, id = fields[2], fields[3]
+        if kind == "notice" then kind = "bulletin" end
         if kind and id then
             InCharacter.Lifecycle.HandleRemoteRetract(kind, id)
         end
@@ -268,23 +335,19 @@ function addon:OnCommReceived(prefix, message, distribution, sender)
         local boardId = fields[2]
         InCharacter.Comms.RespondToBoardQuery(sender, boardId)
     elseif opcode == "BR" then
-        HandleNoticeSummary(fields, sender)
+        HandleBulletinSummary(fields, sender)
     elseif opcode == "NS" then
-        HandleNoticeSummary(fields, sender)
-    elseif opcode == "FB" then
-        local beaconId = fields[2]
-        local beacon = InCharacterDB.beacons[beaconId] or GetCached("beacon", beaconId)
-        if beacon then
-            InCharacter.Comms.SendBeaconFull(sender, beacon)
-        end
+        HandleBulletinSummary(fields, sender)
     elseif opcode == "FN" then
-        local noticeId = fields[2]
-        local notice = InCharacterDB.notices[noticeId] or GetCached("notice", noticeId)
-        if notice then
-            InCharacter.Comms.SendNoticeFull(sender, notice)
+        local bulletinId = fields[2]
+        local bulletin = (InCharacterDB.bulletins and InCharacterDB.bulletins[bulletinId])
+            or (InCharacterDB.notices and InCharacterDB.notices[bulletinId])
+            or GetCached("bulletin", bulletinId)
+            or GetCached("notice", bulletinId)
+        if bulletin then
+            InCharacter.Comms.SendBulletinFull(sender, bulletin)
         end
     elseif opcode == "SQ" then
-        -- Summary query: peer wants IC_SUM card
         InCharacter.Comms.SendSummaryTo(sender)
     end
 end
@@ -308,26 +371,27 @@ end
 
 function InCharacter.Comms.RespondToBoardQuery(requester, boardId)
     if not boardId then return end
-    for id, notice in pairs(InCharacterDB.notices) do
-        if notice.boardId == boardId and notice.status == InCharacter.STATUS.ACTIVE then
-            if not notice.expiresAt or notice.expiresAt >= time() then
+    local store = InCharacterDB.bulletins or InCharacterDB.notices or {}
+    for _, bulletin in pairs(store) do
+        if bulletin.boardId == boardId and bulletin.status == InCharacter.STATUS.ACTIVE then
+            if not bulletin.expiresAt or bulletin.expiresAt >= time() then
                 local summary = table.concat({
-                    "BR", notice.id, notice.boardId, notice.title, notice.scopeTier,
-                    tostring(notice.expiresAt or 0),
+                    "BR", bulletin.id, bulletin.boardId, bulletin.title, bulletin.scopeTier,
+                    tostring(bulletin.expiresAt or 0),
                 }, SEP)
                 SendWhisper(requester, summary, false)
             end
         end
     end
-    local cache = InCharacterDB.cache.notice
+    local cache = (InCharacterDB.cache and (InCharacterDB.cache.bulletin or InCharacterDB.cache.notice))
     if cache then
         for _, wrapped in pairs(cache) do
-            local notice = wrapped.data
-            if notice.boardId == boardId and notice.status == InCharacter.STATUS.ACTIVE then
-                if not notice.expiresAt or notice.expiresAt >= time() then
+            local bulletin = wrapped.data
+            if bulletin.boardId == boardId and bulletin.status == InCharacter.STATUS.ACTIVE then
+                if not bulletin.expiresAt or bulletin.expiresAt >= time() then
                     local summary = table.concat({
-                        "BR", notice.id, notice.boardId, notice.title, notice.scopeTier,
-                        tostring(notice.expiresAt or 0), tostring(wrapped.lastConfirmedAt or time()),
+                        "BR", bulletin.id, bulletin.boardId, bulletin.title, bulletin.scopeTier,
+                        tostring(bulletin.expiresAt or 0), tostring(wrapped.lastConfirmedAt or time()),
                     }, SEP)
                     SendWhisper(requester, summary, false)
                 end

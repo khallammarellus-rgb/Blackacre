@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 0.8.0 (Phase H lineage / birth year) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 0.9.0 (Beacons lite + Bulletins rename) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,7 +13,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Addon appears in character-select AddOns list as **In Character**
 - [ ] Minimap book icon visible
-- [ ] Version / TOC shows **0.8.0** after update
+- [ ] Version / TOC shows **0.9.0** after update
 
 ---
 
@@ -202,6 +202,36 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] Friend receives summary card in chat (name, honor, rites, headlines)
 - [ ] Requester sees toast “Received summary from …”
 - [ ] `/ic ping` still works alongside share
+
+---
+
+## Phase P — Beacons lite + Bulletins rename (0.9.0)
+
+### Naming
+- [ ] UI says **Bulletin**, not Notice
+- [ ] `/ic bulletin` works; `/ic notice` does **not** (no alias)
+
+### Beacons anti-spam
+- [ ] Emit one beacon → single invisible channel blast (no chat text)
+- [ ] Second emit blocked while active; Withdraw then wait 15m
+- [ ] Beacon expires after 24h
+- [ ] Relog does not re-spam channel
+- [ ] Breadcrumb never appears as say/yell/whisper chat
+
+### Beacons receive UX
+- [ ] Same zone: map pin when world map open
+- [ ] Mini talking-head top-center: fade in/out; hooded when far
+- [ ] Yell-range: player head when unit resolvable
+- [ ] Many beacons: only one head at a time; rolls over minutes / subzone
+- [ ] Receive toggle default ON; OFF silences pins/heads
+- [ ] `/ic beacons off` / `on` work
+- [ ] List shows breadcrumbs; whisper only if name shown
+- [ ] Name hide: anonymous list + hooded head
+
+### Bulletins
+- [ ] Post near board; fail clearly when not near
+- [ ] Board panel titles “bulletin board”
+- [ ] Full body still loads on click (addon whisper, not chat)
 
 ---
 

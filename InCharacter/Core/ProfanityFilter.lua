@@ -47,7 +47,7 @@ function InCharacter.ProfanityFilter.GetOOCWarnings(text)
     return warnings
 end
 
-function InCharacter.ProfanityFilter.ValidateNotice(title, body, onProceed)
+function InCharacter.ProfanityFilter.ValidateBulletin(title, body, onProceed)
     local blocked, reason = InCharacter.ProfanityFilter.IsBlocked(title)
     if blocked then
         InCharacter.Print(reason)
@@ -67,8 +67,10 @@ function InCharacter.ProfanityFilter.ValidateNotice(title, body, onProceed)
     return true
 end
 
+InCharacter.ProfanityFilter.ValidateNotice = InCharacter.ProfanityFilter.ValidateBulletin
+
 StaticPopupDialogs["INCHARACTER_OOC_WARNING"] = {
-    text = "This notice might read as out-of-character. Post anyway?",
+    text = "This bulletin might read as out-of-character. Post anyway?",
     button1 = "Post anyway",
     button2 = "Edit",
     OnAccept = function(self)

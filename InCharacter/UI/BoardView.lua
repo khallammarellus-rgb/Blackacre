@@ -5,14 +5,14 @@ local frame
 local rows = {}
 local MAX_VISIBLE = 6
 local currentBoard
-local nearbyNotices = {}
+local nearbyBulletins = {}
 
-local function GetNoticesForBoard(boardId)
+local function GetBulletinsForBoard(boardId)
     local list = {}
-    for _, notice in pairs(nearbyNotices) do
-        if notice.boardId == boardId then
-            if not notice.expiresAt or notice.expiresAt >= time() then
-                list[#list + 1] = notice
+    for _, b in pairs(nearbyBulletins) do
+        if b.boardId == boardId then
+            if not b.expiresAt or b.expiresAt >= time() then
+                list[#list + 1] = b
             end
         end
     end
@@ -26,22 +26,27 @@ function InCharacter.BoardView.Init()
     frame = CreateFrame("Frame", "InCharacterBoardView", UIParent, "BackdropTemplate")
     frame:SetSize(320, 220)
     frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -40, -340)
-    frame:SetBackdrop({
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
-    })
-    frame:SetBackdropColor(0, 0, 0, 0.75)
+    if InCharacter.UI and InCharacter.UI.Theme and InCharacter.UI.Theme.ApplyParchmentBackdrop then
+        InCharacter.UI.Theme.ApplyParchmentBackdrop(frame, 0.94)
+    else
+        frame:SetBackdrop({
+            bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+            edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+            tile = true, tileSize = 16, edgeSize = 16,
+            insets = { left = 4, right = 4, top = 4, bottom = 4 },
+        })
+        frame:SetBackdropColor(0, 0, 0, 0.75)
+    end
     frame:Hide()
+    tinsert(UISpecialFrames, "InCharacterBoardView")
 
     frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.title:SetPoint("TOPLEFT", 12, -10)
-    frame.title:SetText("Notice board")
+    frame.title:SetText("Bulletin board")
 
     frame.hint = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.hint:SetPoint("TOPLEFT", 12, -26)
-    frame.hint:SetText("Known notices at this board")
+    frame.hint:SetText("Known bulletins at this board")
 
     for i = 1, MAX_VISIBLE do
         local row = CreateFrame("Button", nil, frame)
@@ -68,7 +73,7 @@ function InCharacter.BoardView.CheckProximity()
     local board = InCharacter.Boards.GetNearbyBoard()
     if board and board.id ~= (currentBoard and currentBoard.id) then
         currentBoard = board
-        wipe(nearbyNotices)
+        wipe(nearbyBulletins)
         InCharacter.Comms.BroadcastBoardQuery(board.id)
         if frame then
             frame.title:SetText(board.displayName)
@@ -84,18 +89,18 @@ function InCharacter.BoardView.Refresh()
 end
 
 function InCharacter.BoardView.Populate(boardId)
-    local notices = GetNoticesForBoard(boardId)
-    local shown = math.min(#notices, MAX_VISIBLE)
+    local bulletins = GetBulletinsForBoard(boardId)
+    local shown = math.min(#bulletins, MAX_VISIBLE)
     for i = 1, MAX_VISIBLE do
         local row = rows[i]
         if i <= shown then
-            local notice = notices[i]
-            local seal = notice.scopeTier and ("[" .. notice.scopeTier:sub(1, 1) .. "] ") or ""
-            row.text:SetText(seal .. (notice.title or "Notice"))
+            local bulletin = bulletins[i]
+            local seal = bulletin.scopeTier and ("[" .. bulletin.scopeTier:sub(1, 1) .. "] ") or ""
+            row.text:SetText(seal .. (bulletin.title or "Bulletin"))
             row:Show()
             row:SetScript("OnClick", function()
-                if notice.charName then
-                    InCharacter.Comms.RequestNoticeFull(notice.charName, notice.id)
+                if bulletin.charName then
+                    InCharacter.Comms.RequestBulletinFull(bulletin.charName, bulletin.id)
                 end
             end)
         else
@@ -108,7 +113,7 @@ end
 function InCharacter.BoardView.Show()
     InCharacter.BoardView.CheckProximity()
     if not currentBoard then
-        InCharacter.Print("No notice board nearby.")
+        InCharacter.Print("No bulletin board nearby.")
         return
     end
     frame.title:SetText(currentBoard.displayName)
@@ -116,21 +121,25 @@ function InCharacter.BoardView.Show()
     frame:Show()
 end
 
-function InCharacter.BoardView.OnNoticeDiscovered(notice)
-    nearbyNotices[notice.id] = notice
-    if currentBoard and notice.boardId == currentBoard.id then
+function InCharacter.BoardView.OnBulletinDiscovered(bulletin)
+    nearbyBulletins[bulletin.id] = bulletin
+    if currentBoard and bulletin.boardId == currentBoard.id then
         InCharacter.BoardView.Refresh()
         if not frame:IsShown() then
-            InCharacter.Print("New notice at " .. (currentBoard.displayName or "nearby board") .. ".")
+            InCharacter.Print("New bulletin at " .. (currentBoard.displayName or "nearby board") .. ".")
         end
     end
 end
 
-function InCharacter.BoardView.OnNoticeFullReceived(notice)
-    if notice then
-        InCharacter.Print("|cffffffff" .. (notice.title or "Notice") .. "|r")
-        InCharacter.Print(notice.bodyText or "")
-        nearbyNotices[notice.id] = notice
+InCharacter.BoardView.OnNoticeDiscovered = InCharacter.BoardView.OnBulletinDiscovered
+
+function InCharacter.BoardView.OnBulletinFullReceived(bulletin)
+    if bulletin then
+        InCharacter.Print("|cffffffff" .. (bulletin.title or "Bulletin") .. "|r")
+        InCharacter.Print(bulletin.bodyText or "")
+        nearbyBulletins[bulletin.id] = bulletin
         InCharacter.BoardView.Refresh()
     end
 end
+
+InCharacter.BoardView.OnNoticeFullReceived = InCharacter.BoardView.OnBulletinFullReceived

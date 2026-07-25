@@ -7,21 +7,42 @@ local templates = {
         label = "Seeking company",
         slots = { "disposition", "role", "intent" },
         full = "I am a {disposition} {role}, seeking {intent} in these parts.",
-        short = "{disposition} {role} — seeking {intent}",
+        short = "A {disposition} {role} seeks {intent} nearby.",
     },
     {
         id = "watching",
         label = "Keeping watch",
         slots = { "disposition", "role", "location" },
-        full = "A {disposition} {role} keeps watch near {location}, open to passing conversation.",
-        short = "{disposition} {role} near {location}",
+        full = "I keep watch near {location}, a {disposition} {role} open to quiet company.",
+        short = "A {disposition} {role} keeps watch near {location}.",
     },
     {
         id = "calling",
         label = "Calling out",
         slots = { "role", "intent", "location" },
-        full = "This {role} calls quietly for {intent} around {location}.",
-        short = "{role} — {intent} ({location})",
+        full = "I call softly for {intent} around {location} — a {role} on the road.",
+        short = "A {role} seeks {intent} about {location}.",
+    },
+    {
+        id = "dark_work",
+        label = "Dark craft",
+        slots = { "role", "location" },
+        full = "I practice a shadowed craft near {location}. Those unafraid may approach.",
+        short = "A {role} works dark arts near {location}.",
+    },
+    {
+        id = "trade",
+        label = "Trade talk",
+        slots = { "disposition", "role" },
+        full = "I am a {disposition} {role} open to trade and fair words.",
+        short = "A {disposition} {role} offers trade nearby.",
+    },
+    {
+        id = "story",
+        label = "Tales",
+        slots = { "disposition", "role" },
+        full = "I am a {disposition} {role} with a tale, if you have ears for it.",
+        short = "A {disposition} {role} offers a tale nearby.",
     },
 }
 
@@ -31,7 +52,7 @@ local slotOptions = {
     },
     role = {
         "traveler", "scholar", "merchant", "soldier", "healer", "storyteller",
-        "adventurer", "artisan", "scout", "pilgrim",
+        "adventurer", "artisan", "scout", "pilgrim", "mage", "rogue", "hunter",
     },
     intent = {
         "conversation", "companionship", "a shared tale", "aid on the road",
@@ -39,7 +60,7 @@ local slotOptions = {
     },
     location = {
         "the crossroads", "the market square", "the tavern door", "the city gates",
-        "the harbor", "the temple steps", "the old quarter",
+        "the harbor", "the temple steps", "the old quarter", "these streets",
     },
 }
 
