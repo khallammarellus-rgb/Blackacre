@@ -1,9 +1,9 @@
 ## Interface: 120007
 ## Title: In Character
-## Notes: In-character RP discovery — beacons and notice boards
-## Version: 0.1.0
+## Notes: Immersive RP suite — chronicle journal, discovery beacons, and notice boards
+## Version: 0.2.0
 ## Author: khallammarellus-rgb
-## IconTexture: Interface\Icons\INV_Scroll_03
+## IconTexture: Interface\Icons\INV_Misc_Book_09
 ## SavedVariables: InCharacterDB
 ## SavedVariablesPerCharacter: InCharacterCharDB
 ## OptionalDeps: totalRP3
@@ -24,12 +24,20 @@ Core\Init.lua
 Data\Blocklist.lua
 Data\SentenceTemplates.lua
 Data\Boards.lua
+Data\YearCalendar.lua
+Data\HookTemplates.lua
 Core\ProfanityFilter.lua
 Core\TRP3Bridge.lua
 Core\Comms.lua
 Core\Lifecycle.lua
 History\History.lua
+UI\Theme.lua
+UI\JournalFrame.lua
 UI\MinimapButton.lua
 UI\Flyout.lua
 UI\BoardView.lua
 UI\PostEditor.lua
+Chronicle\Store.lua
+Chronicle\Hooks.lua
+Chronicle\Capture.lua
+Chronicle\UI_Chronology.lua

@@ -2,11 +2,23 @@
 
 Run these after `/reload` with the addon enabled.
 
-## Solo checks
+## Chronicle (Phase A)
+
+1. **`/ic chronicle`** — Parchment journal opens (not a plain black box); two panels visible.
+2. **`/ic sample`** — Sample entry appears; toast may show; select entry and read IC prose.
+3. **Edit + Save page** — Change body text; save; reopen entry; text persists after `/reload`.
+4. **Add note** — Manual heading/body; Inscribe; entry in list.
+5. **Presentation** — Hides index; full-page read; switch back to Edit mode.
+6. **Regenerate** — New template wording; facts preserved.
+7. **Pin / Delete** — Pin sorts preference; delete removes page.
+8. **Live quest** — Turn in any quest → new QUEST entry with localized name.
+9. **Minimap** — Right-click opens chronicle; Shift+Right-click beacon.
+
+## Solo checks (Discovery)
 
 1. **Clean load** — No Lua errors on login (with TRP3 enabled).
 2. **Standalone load** — Disable TRP3, `/reload`, no errors.
-3. **Minimap button** — Scroll icon appears; left-click opens flyout; right-click opens beacon editor.
+3. **Minimap button** — Book icon; left-click flyout.
 4. **Beacon editor** — Preview phrase, Broadcast, optional Also /say fires real say text.
 5. **Notice editor** — Profanity in title/body is hard-blocked.
 6. **OOC linter** — Text with `OOC:` or `lfg` shows confirm dialog before posting.

@@ -2,10 +2,26 @@
 
 A WoW addon for in-character immersive connections rather than OOC social utility.
 
-In-character RP discovery for World of Warcraft Retail — ambient beacons and notice boards that complement (never replace) Total RP 3.
+**Traveler’s Chronicle** (journal of quests, feats, titles, craft, and handwritten notes), plus RP discovery beacons and notice boards. Complements Total RP 3 — never replaces it.
 
-**Version:** 0.1.0 (MVP+)  
-**Target:** Retail WoW 12.0.7+
+**Version:** 0.2.0 (Phase A — Chronicle)  
+**Target:** Retail WoW 12.0.7+  
+**Repo:** https://github.com/khallammarellus-rgb/In-Character
+
+---
+
+## Features
+
+| Module | Status |
+|---|---|
+| **Chronicle** — auto log + editable IC prose + parchment journal UI | **0.2.0** |
+| Discovery — beacons & notice boards | Shipped |
+| Hardcore integrity log | Planned |
+| Survival meters | Planned |
+| Afterlife return paths | Planned |
+| Leveling roadmap | Planned |
+| PvP after-action reports | Planned |
+| Peer share / TRP3-friendly export | Planned |
 
 ---
 
@@ -17,18 +33,16 @@ In-character RP discovery for World of Warcraft Retail — ambient beacons and n
 git clone https://github.com/khallammarellus-rgb/In-Character.git
 ```
 
-2. Create a junction into your WoW AddOns folder (run PowerShell **as Administrator**):
+2. Junction into WoW AddOns (PowerShell **as Administrator**):
 
 ```powershell
 New-Item -ItemType Junction `
   -Path "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\InCharacter" `
-  -Target "C:\path\to\In-Character\InCharacter"
+  -Target "C:\Users\kvebe\InCharacter\InCharacter"
 ```
 
-3. Enable **In Character** on the character select AddOns screen
+3. Enable **In Character** on the character select AddOns screen  
 4. `/reload` in-game
-
-**Standalone:** Works without Total RP 3. TRP3 profile fields are used as optional editor defaults when present.
 
 ---
 
@@ -36,24 +50,38 @@ New-Item -ItemType Junction `
 
 | Command | Description |
 |---|---|
-| `/ic` | Open the discovery flyout |
-| `/ic beacon` | Open beacon editor |
-| `/ic notice` | Open notice editor |
-| `/ic ping` | Test addon comms (dev) |
-| `/ic history` | View draft history |
+| `/ic chronicle` | Open the traveler’s journal (`/ic log`, `/ic journal`) |
+| `/ic sample` | Add a sample chronicle entry (dev) |
+| `/ic` | Discovery flyout |
+| `/ic beacon` | Broadcast beacon editor |
+| `/ic notice` | Notice board editor |
+| `/ic ping` | Comms test |
+| `/ic history` | Discovery draft counts |
+
+**Minimap:** Left-click flyout · Right-click chronicle · Shift+Right-click beacon
 
 ---
 
-## GitHub
+## Chronicle quick start
 
-https://github.com/khallammarellus-rgb/In-Character
+1. `/ic chronicle` — open the parchment journal  
+2. Complete a quest — a page is inscribed automatically (edit freely)  
+3. **Add note** — manual IC entries (weapons, oaths, memories)  
+4. **Presentation** — full-page reading mode  
+5. **Regenerate** — re-roll template prose from the same facts  
+
+RP prose is **template-based** (no AI in-game). Always editable. K.C. years are approximate flavor.
 
 ---
 
 ## Architecture
 
-See [docs/architecture.md](docs/architecture.md) for the full build spec.
+- [docs/architecture-suite.md](docs/architecture-suite.md) — immersion suite roadmap  
+- [docs/architecture.md](docs/architecture.md) — discovery module build spec  
+- [docs/testing.md](docs/testing.md) — smoke tests  
 
-## Testing
+---
 
-See [docs/testing.md](docs/testing.md) for the in-game smoke-test checklist.
+## Legal
+
+World of Warcraft is a trademark of Blizzard Entertainment. This is a fan addon, not affiliated with Blizzard.

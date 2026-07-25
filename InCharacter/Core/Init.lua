@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.1.0"
+InCharacter.VERSION = "0.2.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -32,7 +32,19 @@ InCharacterDB = InCharacterDB or {
 InCharacterCharDB = InCharacterCharDB or {
     residence = "",
     filters = { hardExclude = {}, softPriority = {} },
-    settings = { noticeTTLDays = 3, quietNotifications = false },
+    settings = {
+        noticeTTLDays = 3,
+        quietNotifications = false,
+        yearKCBase = 42,
+        yearKCOffset = 0,
+    },
+    chronicle = {
+        entries = {},
+    },
+    gate = {
+        ground = false,
+        flying = false,
+    },
 }
 
 local addon = AceAddon:NewAddon("InCharacter", "AceEvent-3.0", "AceComm-3.0")
@@ -86,9 +98,17 @@ end
 function addon:OnInitialize()
     InCharacter.DB = InCharacterDB
     InCharacter.CharDB = InCharacterCharDB
+    -- Migrate older chars missing chronicle/settings keys
+    InCharacter.CharDB.settings = InCharacter.CharDB.settings or {}
+    InCharacter.CharDB.chronicle = InCharacter.CharDB.chronicle or { entries = {} }
+    InCharacter.CharDB.gate = InCharacter.CharDB.gate or { ground = false, flying = false }
+
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
     InCharacter.History.Init()
+    InCharacter.Chronicle.Store.Init()
+    InCharacter.Chronicle.Capture.Init()
+    InCharacter.Chronicle.UI.Init()
     InCharacter.MinimapButton.Init()
     InCharacter.Flyout.Init()
     InCharacter.BoardView.Init()
@@ -110,9 +130,13 @@ SlashCmdList["INCHARACTER"] = function(msg)
         InCharacter.PostEditor.ShowNoticeEditor()
     elseif msg == "history" then
         InCharacter.History.Show()
+    elseif msg == "chronicle" or msg == "log" or msg == "journal" then
+        InCharacter.Chronicle.UI.Toggle()
+    elseif msg == "sample" then
+        InCharacter.Chronicle.Capture.DebugAddSample()
     elseif msg == "" then
         InCharacter.Flyout.Toggle()
     else
-        InCharacter.Print("Commands: /ic, /ic beacon, /ic notice, /ic history, /ic ping")
+        InCharacter.Print("Commands: /ic, /ic chronicle, /ic beacon, /ic notice, /ic history, /ic ping, /ic sample")
     end
 end

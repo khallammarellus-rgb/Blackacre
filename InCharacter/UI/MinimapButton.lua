@@ -9,10 +9,14 @@ local unread = 0
 function InCharacter.MinimapButton.Init()
     local dataObj = ldb:NewDataObject("InCharacter", {
         type = "launcher",
-        icon = "Interface\\Icons\\INV_Scroll_03",
+        icon = "Interface\\Icons\\INV_Misc_Book_09",
         OnClick = function(_, button)
             if button == "RightButton" then
-                InCharacter.PostEditor.ShowBeaconEditor()
+                if IsShiftKeyDown() then
+                    InCharacter.PostEditor.ShowBeaconEditor()
+                else
+                    InCharacter.Chronicle.UI.Toggle()
+                end
             else
                 InCharacter.Flyout.Toggle()
             end
@@ -20,7 +24,8 @@ function InCharacter.MinimapButton.Init()
         OnTooltipShow = function(tooltip)
             tooltip:AddLine("In Character")
             tooltip:AddLine("Left-click: discovery flyout", 1, 1, 1)
-            tooltip:AddLine("Right-click: broadcast beacon", 1, 1, 1)
+            tooltip:AddLine("Right-click: traveler's chronicle", 1, 1, 1)
+            tooltip:AddLine("Shift+Right-click: broadcast beacon", 0.8, 0.8, 0.8)
             if unread > 0 then
                 tooltip:AddLine(unread .. " new nearby", 0.8, 0.7, 0.2)
             end
