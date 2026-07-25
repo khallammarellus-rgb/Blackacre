@@ -1,6 +1,6 @@
 # In Character — Immersion Suite Architecture
 
-**Product:** One addon (In Character) combining discovery, chronicle, survival, hardcore integrity, afterlife paths, roadmaps, PvP reports, and peer sharing.
+**Product:** In Character suite — modular packages (core + Presence + Tome + Survival) combining discovery, chronicle, survival, hardcore integrity, afterlife paths, roadmaps, PvP reports, and peer sharing. See `docs/packages.md`.
 
 **Repo:** https://github.com/khallammarellus-rgb/In-Character  
 **Target:** Retail WoW 12.0.7+

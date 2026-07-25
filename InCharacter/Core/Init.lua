@@ -2,10 +2,11 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.9.0"
+InCharacter.VERSION = "1.0.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
+InCharacter._loadedPackages = InCharacter._loadedPackages or {}
 
 InCharacter.STATUS = {
     ACTIVE = "ACTIVE",
@@ -92,6 +93,18 @@ InCharacterCharDB = InCharacterCharDB or {
 local addon = AceAddon:NewAddon("InCharacter", "AceEvent-3.0", "AceComm-3.0")
 InCharacter.addon = addon
 
+--- Child packages call this after their files load (RequiredDeps: InCharacter).
+function InCharacter.RegisterPackage(name, initFn)
+    if not name or not initFn then return end
+    if InCharacter._loadedPackages[name] then return end
+    InCharacter._loadedPackages[name] = true
+    initFn()
+end
+
+function InCharacter.HasPackage(name)
+    return InCharacter._loadedPackages[name] == true
+end
+
 function InCharacter.NewID()
     return string.format("%08x%04x", time(), math.random(0, 0xFFFF))
 end
@@ -137,6 +150,10 @@ function InCharacter.Print(msg)
     print("|cffc9a227In Character:|r " .. msg)
 end
 
+local function NeedPackage(pkg, feature)
+    InCharacter.Print(string.format("%s requires the |cffc9a227%s|r package (enable it in AddOns).", feature, pkg))
+end
+
 function addon:OnInitialize()
     InCharacter.DB = InCharacterDB
     InCharacter.CharDB = InCharacterCharDB
@@ -172,7 +189,6 @@ function addon:OnInitialize()
         enabled = true,
         lastReports = {},
     }
-    InCharacter.YearCalendar.EnsureIdentity()
     InCharacter.CharDB.presence = InCharacter.CharDB.presence or {
         receiveBeacons = true,
         lastEmitAt = nil,
@@ -181,29 +197,11 @@ function addon:OnInitialize()
         showNameProximity = true,
     }
 
+    -- Core only — Presence / Tome / Survival self-init via RegisterPackage
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
     InCharacter.History.Init()
-    InCharacter.Chronicle.Store.Init()
-    InCharacter.Chronicle.Capture.Init()
-    InCharacter.Chronicle.UI.Init()
-    InCharacter.Hardcore.Monitor.Init()
-    InCharacter.Hardcore.UI.Init()
-    InCharacter.Survival.Engine.Init()
-    InCharacter.Survival.UI.Init()
-    InCharacter.Afterlife.PathTracker.Init()
-    InCharacter.Afterlife.UI.Init()
-    InCharacter.Roadmap.Store.Init()
-    InCharacter.Roadmap.Engine.Init()
-    InCharacter.Roadmap.UI.Init()
-    InCharacter.PvP.AfterAction.Init()
-    InCharacter.LineageUI.Init()
-    InCharacter.BeaconHead.Init()
-    InCharacter.BeaconPins.Init()
     InCharacter.MinimapButton.Init()
-    InCharacter.Flyout.Init()
-    InCharacter.BoardView.Init()
-    InCharacter.PostEditor.Init()
 end
 
 function addon:OnEnable()
@@ -216,66 +214,140 @@ SlashCmdList["INCHARACTER"] = function(msg)
     if msg == "ping" then
         InCharacter.Comms.SendPing()
     elseif msg == "beacon" then
-        InCharacter.PostEditor.ShowBeaconEditor()
+        if InCharacter.PostEditor and InCharacter.PostEditor.ShowBeaconEditor then
+            InCharacter.PostEditor.ShowBeaconEditor()
+        else
+            NeedPackage("In Character Presence", "Beacons")
+        end
     elseif msg == "bulletin" then
-        InCharacter.PostEditor.ShowBulletinEditor()
+        if InCharacter.PostEditor and InCharacter.PostEditor.ShowBulletinEditor then
+            InCharacter.PostEditor.ShowBulletinEditor()
+        else
+            NeedPackage("In Character Presence", "Bulletins")
+        end
     elseif msg == "history" then
         InCharacter.History.Show()
     elseif msg == "tome" or msg == "chronicle" or msg == "log" or msg == "journal" then
-        InCharacter.Chronicle.UI.Toggle()
+        if InCharacter.Chronicle and InCharacter.Chronicle.UI then
+            InCharacter.Chronicle.UI.Toggle()
+        else
+            NeedPackage("In Character Tome", "The Tome")
+        end
     elseif msg == "sample" then
-        InCharacter.Chronicle.Capture.DebugAddSample()
+        if InCharacter.Chronicle and InCharacter.Chronicle.Capture then
+            InCharacter.Chronicle.Capture.DebugAddSample()
+        else
+            NeedPackage("In Character Tome", "Chronicle")
+        end
     elseif msg == "hardcore" or msg == "gates" or msg == "hc" then
-        InCharacter.Hardcore.UI.Toggle()
+        if InCharacter.Hardcore and InCharacter.Hardcore.UI then
+            InCharacter.Hardcore.UI.Toggle()
+        else
+            NeedPackage("In Character Tome", "Hardcore")
+        end
     elseif msg == "survival" or msg == "meters" or msg == "condition" then
-        InCharacter.Survival.UI.Toggle()
+        if InCharacter.Survival and InCharacter.Survival.UI then
+            InCharacter.Survival.UI.Toggle()
+        else
+            NeedPackage("In Character Survival", "Survival")
+        end
     elseif msg == "eat" then
-        InCharacter.Survival.Engine.Recover("eat", 22)
+        if InCharacter.Survival and InCharacter.Survival.Engine then
+            InCharacter.Survival.Engine.Recover("eat", 22)
+        else
+            NeedPackage("In Character Survival", "Survival")
+        end
     elseif msg == "drink" then
-        InCharacter.Survival.Engine.Recover("drink", 22)
+        if InCharacter.Survival and InCharacter.Survival.Engine then
+            InCharacter.Survival.Engine.Recover("drink", 22)
+        else
+            NeedPackage("In Character Survival", "Survival")
+        end
     elseif msg == "rest" then
-        if UnitAffectingCombat and UnitAffectingCombat("player") then
+        if not (InCharacter.Survival and InCharacter.Survival.Engine) then
+            NeedPackage("In Character Survival", "Survival")
+        elseif UnitAffectingCombat and UnitAffectingCombat("player") then
             InCharacter.Print("You cannot truly rest in combat.")
         else
             InCharacter.Survival.Engine.Recover("rest", 18)
         end
     elseif msg == "survival off" then
-        InCharacter.Survival.Engine.SetEnabled(false)
-        InCharacter.Print("Survival meters disabled for this character.")
-        InCharacter.Survival.UI.Refresh()
+        if InCharacter.Survival and InCharacter.Survival.Engine then
+            InCharacter.Survival.Engine.SetEnabled(false)
+            InCharacter.Print("Survival meters disabled for this character.")
+            if InCharacter.Survival.UI then InCharacter.Survival.UI.Refresh() end
+        else
+            NeedPackage("In Character Survival", "Survival")
+        end
     elseif msg == "survival on" then
-        InCharacter.Survival.Engine.SetEnabled(true)
-        InCharacter.Print("Survival meters enabled.")
-        InCharacter.Survival.UI.ShowPanel()
+        if InCharacter.Survival and InCharacter.Survival.Engine then
+            InCharacter.Survival.Engine.SetEnabled(true)
+            InCharacter.Print("Survival meters enabled.")
+            if InCharacter.Survival.UI then InCharacter.Survival.UI.ShowPanel() end
+        else
+            NeedPackage("In Character Survival", "Survival")
+        end
     elseif msg == "afterlife" or msg == "death" or msg == "return" then
-        InCharacter.Afterlife.UI.Toggle()
+        if InCharacter.Afterlife and InCharacter.Afterlife.UI then
+            InCharacter.Afterlife.UI.Toggle()
+        else
+            NeedPackage("In Character Tome", "Afterlife")
+        end
     elseif msg == "realms" then
-        InCharacter.Afterlife.UI.ShowRealmPicker()
+        if InCharacter.Afterlife and InCharacter.Afterlife.UI then
+            InCharacter.Afterlife.UI.ShowRealmPicker()
+        else
+            NeedPackage("In Character Tome", "Afterlife")
+        end
     elseif msg == "roadmap" or msg == "road" or msg == "expedition" or msg == "chart" then
-        InCharacter.Roadmap.UI.Toggle()
+        if InCharacter.Roadmap and InCharacter.Roadmap.UI then
+            InCharacter.Roadmap.UI.Toggle()
+        else
+            NeedPackage("In Character Tome", "Roadmap")
+        end
     elseif msg == "birth" or msg == "identity" or msg == "lineage" or msg == "age" then
-        InCharacter.LineageUI.Toggle()
+        if InCharacter.LineageUI then
+            InCharacter.LineageUI.Toggle()
+        else
+            NeedPackage("In Character Tome", "Lineage")
+        end
     elseif msg == "birth human" then
-        InCharacter.Birthpath.DebugSampleHuman()
+        if InCharacter.Birthpath then InCharacter.Birthpath.DebugSampleHuman() else NeedPackage("In Character Tome", "Lineage") end
     elseif msg == "birth elf" then
-        InCharacter.Birthpath.DebugSampleElf()
+        if InCharacter.Birthpath then InCharacter.Birthpath.DebugSampleElf() else NeedPackage("In Character Tome", "Lineage") end
     elseif msg == "birth dracthyr" then
-        InCharacter.Birthpath.DebugSampleDracthyr()
+        if InCharacter.Birthpath then InCharacter.Birthpath.DebugSampleDracthyr() else NeedPackage("In Character Tome", "Lineage") end
     elseif msg == "export" then
-        InCharacter.Share.Export.CopyToClipboard()
+        if InCharacter.Share and InCharacter.Share.Export then
+            InCharacter.Share.Export.CopyToClipboard()
+        else
+            NeedPackage("In Character Tome", "Share")
+        end
     elseif msg:match("^share%s+") then
         local target = msg:match("^share%s+(.+)$")
         InCharacter.Comms.RequestSummary(strtrim(target or ""))
     elseif msg == "share" then
         InCharacter.Print("Usage: /ic share PlayerName  — or /ic export for TRP3 paste")
     elseif msg == "pvpsample" then
-        InCharacter.PvP.AfterAction.DebugSample()
+        if InCharacter.PvP and InCharacter.PvP.AfterAction then
+            InCharacter.PvP.AfterAction.DebugSample()
+        else
+            NeedPackage("In Character Tome", "PvP")
+        end
     elseif msg == "pvp off" then
-        InCharacter.PvP.AfterAction.SetEnabled(false)
-        InCharacter.Print("PvP after-action reports disabled.")
+        if InCharacter.PvP and InCharacter.PvP.AfterAction then
+            InCharacter.PvP.AfterAction.SetEnabled(false)
+            InCharacter.Print("PvP after-action reports disabled.")
+        else
+            NeedPackage("In Character Tome", "PvP")
+        end
     elseif msg == "pvp on" then
-        InCharacter.PvP.AfterAction.SetEnabled(true)
-        InCharacter.Print("PvP after-action reports enabled.")
+        if InCharacter.PvP and InCharacter.PvP.AfterAction then
+            InCharacter.PvP.AfterAction.SetEnabled(true)
+            InCharacter.Print("PvP after-action reports enabled.")
+        else
+            NeedPackage("In Character Tome", "PvP")
+        end
     elseif msg == "beacons off" then
         InCharacter.Lifecycle.EnsurePresenceDB().receiveBeacons = false
         InCharacter.Print("Beacon receive off.")
@@ -283,9 +355,22 @@ SlashCmdList["INCHARACTER"] = function(msg)
     elseif msg == "beacons on" then
         InCharacter.Lifecycle.EnsurePresenceDB().receiveBeacons = true
         InCharacter.Print("Beacon receive on.")
+    elseif msg == "packages" or msg == "version" then
+        local list = {}
+        for name in pairs(InCharacter._loadedPackages) do
+            table.insert(list, name)
+        end
+        table.sort(list)
+        InCharacter.Print(string.format("v%s core · packages: %s",
+            InCharacter.VERSION,
+            (#list > 0) and table.concat(list, ", ") or "(none — enable Presence/Tome/Survival)"))
     elseif msg == "" then
-        InCharacter.Flyout.Toggle()
+        if InCharacter.Flyout and InCharacter.Flyout.Toggle then
+            InCharacter.Flyout.Toggle()
+        else
+            InCharacter.Print("Enable |cffc9a227In Character Presence|r for the presence panel. /ic packages")
+        end
     else
-        InCharacter.Print("Commands: /ic, /ic beacon, /ic bulletin, /ic tome, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export")
+        InCharacter.Print("Commands: /ic, /ic beacon, /ic bulletin, /ic tome, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export, /ic packages")
     end
 end

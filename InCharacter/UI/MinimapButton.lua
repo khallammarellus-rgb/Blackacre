@@ -13,12 +13,24 @@ function InCharacter.MinimapButton.Init()
         OnClick = function(_, button)
             if button == "RightButton" then
                 if IsShiftKeyDown() then
-                    InCharacter.PostEditor.ShowBeaconEditor()
+                    if InCharacter.PostEditor and InCharacter.PostEditor.ShowBeaconEditor then
+                        InCharacter.PostEditor.ShowBeaconEditor()
+                    else
+                        InCharacter.Print("Enable In Character Presence for beacons.")
+                    end
                 else
-                    InCharacter.Chronicle.UI.Toggle()
+                    if InCharacter.Chronicle and InCharacter.Chronicle.UI then
+                        InCharacter.Chronicle.UI.Toggle()
+                    else
+                        InCharacter.Print("Enable In Character Tome for the journal.")
+                    end
                 end
             else
-                InCharacter.Flyout.Toggle()
+                if InCharacter.Flyout and InCharacter.Flyout.Toggle then
+                    InCharacter.Flyout.Toggle()
+                else
+                    InCharacter.Print("Enable In Character Presence for the presence panel.")
+                end
             end
         end,
         OnTooltipShow = function(tooltip)

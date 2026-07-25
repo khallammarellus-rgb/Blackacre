@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 0.9.0 (Beacons lite + Bulletins rename) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 1.0.0 (multi-package split) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -11,9 +11,11 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 - [ ] `/reload` — no Lua errors (TRP3 enabled)
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
-- [ ] Addon appears in character-select AddOns list as **In Character**
+- [ ] Character-select AddOns lists **four** entries: In Character, Presence, Tome, Survival (all enabled)
 - [ ] Minimap book icon visible
-- [ ] Version / TOC shows **0.9.0** after update
+- [ ] `/ic packages` shows Presence, Tome, Survival and version **1.0.0**
+- [ ] Disable Presence only → `/ic` hints to enable Presence; `/ic tome` still works
+- [ ] Disable Tome only → right-click minimap hints; Presence still works
 
 ---
 

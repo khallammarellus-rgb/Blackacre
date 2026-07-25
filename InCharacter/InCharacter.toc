@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: In Character
-## Notes: Immersive RP suite — presence beacons & bulletins, tome, survival
-## Version: 0.9.0
+## Notes: Core — comms, presence lifecycle, shared UI theme (enable Presence, Tome, Survival packages)
+## Version: 1.0.0
 ## Author: khallammarellus-rgb
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
 ## SavedVariables: InCharacterDB
@@ -22,44 +22,10 @@ Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 Core\Init.lua
 Data\Blocklist.lua
-Data\SentenceTemplates.lua
-Data\Boards.lua
-Data\YearCalendar.lua
-Data\TimelineEras.lua
-Data\AgeBands.lua
-Data\HookTemplates.lua
-Data\ZoneClimate.lua
-Data\AfterlifePaths.lua
-Data\RoadmapZones.lua
-Data\BeaconDisplay.lua
 Core\ProfanityFilter.lua
 Core\TRP3Bridge.lua
 Core\Comms.lua
 Core\Lifecycle.lua
 History\History.lua
 UI\Theme.lua
-UI\JournalFrame.lua
 UI\MinimapButton.lua
-UI\Flyout.lua
-UI\BoardView.lua
-UI\PostEditor.lua
-Presence\BeaconHead.lua
-Presence\BeaconPins.lua
-Chronicle\Store.lua
-Chronicle\Hooks.lua
-Chronicle\Capture.lua
-Chronicle\UI_Chronology.lua
-Hardcore\Monitor.lua
-Hardcore\UI_Gates.lua
-Survival\Engine.lua
-Survival\UI_Meters.lua
-Afterlife\PathTracker.lua
-Afterlife\UI_Paths.lua
-Roadmap\Store.lua
-Roadmap\Engine.lua
-Roadmap\UI_Roadmap.lua
-PvP\AfterAction.lua
-Share\Export.lua
-Share\PeerCard.lua
-Lore\Birthpath.lua
-Lore\UI_Lineage.lua

@@ -194,6 +194,10 @@ end
 
 function InCharacter.Lifecycle.CreateBeacon(templateId, slotValues, opts)
     opts = opts or {}
+    if not (InCharacter.SentenceTemplates and InCharacter.SentenceTemplates.Resolve) then
+        InCharacter.Print("Beacons require the In Character Presence package.")
+        return nil
+    end
     local resolved = InCharacter.SentenceTemplates.Resolve(templateId, slotValues, InCharacter.CharDB.residence)
     if not resolved then return nil end
     local ctx = InCharacter.GetZoneContext()

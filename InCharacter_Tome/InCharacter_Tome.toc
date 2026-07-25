@@ -1,0 +1,32 @@
+## Interface: 120007
+## Title: In Character |cffc9a227Tome|r
+## Notes: Traveler’s Chronicle, hardcore, afterlife, roadmap, PvP, lineage, share
+## Version: 1.0.0
+## Author: khallammarellus-rgb
+## RequiredDeps: InCharacter
+## Category-enUS: Roleplay
+
+UI\JournalFrame.lua
+Data\YearCalendar.lua
+Data\TimelineEras.lua
+Data\AgeBands.lua
+Data\HookTemplates.lua
+Data\AfterlifePaths.lua
+Data\RoadmapZones.lua
+Chronicle\Store.lua
+Chronicle\Hooks.lua
+Chronicle\Capture.lua
+Chronicle\UI_Chronology.lua
+Hardcore\Monitor.lua
+Hardcore\UI_Gates.lua
+Afterlife\PathTracker.lua
+Afterlife\UI_Paths.lua
+Roadmap\Store.lua
+Roadmap\Engine.lua
+Roadmap\UI_Roadmap.lua
+PvP\AfterAction.lua
+Share\Export.lua
+Share\PeerCard.lua
+Lore\Birthpath.lua
+Lore\UI_Lineage.lua
+Bootstrap.lua
