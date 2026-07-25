@@ -48,6 +48,10 @@ InCharacter.HookTemplates = {
         "In {yearKC}, {name}'s spirit walked {pathName}. {afterlifeDetail} So the ledger of death and return is written.",
         "Beyond the living maps, {name} tread {pathName}. {afterlifeDetail} When flesh called again, the {race} {class} answered.",
     },
+    ROADMAP = {
+        "In {yearKC}, {name} set their boots to the expedition \"{roadmapName}\". {roadmapDetail}",
+        "The chart turns: {name}, a {race} {class} of level {level}, marks \"{roadmapName}\" — {roadmapDetail}",
+    },
     DEFAULT = {
         "In the year {yearKC}, {name} marked a moment in their tale ({kind}). The {race} {class} continues onward from {zone}.",
     },

@@ -84,6 +84,14 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
             or facts.stage == "return" and ("They returned to the living from " .. (facts.pathName or "death's realm") .. ".")
             or facts.stage == "abandon" and "The path was left unfinished."
             or (facts.taskBody or "A soul-rite was marked."),
+        roadmapName = facts.roadmapName or "an unnamed road",
+        roadmapDetail = facts.stage == "begin" and ("First ink on the chart points toward " .. (facts.zoneName or "unknown lands") .. ".")
+            or facts.stage == "arrive" and ("The road opens into " .. (facts.zoneName or "a new land") .. ". " .. (facts.lore or ""))
+            or facts.stage == "chapter" and ("They close the chapter of " .. (facts.zoneName or "that land") .. ". " .. (facts.lore or ""))
+            or facts.stage == "lock" and ("They choose to linger near level " .. tostring(facts.lockLevel or "?") .. " in " .. (facts.zoneName or "place") .. ", so the story may breathe.")
+            or facts.stage == "complete" and "The expedition chart is finished — for now."
+            or facts.stage == "abandon" and "The chart is folded away unfinished."
+            or (facts.lore or "The road continues."),
         spec = context.spec or "",
         specClause = (context.spec and context.spec ~= "") and (" (" .. context.spec .. ")") or "",
     }
@@ -112,6 +120,8 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         title = facts.title or "Survival critical"
     elseif kind == "AFTERLIFE" then
         title = facts.title or ("Afterlife: " .. (facts.pathName or "unknown"))
+    elseif kind == "ROADMAP" then
+        title = facts.title or ("Road: " .. (facts.roadmapName or "expedition"))
     else
         title = facts.title or kind or "Entry"
     end

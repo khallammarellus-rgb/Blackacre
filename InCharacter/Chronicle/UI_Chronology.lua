@@ -23,6 +23,7 @@ local KIND_LABELS = {
     HC_FLY = "Sky",
     SURVIVAL = "Survival",
     AFTERLIFE = "Afterlife",
+    ROADMAP = "Road",
 }
 
 local function KindLabel(kind)

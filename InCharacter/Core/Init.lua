@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.5.0"
+InCharacter.VERSION = "0.6.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -63,6 +63,11 @@ InCharacterCharDB = InCharacterCharDB or {
         active = nil,
         history = {},
         promptOnDeath = true,
+    },
+    roadmap = {
+        active = nil,
+        history = {},
+        lockPrompts = true,
     },
 }
 
@@ -140,6 +145,11 @@ function addon:OnInitialize()
         history = {},
         promptOnDeath = true,
     }
+    InCharacter.CharDB.roadmap = InCharacter.CharDB.roadmap or {
+        active = nil,
+        history = {},
+        lockPrompts = true,
+    }
 
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
@@ -153,6 +163,9 @@ function addon:OnInitialize()
     InCharacter.Survival.UI.Init()
     InCharacter.Afterlife.PathTracker.Init()
     InCharacter.Afterlife.UI.Init()
+    InCharacter.Roadmap.Store.Init()
+    InCharacter.Roadmap.Engine.Init()
+    InCharacter.Roadmap.UI.Init()
     InCharacter.MinimapButton.Init()
     InCharacter.Flyout.Init()
     InCharacter.BoardView.Init()
@@ -204,9 +217,11 @@ SlashCmdList["INCHARACTER"] = function(msg)
         InCharacter.Afterlife.UI.Toggle()
     elseif msg == "realms" then
         InCharacter.Afterlife.UI.ShowRealmPicker()
+    elseif msg == "roadmap" or msg == "road" or msg == "expedition" or msg == "chart" then
+        InCharacter.Roadmap.UI.Toggle()
     elseif msg == "" then
         InCharacter.Flyout.Toggle()
     else
-        InCharacter.Print("Commands: /ic chronicle, /ic hardcore, /ic survival, /ic afterlife, /ic realms, /ic eat, /ic drink, /ic rest, /ic beacon, /ic notice")
+        InCharacter.Print("Commands: /ic chronicle, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic realms, /ic eat, /ic drink, /ic rest, /ic beacon")
     end
 end

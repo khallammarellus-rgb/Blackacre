@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 0.5.0 (Phase D afterlife) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 0.6.0 (Phase E roadmap) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,7 +13,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Addon appears in character-select AddOns list as **In Character**
 - [ ] Minimap book icon visible
-- [ ] Version / TOC shows **0.5.0** after update
+- [ ] Version / TOC shows **0.6.0** after update
 
 ---
 
@@ -145,6 +145,34 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 ---
 
+## Phase E — Expedition roadmap
+
+### Chart UI
+
+- [ ] `/ic roadmap` opens parchment two-panel **Expedition Chart** (not a black box)
+- [ ] Left lists preset roads (Alliance EK, Kalimdor, Horde paths, etc.)
+- [ ] Hover preset shows blurb tooltip
+- [ ] Selecting a preset starts expedition + toast + ROADMAP chronicle “Expedition begun”
+- [ ] Right panel shows ordered zones with status glyphs (pending / active / done / locked)
+- [ ] Click a step shows hubs, suggested lock level, lore blurb
+
+### Progress
+
+- [ ] **Next chapter** marks current done, activates next, chronicle arrive/chapter pages
+- [ ] Last chapter advance completes expedition + toast + complete chronicle page
+- [ ] **Abandon** clears active chart + chronicle note
+- [ ] Starting a new preset replaces/abandons need — starting while active overwrites via StartPreset (verify behavior OK)
+
+### Level-lock prompts
+
+- [ ] “Level-lock suggestions” checkbox toggles prompts
+- [ ] Reaching `lockAt` for active chapter shows native StaticPopup (cannot force XP lock)
+- [ ] **Mark locked in journal** writes ROADMAP lock entry
+- [ ] **Keep leveling** dismisses without lock entry
+- [ ] Prompt does not spam every reload at same level
+
+---
+
 ## Discovery (regression)
 
 - [ ] `/ic` flyout opens
@@ -172,12 +200,12 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 | Phase B Hardcore | | | |
 | Phase C Survival | | | |
 | Phase D Afterlife | | | |
+| Phase E Roadmap | | | |
 | Discovery regression | | | |
 
 ---
 
 ## Planned QA sections (not built yet)
 
-- [ ] Phase E — Leveling roadmap
 - [ ] Phase F — PvP after-action reports
 - [ ] Phase G — Peer share / export
