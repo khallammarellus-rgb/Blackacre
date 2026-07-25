@@ -21,6 +21,7 @@ local KIND_LABELS = {
     HC_ENCUMBRANCE = "Burden",
     HC_MOUNT = "Mount",
     HC_FLY = "Sky",
+    SURVIVAL = "Survival",
 }
 
 local function KindLabel(kind)

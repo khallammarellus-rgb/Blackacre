@@ -73,6 +73,11 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         manualTitle = facts.manualTitle or facts.title or "a private note",
         manualBody = facts.manualBody or facts.body or "",
         bagDetail = facts.bagDetail or "an oversized pack",
+        meterName = facts.meter == "hunger" and "hunger"
+            or facts.meter == "thirst" and "thirst"
+            or facts.meter == "exposure" and "exposure"
+            or facts.meterName or "vital strength",
+        meterValue = facts.value and tostring(math.floor(facts.value)) or "low",
         spec = context.spec or "",
         specClause = (context.spec and context.spec ~= "") and (" (" .. context.spec .. ")") or "",
     }
@@ -97,6 +102,8 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         title = facts.title or "Mounted without ground rite"
     elseif kind == "HC_FLY" then
         title = facts.title or "Flew without sky rite"
+    elseif kind == "SURVIVAL" then
+        title = facts.title or "Survival critical"
     else
         title = facts.title or kind or "Entry"
     end

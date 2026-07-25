@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.3.0"
+InCharacter.VERSION = "0.4.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -51,6 +51,13 @@ InCharacterCharDB = InCharacterCharDB or {
         mountViolations = 0,
         flyViolations = 0,
         encumbranceViolations = 0,
+    },
+    survival = {
+        enabled = true,
+        hunger = 85,
+        thirst = 85,
+        exposure = 90,
+        hideMeters = false,
     },
 }
 
@@ -116,6 +123,13 @@ function addon:OnInitialize()
         flyViolations = 0,
         encumbranceViolations = 0,
     }
+    InCharacter.CharDB.survival = InCharacter.CharDB.survival or {
+        enabled = true,
+        hunger = 85,
+        thirst = 85,
+        exposure = 90,
+        hideMeters = false,
+    }
 
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
@@ -125,6 +139,8 @@ function addon:OnInitialize()
     InCharacter.Chronicle.UI.Init()
     InCharacter.Hardcore.Monitor.Init()
     InCharacter.Hardcore.UI.Init()
+    InCharacter.Survival.Engine.Init()
+    InCharacter.Survival.UI.Init()
     InCharacter.MinimapButton.Init()
     InCharacter.Flyout.Init()
     InCharacter.BoardView.Init()
@@ -152,9 +168,29 @@ SlashCmdList["INCHARACTER"] = function(msg)
         InCharacter.Chronicle.Capture.DebugAddSample()
     elseif msg == "hardcore" or msg == "gates" or msg == "hc" then
         InCharacter.Hardcore.UI.Toggle()
+    elseif msg == "survival" or msg == "meters" or msg == "condition" then
+        InCharacter.Survival.UI.Toggle()
+    elseif msg == "eat" then
+        InCharacter.Survival.Engine.Recover("eat", 22)
+    elseif msg == "drink" then
+        InCharacter.Survival.Engine.Recover("drink", 22)
+    elseif msg == "rest" then
+        if UnitAffectingCombat and UnitAffectingCombat("player") then
+            InCharacter.Print("You cannot truly rest in combat.")
+        else
+            InCharacter.Survival.Engine.Recover("rest", 18)
+        end
+    elseif msg == "survival off" then
+        InCharacter.Survival.Engine.SetEnabled(false)
+        InCharacter.Print("Survival meters disabled for this character.")
+        InCharacter.Survival.UI.Refresh()
+    elseif msg == "survival on" then
+        InCharacter.Survival.Engine.SetEnabled(true)
+        InCharacter.Print("Survival meters enabled.")
+        InCharacter.Survival.UI.ShowPanel()
     elseif msg == "" then
         InCharacter.Flyout.Toggle()
     else
-        InCharacter.Print("Commands: /ic, /ic chronicle, /ic hardcore, /ic beacon, /ic notice, /ic history, /ic ping, /ic sample")
+        InCharacter.Print("Commands: /ic chronicle, /ic hardcore, /ic survival, /ic eat, /ic drink, /ic rest, /ic beacon, /ic notice, /ic ping")
     end
 end

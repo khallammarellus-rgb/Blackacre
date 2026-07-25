@@ -4,7 +4,7 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 **Traveler’s Chronicle** (journal of quests, feats, titles, craft, and handwritten notes), plus RP discovery beacons and notice boards. Complements Total RP 3 — never replaces it.
 
-**Version:** 0.3.0 (Phase B — Hardcore honor log)  
+**Version:** 0.4.0 (Phase C — Survival meters)  
 **Target:** Retail WoW 12.0.7+  
 **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
@@ -15,9 +15,9 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 | Module | Status |
 |---|---|
 | **Chronicle** — auto log + editable IC prose + parchment journal UI | 0.2.0 |
-| **Hardcore honor log** — 6-slot bags, mount/fly rites, deaths | **0.3.0** |
+| **Hardcore honor log** — 6-slot bags, mount/fly rites, deaths | 0.3.0 |
+| **Survival** — hunger, thirst, exposure by zone climate | **0.4.0** |
 | Discovery — beacons & notice boards | Shipped |
-| Survival meters | Planned |
 | Afterlife return paths | Planned |
 | Leveling roadmap | Planned |
 | PvP after-action reports | Planned |
@@ -52,6 +52,9 @@ New-Item -ItemType Junction `
 |---|---|
 | `/ic chronicle` | Open the traveler’s journal (`/ic log`, `/ic journal`) |
 | `/ic hardcore` | Hardcore compact / gatekeeper rites (`/ic gates`, `/ic hc`) |
+| `/ic survival` | Toggle condition meters (`/ic meters`) |
+| `/ic eat` / `/ic drink` / `/ic rest` | IC recovery actions |
+| `/ic survival on` / `off` | Enable or disable survival for this character |
 | `/ic sample` | Add a sample chronicle entry (dev) |
 | `/ic` | Discovery flyout |
 | `/ic beacon` | Broadcast beacon editor |

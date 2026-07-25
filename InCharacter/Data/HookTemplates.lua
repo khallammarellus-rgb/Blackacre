@@ -40,6 +40,10 @@ InCharacter.HookTemplates = {
         "Wings before blessing: {name} took to the air in {zone} without the flying rite. Sky-roads, too, have their oaths.",
         "In {yearKC}, {name} flew unlicensed over {zone}. The hardcore ledger records the ascent.",
     },
+    SURVIVAL = {
+        "In {zone}, {name}'s body reminded them they are mortal — {meterName} failed them ({meterValue}). The road asks a price in more than blood.",
+        "A hard page: {name}, level {level}, found {meterName} at its end in {zone}. Survival is a story the bones tell first.",
+    },
     DEFAULT = {
         "In the year {yearKC}, {name} marked a moment in their tale ({kind}). The {race} {class} continues onward from {zone}.",
     },

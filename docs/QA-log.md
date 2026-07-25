@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 0.3.0 (Phase B hardcore) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 0.4.0 (Phase C survival) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,7 +13,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Addon appears in character-select AddOns list as **In Character**
 - [ ] Minimap book icon visible
-- [ ] Version prints or TOC shows 0.3.0 after update
+- [ ] Version / TOC shows **0.4.0** after update
 
 ---
 
@@ -85,6 +85,37 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 ---
 
+## Phase C — Survival meters
+
+### Condition panel
+
+- [ ] Parchment **Condition** panel appears near top-right after `/reload` (if survival enabled)
+- [ ] Shows Hunger, Thirst, Exposure bars with numeric values
+- [ ] Climate label updates by zone (e.g. city / desert / woodland / temperate)
+- [ ] Indoors vs outdoors reflected in subtitle
+- [ ] Panel is draggable; tooltip explains Eat/Drink/Rest
+- [ ] `/ic survival` toggles panel visibility
+- [ ] `/ic survival off` hides meters and stops decay; `/ic survival on` restores
+
+### Decay & recovery
+
+- [ ] Meters slowly decrease over time (~12s ticks)
+- [ ] Desert/arid zones increase thirst pressure (travel Tanaris or similar if available)
+- [ ] Cold-tagged zones increase exposure pressure (if available)
+- [ ] Resting at an inn slows decay / slight recovery
+- [ ] **Eat** button or `/ic eat` raises hunger + toast
+- [ ] **Drink** / `/ic drink` raises thirst + toast
+- [ ] **Rest** / `/ic rest` raises exposure (blocked in combat with message)
+- [ ] Well Fed / drink-style buffs give light passive top-up (best-effort)
+
+### Critical & chronicle
+
+- [ ] Meter ≤15 → parchment toast warning (not spammed every tick)
+- [ ] Meter ≤5 → SURVIVAL chronicle entry (cooldown ~3 min per meter)
+- [ ] SURVIVAL entry editable in `/ic chronicle`
+
+---
+
 ## Discovery (regression)
 
 - [ ] `/ic` flyout opens
@@ -110,13 +141,13 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 |---|---|---|---|
 | Phase A Chronicle | | | |
 | Phase B Hardcore | | | |
+| Phase C Survival | | | |
 | Discovery regression | | | |
 
 ---
 
 ## Planned QA sections (not built yet)
 
-- [ ] Phase C — Survival meters (exposure / thirst / hunger)
 - [ ] Phase D — Afterlife return paths
 - [ ] Phase E — Leveling roadmap
 - [ ] Phase F — PvP after-action reports
