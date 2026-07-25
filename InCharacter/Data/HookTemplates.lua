@@ -44,6 +44,10 @@ InCharacter.HookTemplates = {
         "In {zone}, {name}'s body reminded them they are mortal — {meterName} failed them ({meterValue}). The road asks a price in more than blood.",
         "A hard page: {name}, level {level}, found {meterName} at its end in {zone}. Survival is a story the bones tell first.",
     },
+    AFTERLIFE = {
+        "In {yearKC}, {name}'s spirit walked {pathName}. {afterlifeDetail} So the ledger of death and return is written.",
+        "Beyond the living maps, {name} tread {pathName}. {afterlifeDetail} When flesh called again, the {race} {class} answered.",
+    },
     DEFAULT = {
         "In the year {yearKC}, {name} marked a moment in their tale ({kind}). The {race} {class} continues onward from {zone}.",
     },

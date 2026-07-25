@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: In Character
-## Notes: Immersive RP suite — chronicle, survival, hardcore honor log, discovery
-## Version: 0.4.0
+## Notes: Immersive RP suite — chronicle, survival, afterlife rites, hardcore, discovery
+## Version: 0.5.0
 ## Author: khallammarellus-rgb
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
 ## SavedVariables: InCharacterDB
@@ -27,6 +27,7 @@ Data\Boards.lua
 Data\YearCalendar.lua
 Data\HookTemplates.lua
 Data\ZoneClimate.lua
+Data\AfterlifePaths.lua
 Core\ProfanityFilter.lua
 Core\TRP3Bridge.lua
 Core\Comms.lua
@@ -46,3 +47,5 @@ Hardcore\Monitor.lua
 Hardcore\UI_Gates.lua
 Survival\Engine.lua
 Survival\UI_Meters.lua
+Afterlife\PathTracker.lua
+Afterlife\UI_Paths.lua

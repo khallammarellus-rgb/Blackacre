@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 0.4.0 (Phase C survival) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 0.5.0 (Phase D afterlife) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,7 +13,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Addon appears in character-select AddOns list as **In Character**
 - [ ] Minimap book icon visible
-- [ ] Version / TOC shows **0.4.0** after update
+- [ ] Version / TOC shows **0.5.0** after update
 
 ---
 
@@ -116,6 +116,35 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 ---
 
+## Phase D — Afterlife return rites
+
+### Realm picker
+
+- [ ] `/ic realms` opens parchment list of afterlives (not a black box)
+- [ ] Tooltips show realm blurbs on hover
+- [ ] **Not this death** dismisses without starting a path
+- [ ] Selecting a realm starts a path + toast + AFTERLIFE chronicle “Entered …”
+- [ ] On death (with prompt enabled), realm picker appears after ~1.5s
+- [ ] Checkbox “Prompt realm picker on death” can disable auto-prompt
+
+### Active rite
+
+- [ ] `/ic afterlife` shows active path name, blurb, progress X/Y
+- [ ] Task checkboxes list IC steps with body text
+- [ ] Checking a task completes it (cannot uncheck), logs AFTERLIFE page
+- [ ] Completing **all** tasks auto-finishes return + “Returned from …” chronicle + toast
+- [ ] **Abandon** clears active path + logs abandoned page
+- [ ] **Chronicle** button opens journal
+- [ ] Cannot start second path until abandon/finish (message if trying)
+
+### Realms present
+
+- [ ] Spirit World, Bastion, Ardenweald, Revendreth, Maldraxxus, De Other Side
+- [ ] Emerald Dream, Emerald Nightmare, Twisting Nether, Maw of Souls
+- [ ] Oribos, Zereth Mortis, Odyn's Halls, Ny'alotha, Elemental Planes
+
+---
+
 ## Discovery (regression)
 
 - [ ] `/ic` flyout opens
@@ -142,13 +171,13 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 | Phase A Chronicle | | | |
 | Phase B Hardcore | | | |
 | Phase C Survival | | | |
+| Phase D Afterlife | | | |
 | Discovery regression | | | |
 
 ---
 
 ## Planned QA sections (not built yet)
 
-- [ ] Phase D — Afterlife return paths
 - [ ] Phase E — Leveling roadmap
 - [ ] Phase F — PvP after-action reports
 - [ ] Phase G — Peer share / export

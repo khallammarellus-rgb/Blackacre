@@ -25,8 +25,8 @@
 | Shipped | Discovery (beacons, boards) | MVP+ |
 | A | Chronicle (log, hooks, journal UI) | **0.2.0 shipped** |
 | B | Hardcore integrity log | **0.3.0 shipped** |
-| **C** | **Survival meters** | **0.4.0 shipped** |
-| D | Afterlife return paths | Planned |
+| C | Survival meters | **0.4.0 shipped** |
+| **D** | **Afterlife return paths** | **0.5.0 shipped** |
 | E | Leveling roadmap | Planned |
 | F | PvP after-action reports | Planned |
 | G | Peer share + TRP3-friendly export | Planned |

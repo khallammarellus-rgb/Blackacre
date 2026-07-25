@@ -152,6 +152,9 @@ local function OnDeath()
     if InCharacter.Hardcore.UI and InCharacter.Hardcore.UI.Refresh then
         InCharacter.Hardcore.UI.Refresh()
     end
+    if InCharacter.Afterlife and InCharacter.Afterlife.PathTracker then
+        InCharacter.Afterlife.PathTracker.OnDeath()
+    end
     C_Timer.After(5, function()
         deathLock = false
     end)

@@ -78,6 +78,12 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
             or facts.meter == "exposure" and "exposure"
             or facts.meterName or "vital strength",
         meterValue = facts.value and tostring(math.floor(facts.value)) or "low",
+        pathName = facts.pathName or "an unnamed afterlife",
+        afterlifeDetail = facts.stage == "begin" and ("The road opened after a fall in " .. (facts.deathZone or context.zone or "unknown lands") .. ".")
+            or facts.stage == "task" and (facts.taskBody or "A rite was fulfilled.")
+            or facts.stage == "return" and ("They returned to the living from " .. (facts.pathName or "death's realm") .. ".")
+            or facts.stage == "abandon" and "The path was left unfinished."
+            or (facts.taskBody or "A soul-rite was marked."),
         spec = context.spec or "",
         specClause = (context.spec and context.spec ~= "") and (" (" .. context.spec .. ")") or "",
     }
@@ -104,6 +110,8 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         title = facts.title or "Flew without sky rite"
     elseif kind == "SURVIVAL" then
         title = facts.title or "Survival critical"
+    elseif kind == "AFTERLIFE" then
+        title = facts.title or ("Afterlife: " .. (facts.pathName or "unknown"))
     else
         title = facts.title or kind or "Entry"
     end

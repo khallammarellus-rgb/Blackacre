@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.4.0"
+InCharacter.VERSION = "0.5.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -58,6 +58,11 @@ InCharacterCharDB = InCharacterCharDB or {
         thirst = 85,
         exposure = 90,
         hideMeters = false,
+    },
+    afterlife = {
+        active = nil,
+        history = {},
+        promptOnDeath = true,
     },
 }
 
@@ -130,6 +135,11 @@ function addon:OnInitialize()
         exposure = 90,
         hideMeters = false,
     }
+    InCharacter.CharDB.afterlife = InCharacter.CharDB.afterlife or {
+        active = nil,
+        history = {},
+        promptOnDeath = true,
+    }
 
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
@@ -141,6 +151,8 @@ function addon:OnInitialize()
     InCharacter.Hardcore.UI.Init()
     InCharacter.Survival.Engine.Init()
     InCharacter.Survival.UI.Init()
+    InCharacter.Afterlife.PathTracker.Init()
+    InCharacter.Afterlife.UI.Init()
     InCharacter.MinimapButton.Init()
     InCharacter.Flyout.Init()
     InCharacter.BoardView.Init()
@@ -188,9 +200,13 @@ SlashCmdList["INCHARACTER"] = function(msg)
         InCharacter.Survival.Engine.SetEnabled(true)
         InCharacter.Print("Survival meters enabled.")
         InCharacter.Survival.UI.ShowPanel()
+    elseif msg == "afterlife" or msg == "death" or msg == "return" then
+        InCharacter.Afterlife.UI.Toggle()
+    elseif msg == "realms" then
+        InCharacter.Afterlife.UI.ShowRealmPicker()
     elseif msg == "" then
         InCharacter.Flyout.Toggle()
     else
-        InCharacter.Print("Commands: /ic chronicle, /ic hardcore, /ic survival, /ic eat, /ic drink, /ic rest, /ic beacon, /ic notice, /ic ping")
+        InCharacter.Print("Commands: /ic chronicle, /ic hardcore, /ic survival, /ic afterlife, /ic realms, /ic eat, /ic drink, /ic rest, /ic beacon, /ic notice")
     end
 end

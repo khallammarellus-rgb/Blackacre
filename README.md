@@ -4,7 +4,7 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 **Traveler’s Chronicle** (journal of quests, feats, titles, craft, and handwritten notes), plus RP discovery beacons and notice boards. Complements Total RP 3 — never replaces it.
 
-**Version:** 0.4.0 (Phase C — Survival meters)  
+**Version:** 0.5.0 (Phase D — Afterlife return rites)  
 **Target:** Retail WoW 12.0.7+  
 **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
@@ -16,9 +16,9 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 |---|---|
 | **Chronicle** — auto log + editable IC prose + parchment journal UI | 0.2.0 |
 | **Hardcore honor log** — 6-slot bags, mount/fly rites, deaths | 0.3.0 |
-| **Survival** — hunger, thirst, exposure by zone climate | **0.4.0** |
+| **Survival** — hunger, thirst, exposure by zone climate | 0.4.0 |
+| **Afterlife** — IC return rites by realm of death | **0.5.0** |
 | Discovery — beacons & notice boards | Shipped |
-| Afterlife return paths | Planned |
 | Leveling roadmap | Planned |
 | PvP after-action reports | Planned |
 | Peer share / TRP3-friendly export | Planned |
@@ -55,6 +55,8 @@ New-Item -ItemType Junction `
 | `/ic survival` | Toggle condition meters (`/ic meters`) |
 | `/ic eat` / `/ic drink` / `/ic rest` | IC recovery actions |
 | `/ic survival on` / `off` | Enable or disable survival for this character |
+| `/ic afterlife` | Active return rite checklist (`/ic death`, `/ic return`) |
+| `/ic realms` | Pick a realm of death (start a path) |
 | `/ic sample` | Add a sample chronicle entry (dev) |
 | `/ic` | Discovery flyout |
 | `/ic beacon` | Broadcast beacon editor |
