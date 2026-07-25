@@ -28,8 +28,9 @@
 | C | Survival meters | **0.4.0 shipped** |
 | D | Afterlife return paths | **0.5.0 shipped** |
 | E | Leveling roadmap | **0.6.0 shipped** |
-| **F** | **PvP after-action reports** | **0.7.0 shipped** |
-| **G** | **Peer share + TRP3-friendly export** | **0.7.0 shipped** |
+| F | PvP after-action reports | **0.7.0 shipped** |
+| G | Peer share + TRP3-friendly export | **0.7.0 shipped** |
+| **H** | **Lineage / birth year lore path** | **0.8.0 shipped** (UI polish deferred) |
 
 ---
 

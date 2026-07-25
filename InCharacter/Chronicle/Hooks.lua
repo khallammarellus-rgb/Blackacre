@@ -34,7 +34,7 @@ function InCharacter.Chronicle.Hooks.GetContext()
         zone = zone.zoneName ~= "" and zone.zoneName or "unknown lands",
         zoneId = zone.zoneId,
         subzone = zone.subzone,
-        yearKC = InCharacter.YearCalendar.GetYearKC(),
+        yearKC = InCharacter.YearCalendar.GetPresentADP and InCharacter.YearCalendar.GetPresentADP() or InCharacter.YearCalendar.GetYearKC(),
         seasoning = GetSeasoning(level),
     }
 end
@@ -62,8 +62,17 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         class = context.class,
         level = tostring(context.level),
         zone = facts.zoneName or context.zone,
-        yearKC = InCharacter.YearCalendar.FormatYear(facts.yearKC or context.yearKC),
+        yearKC = InCharacter.YearCalendar.FormatYearADP
+            and InCharacter.YearCalendar.FormatYearADP(InCharacter.YearCalendar.GetPresentADP())
+            or InCharacter.YearCalendar.FormatYear(facts.yearKC or context.yearKC),
         seasoning = context.seasoning,
+        age = (InCharacter.Birthpath and InCharacter.Birthpath.FormatAge and InCharacter.Birthpath.FormatAge()) or "",
+        birthYear = (InCharacter.YearCalendar.GetBirthADP and InCharacter.YearCalendar.GetBirthADP()
+            and InCharacter.YearCalendar.FormatYearADP(InCharacter.YearCalendar.GetBirthADP())) or "",
+        eraName = (function()
+            local e = InCharacter.GetEraAtYear and InCharacter.GetEraAtYear(InCharacter.YearCalendar.GetPresentADP())
+            return e and e.name or ""
+        end)(),
         kind = kind or "NOTE",
         questName = facts.questName or facts.name or "an unnamed trial",
         achievementName = facts.achievementName or facts.name or "an unnamed feat",

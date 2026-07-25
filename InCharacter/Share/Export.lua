@@ -16,6 +16,11 @@ function InCharacter.Share.Export.BuildSummaryText(maxEntries)
     parts[#parts + 1] = Line("— In Character summary —")
     parts[#parts + 1] = Line(string.format("%s · %s %s · level %d", name, race, class, level))
 
+    if InCharacter.Birthpath and InCharacter.YearCalendar and InCharacter.YearCalendar.GetBirthADP
+        and InCharacter.YearCalendar.GetBirthADP() then
+        parts[#parts + 1] = Line(InCharacter.Birthpath.GetSummary())
+    end
+
     if InCharacter.Hardcore and InCharacter.Hardcore.GetStatus then
         local s = InCharacter.Hardcore.GetStatus()
         parts[#parts + 1] = Line(string.format(
@@ -144,6 +149,10 @@ function InCharacter.Share.Export.BuildPeerPayload()
         headlines[#headlines + 1] = entries[i].title or entries[i].kind
     end
     local road = InCharacter.Roadmap and InCharacter.Roadmap.GetActive and InCharacter.Roadmap.GetActive()
+    local ageLine = nil
+    if InCharacter.Birthpath and InCharacter.YearCalendar.GetBirthADP and InCharacter.YearCalendar.GetBirthADP() then
+        ageLine = InCharacter.Birthpath.FormatAge()
+    end
     return {
         opcode = "IC_SUM",
         name = name,
@@ -156,6 +165,8 @@ function InCharacter.Share.Export.BuildPeerPayload()
         flyingGate = hc.flyingGate and true or false,
         headlines = headlines,
         expedition = road and road.name or nil,
+        ageLine = ageLine,
+        birthYear = InCharacter.YearCalendar.GetBirthADP and InCharacter.YearCalendar.GetBirthADP() or nil,
         version = InCharacter.VERSION,
     }
 end

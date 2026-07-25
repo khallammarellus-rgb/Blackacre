@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 0.7.0 (Phases F–G PvP + share) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 0.8.0 (Phase H lineage / birth year) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,7 +13,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Addon appears in character-select AddOns list as **In Character**
 - [ ] Minimap book icon visible
-- [ ] Version / TOC shows **0.7.0** after update
+- [ ] Version / TOC shows **0.8.0** after update
 
 ---
 
@@ -205,6 +205,38 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 ---
 
+## Phase H — Lineage / birth year lore path
+
+### Calendar & identity
+
+- [ ] `/ic birth` opens parchment Lineage panel
+- [ ] Era quick-pick sets birth near that era (tooltip shows ADP range)
+- [ ] Save lineage writes chronicle “Lineage recorded” page
+- [ ] Birth ADP **2**, present **20** → age **18**; display includes ~594 / 612 K.C. style readout
+- [ ] Deep BDP (e.g. −10000) shows **BDP**, not nonsense K.C.
+
+### Longevity & origin
+
+- [ ] Cycle profile: auto / mortal / elf / earthen / dracthyr / undead / long_lived
+- [ ] Cycle origin: born / stasis / forged / raised / awakened
+- [ ] `/ic birth human` prints mortal sample summary in chat
+- [ ] `/ic birth elf` → millennia age wording (not “18”)
+- [ ] `/ic birth dracthyr` → stasis + small conscious age
+
+### Suggestions & roadmap
+
+- [ ] Suggestions list shows zone fits `[natural|stretch|legend_only|future]` + scores
+- [ ] Road preset suggestions appear
+- [ ] **Chart from birth** / expedition **From lineage** starts a matching roadmap
+- [ ] Ancient profile tends toward ancient_kalimdor / dracthyr_wake / earthen_vaults when appropriate
+
+### Export / share
+
+- [ ] `/ic export` includes lineage summary line when birth set
+- [ ] Peer card can include age line when shared (optional check with friend)
+
+---
+
 ## Discovery (regression)
 
 - [ ] `/ic` flyout opens
@@ -218,7 +250,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 ## Full suite smoke (quick pass)
 
-- [ ] `/ic chronicle` · `/ic hardcore` · `/ic survival` · `/ic afterlife` · `/ic roadmap` · `/ic export` all open without Lua error
+- [ ] `/ic birth` · `/ic chronicle` · `/ic hardcore` · `/ic survival` · `/ic afterlife` · `/ic roadmap` · `/ic export` all open without Lua error
 - [ ] Parchment/native look still consistent (no plain black primary panels)
 - [ ] No Lua errors after `/reload` with TRP3 on and off
 
@@ -243,5 +275,6 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 | Phase E Roadmap | | | |
 | Phase F PvP | | | |
 | Phase G Share | | | |
+| Phase H Lineage | | | |
 | Discovery regression | | | |
 | Full suite smoke | | | |

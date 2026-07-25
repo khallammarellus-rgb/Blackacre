@@ -117,6 +117,17 @@ local function Build()
     frame.detail:SetHeight(70)
     InCharacter.UI.Theme.InkFont(frame.detail)
 
+    local fromBirth = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    fromBirth:SetSize(120, 24)
+    fromBirth:SetPoint("BOTTOMLEFT", 140, 14)
+    fromBirth:SetText("From lineage")
+    fromBirth:SetScript("OnClick", function()
+        if InCharacter.Birthpath and InCharacter.Birthpath.ChartFromBirth then
+            InCharacter.Birthpath.ChartFromBirth()
+            InCharacter.Roadmap.UI.Refresh()
+        end
+    end)
+
     local advance = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
     advance:SetSize(120, 24)
     advance:SetPoint("BOTTOMRIGHT", -14, 14)

@@ -12,6 +12,9 @@ function InCharacter.Share.OnPeerSummary(sender, data)
             data.groundGate and "complete" or "unsworn",
             data.flyingGate and "complete" or "unsworn"),
     }
+    if data.ageLine then
+        lines[#lines + 1] = "Lineage: " .. data.ageLine
+    end
     if data.expedition then
         lines[#lines + 1] = "Expedition: " .. data.expedition
     end

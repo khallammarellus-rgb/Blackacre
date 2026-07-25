@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.7.0"
+InCharacter.VERSION = "0.8.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -72,6 +72,18 @@ InCharacterCharDB = InCharacterCharDB or {
     pvp = {
         enabled = true,
         lastReports = {},
+    },
+    identity = {
+        birthYearADP = nil,
+        birthEraId = nil,
+        birthPlace = "",
+        presentYearADP = 42,
+        calendarDisplay = "AUTO",
+        longevityProfile = "auto",
+        originMode = "born",
+        stasisUntilADP = nil,
+        deathYearADP = nil,
+        rebirthYearADP = nil,
     },
 }
 
@@ -158,6 +170,7 @@ function addon:OnInitialize()
         enabled = true,
         lastReports = {},
     }
+    InCharacter.YearCalendar.EnsureIdentity()
 
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
@@ -175,6 +188,7 @@ function addon:OnInitialize()
     InCharacter.Roadmap.Engine.Init()
     InCharacter.Roadmap.UI.Init()
     InCharacter.PvP.AfterAction.Init()
+    InCharacter.LineageUI.Init()
     InCharacter.MinimapButton.Init()
     InCharacter.Flyout.Init()
     InCharacter.BoardView.Init()
@@ -228,6 +242,14 @@ SlashCmdList["INCHARACTER"] = function(msg)
         InCharacter.Afterlife.UI.ShowRealmPicker()
     elseif msg == "roadmap" or msg == "road" or msg == "expedition" or msg == "chart" then
         InCharacter.Roadmap.UI.Toggle()
+    elseif msg == "birth" or msg == "identity" or msg == "lineage" or msg == "age" then
+        InCharacter.LineageUI.Toggle()
+    elseif msg == "birth human" then
+        InCharacter.Birthpath.DebugSampleHuman()
+    elseif msg == "birth elf" then
+        InCharacter.Birthpath.DebugSampleElf()
+    elseif msg == "birth dracthyr" then
+        InCharacter.Birthpath.DebugSampleDracthyr()
     elseif msg == "export" then
         InCharacter.Share.Export.CopyToClipboard()
     elseif msg:match("^share%s+") then
@@ -246,6 +268,6 @@ SlashCmdList["INCHARACTER"] = function(msg)
     elseif msg == "" then
         InCharacter.Flyout.Toggle()
     else
-        InCharacter.Print("Commands: /ic chronicle, /ic roadmap, /ic export, /ic share Name, /ic hardcore, /ic survival, /ic afterlife, /ic pvpsample")
+        InCharacter.Print("Commands: /ic birth, /ic chronicle, /ic roadmap, /ic export, /ic share Name, /ic hardcore, /ic survival, /ic afterlife")
     end
 end

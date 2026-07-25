@@ -4,7 +4,7 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, expedition roadmaps, PvP field reports, and TRP3-friendly export — plus discovery beacons and notice boards. Complements Total RP 3; never rewrites TRP3 data.
 
-**Version:** 0.7.0 (Phases A–G MVP suite)  
+**Version:** 0.8.0 (Phase H — Lineage / birth year lore path)  
 **Target:** Retail WoW 12.0.7+  
 **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
@@ -19,8 +19,9 @@ Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, ex
 | **Survival** — hunger, thirst, exposure by zone climate | 0.4.0 |
 | **Afterlife** — IC return rites by realm of death | 0.5.0 |
 | **Roadmap** — leveling expedition chart + lock prompts | 0.6.0 |
-| **PvP** — battleground/arena after-action field reports | **0.7.0** |
-| **Share** — clipboard export + peer summary cards | **0.7.0** |
+| **PvP** — battleground/arena after-action field reports | 0.7.0 |
+| **Share** — clipboard export + peer summary cards | 0.7.0 |
+| **Lineage** — birth year (ADP/BDP), age bands, lore path suggestions | **0.8.0** |
 | Discovery — beacons & notice boards | Shipped |
 
 ---
@@ -47,8 +48,9 @@ Enable **In Character** → `/reload`
 
 | Command | Description |
 |---|---|
+| `/ic birth` | Lineage / birth year (`/ic identity`, `/ic lineage`) |
 | `/ic chronicle` | Traveler’s journal |
-| `/ic roadmap` | Expedition chart |
+| `/ic roadmap` | Expedition chart · **From lineage** charts a path from birth |
 | `/ic hardcore` | Hardcore compact / rites |
 | `/ic survival` | Condition meters |
 | `/ic afterlife` / `/ic realms` | Death return rites |
