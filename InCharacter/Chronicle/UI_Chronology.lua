@@ -24,6 +24,7 @@ local KIND_LABELS = {
     SURVIVAL = "Survival",
     AFTERLIFE = "Afterlife",
     ROADMAP = "Road",
+    PVP = "Field",
 }
 
 local function KindLabel(kind)

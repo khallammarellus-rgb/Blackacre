@@ -52,6 +52,10 @@ InCharacter.HookTemplates = {
         "In {yearKC}, {name} set their boots to the expedition \"{roadmapName}\". {roadmapDetail}",
         "The chart turns: {name}, a {race} {class} of level {level}, marks \"{roadmapName}\" — {roadmapDetail}",
     },
+    PVP = {
+        "After the clash at {mapName}, {name} set down a field report. {outcomeLine} Steel told its measure in wounds dealt ({damageText}) and mended ({healingText}); deaths borne: {deaths}. A {race} {class} does not leave the field without a story.",
+        "In {yearKC}, {name} walked from {mapName}. {outcomeLine} The ledger of war lists {damageText} force spent, {healingText} grace given, {killingBlows} finishing blows. Let glory and grit both be inked.",
+    },
     DEFAULT = {
         "In the year {yearKC}, {name} marked a moment in their tale ({kind}). The {race} {class} continues onward from {zone}.",
     },

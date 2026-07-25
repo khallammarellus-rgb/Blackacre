@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 0.6.0 (Phase E roadmap) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 0.7.0 (Phases F–G PvP + share) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,7 +13,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Addon appears in character-select AddOns list as **In Character**
 - [ ] Minimap book icon visible
-- [ ] Version / TOC shows **0.6.0** after update
+- [ ] Version / TOC shows **0.7.0** after update
 
 ---
 
@@ -173,6 +173,38 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 ---
 
+## Phase F — PvP after-action reports
+
+- [ ] `/ic pvpsample` adds a Field (PVP) chronicle page with IC prose
+- [ ] Entry is editable in `/ic chronicle`
+- [ ] `/ic pvp off` stops auto reports; `/ic pvp on` re-enables
+- [ ] Finish a battleground (or arena) with scores → auto field report (win/loss tone, damage/healing)
+- [ ] Report does not duplicate spam for the same match (same key)
+- [ ] Toast appears: “After-action page written…”
+- [ ] Tone feels IC (field journal), not a raw DPS meter dump
+
+---
+
+## Phase G — Share / export
+
+### Export (TRP3-friendly)
+
+- [ ] `/ic export` opens parchment copy window
+- [ ] Text includes name, hardcore honor, survival condition (if on), expedition, afterlife, recent chronicle headlines
+- [ ] Can Ctrl+A / Ctrl+C and paste into TRP3 About or Notes
+- [ ] Footer notes full journal stays local
+- [ ] Esc closes export window
+
+### Peer summary
+
+- [ ] `/ic share` without name prints usage help
+- [ ] `/ic share FriendName` sends request (both need In Character)
+- [ ] Friend receives summary card in chat (name, honor, rites, headlines)
+- [ ] Requester sees toast “Received summary from …”
+- [ ] `/ic ping` still works alongside share
+
+---
+
 ## Discovery (regression)
 
 - [ ] `/ic` flyout opens
@@ -181,6 +213,14 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/ic ping` works with a friend (optional)
 - [ ] `/ic history` prints draft counts
 - [ ] Profanity hard-block on notice still works
+
+---
+
+## Full suite smoke (quick pass)
+
+- [ ] `/ic chronicle` · `/ic hardcore` · `/ic survival` · `/ic afterlife` · `/ic roadmap` · `/ic export` all open without Lua error
+- [ ] Parchment/native look still consistent (no plain black primary panels)
+- [ ] No Lua errors after `/reload` with TRP3 on and off
 
 ---
 
@@ -201,11 +241,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 | Phase C Survival | | | |
 | Phase D Afterlife | | | |
 | Phase E Roadmap | | | |
+| Phase F PvP | | | |
+| Phase G Share | | | |
 | Discovery regression | | | |
-
----
-
-## Planned QA sections (not built yet)
-
-- [ ] Phase F — PvP after-action reports
-- [ ] Phase G — Peer share / export
+| Full suite smoke | | | |

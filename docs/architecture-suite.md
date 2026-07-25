@@ -27,9 +27,9 @@
 | B | Hardcore integrity log | **0.3.0 shipped** |
 | C | Survival meters | **0.4.0 shipped** |
 | D | Afterlife return paths | **0.5.0 shipped** |
-| **E** | **Leveling roadmap** | **0.6.0 shipped** |
-| F | PvP after-action reports | Planned |
-| G | Peer share + TRP3-friendly export | Planned |
+| E | Leveling roadmap | **0.6.0 shipped** |
+| **F** | **PvP after-action reports** | **0.7.0 shipped** |
+| **G** | **Peer share + TRP3-friendly export** | **0.7.0 shipped** |
 
 ---
 

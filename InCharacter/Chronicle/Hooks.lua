@@ -92,6 +92,12 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
             or facts.stage == "complete" and "The expedition chart is finished — for now."
             or facts.stage == "abandon" and "The chart is folded away unfinished."
             or (facts.lore or "The road continues."),
+        mapName = facts.mapName or "the field",
+        outcomeLine = facts.outcomeLine or "The skirmish ended.",
+        damageText = facts.damageText or "unknown",
+        healingText = facts.healingText or "unknown",
+        deaths = facts.deaths and tostring(facts.deaths) or "0",
+        killingBlows = facts.killingBlows and tostring(facts.killingBlows) or "0",
         spec = context.spec or "",
         specClause = (context.spec and context.spec ~= "") and (" (" .. context.spec .. ")") or "",
     }
@@ -122,6 +128,8 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         title = facts.title or ("Afterlife: " .. (facts.pathName or "unknown"))
     elseif kind == "ROADMAP" then
         title = facts.title or ("Road: " .. (facts.roadmapName or "expedition"))
+    elseif kind == "PVP" then
+        title = facts.title or ("Field report: " .. (facts.mapName or "battle"))
     else
         title = facts.title or kind or "Entry"
     end

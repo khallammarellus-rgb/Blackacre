@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "0.6.0"
+InCharacter.VERSION = "0.7.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -68,6 +68,10 @@ InCharacterCharDB = InCharacterCharDB or {
         active = nil,
         history = {},
         lockPrompts = true,
+    },
+    pvp = {
+        enabled = true,
+        lastReports = {},
     },
 }
 
@@ -150,6 +154,10 @@ function addon:OnInitialize()
         history = {},
         lockPrompts = true,
     }
+    InCharacter.CharDB.pvp = InCharacter.CharDB.pvp or {
+        enabled = true,
+        lastReports = {},
+    }
 
     InCharacter.Comms.Init(self)
     InCharacter.Lifecycle.Init()
@@ -166,6 +174,7 @@ function addon:OnInitialize()
     InCharacter.Roadmap.Store.Init()
     InCharacter.Roadmap.Engine.Init()
     InCharacter.Roadmap.UI.Init()
+    InCharacter.PvP.AfterAction.Init()
     InCharacter.MinimapButton.Init()
     InCharacter.Flyout.Init()
     InCharacter.BoardView.Init()
@@ -219,9 +228,24 @@ SlashCmdList["INCHARACTER"] = function(msg)
         InCharacter.Afterlife.UI.ShowRealmPicker()
     elseif msg == "roadmap" or msg == "road" or msg == "expedition" or msg == "chart" then
         InCharacter.Roadmap.UI.Toggle()
+    elseif msg == "export" then
+        InCharacter.Share.Export.CopyToClipboard()
+    elseif msg:match("^share%s+") then
+        local target = msg:match("^share%s+(.+)$")
+        InCharacter.Comms.RequestSummary(strtrim(target or ""))
+    elseif msg == "share" then
+        InCharacter.Print("Usage: /ic share PlayerName  — or /ic export for TRP3 paste")
+    elseif msg == "pvpsample" then
+        InCharacter.PvP.AfterAction.DebugSample()
+    elseif msg == "pvp off" then
+        InCharacter.PvP.AfterAction.SetEnabled(false)
+        InCharacter.Print("PvP after-action reports disabled.")
+    elseif msg == "pvp on" then
+        InCharacter.PvP.AfterAction.SetEnabled(true)
+        InCharacter.Print("PvP after-action reports enabled.")
     elseif msg == "" then
         InCharacter.Flyout.Toggle()
     else
-        InCharacter.Print("Commands: /ic chronicle, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic realms, /ic eat, /ic drink, /ic rest, /ic beacon")
+        InCharacter.Print("Commands: /ic chronicle, /ic roadmap, /ic export, /ic share Name, /ic hardcore, /ic survival, /ic afterlife, /ic pvpsample")
     end
 end

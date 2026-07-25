@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: In Character
-## Notes: Immersive RP suite — chronicle, roadmap, survival, afterlife, hardcore, discovery
-## Version: 0.6.0
+## Notes: Immersive RP suite — chronicle, roadmap, PvP reports, share, survival, afterlife
+## Version: 0.7.0
 ## Author: khallammarellus-rgb
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
 ## SavedVariables: InCharacterDB
@@ -53,3 +53,6 @@ Afterlife\UI_Paths.lua
 Roadmap\Store.lua
 Roadmap\Engine.lua
 Roadmap\UI_Roadmap.lua
+PvP\AfterAction.lua
+Share\Export.lua
+Share\PeerCard.lua

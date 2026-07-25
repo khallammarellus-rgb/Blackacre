@@ -246,6 +246,10 @@ function addon:OnCommReceived(prefix, message, distribution, sender)
         elseif decoded.opcode == "NF" and decoded.notice then
             CacheEntry("notice", decoded.notice)
             InCharacter.BoardView.OnNoticeFullReceived(decoded.notice)
+        elseif decoded.opcode == "IC_SUM" then
+            if InCharacter.Share and InCharacter.Share.OnPeerSummary then
+                InCharacter.Share.OnPeerSummary(sender, decoded)
+            end
         end
         return
     end
@@ -279,7 +283,27 @@ function addon:OnCommReceived(prefix, message, distribution, sender)
         if notice then
             InCharacter.Comms.SendNoticeFull(sender, notice)
         end
+    elseif opcode == "SQ" then
+        -- Summary query: peer wants IC_SUM card
+        InCharacter.Comms.SendSummaryTo(sender)
     end
+end
+
+function InCharacter.Comms.SendSummaryTo(target)
+    if not target or target == "" then return end
+    if not InCharacter.Share or not InCharacter.Share.Export then return end
+    local payload = InCharacter.Share.Export.BuildPeerPayload()
+    local encoded = EncodePayload(payload)
+    SendWhisper(target, encoded, false, "NORMAL")
+end
+
+function InCharacter.Comms.RequestSummary(target)
+    if not target or target == "" then
+        InCharacter.Print("Usage: /ic share PlayerName")
+        return
+    end
+    SendWhisper(target, "SQ", false, "NORMAL")
+    InCharacter.Print("Requested In Character summary from " .. target .. ".")
 end
 
 function InCharacter.Comms.RespondToBoardQuery(requester, boardId)
