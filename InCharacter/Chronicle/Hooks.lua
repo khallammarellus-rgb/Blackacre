@@ -72,6 +72,7 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         skillRank = facts.skillRank and tostring(facts.skillRank) or "a new rank",
         manualTitle = facts.manualTitle or facts.title or "a private note",
         manualBody = facts.manualBody or facts.body or "",
+        bagDetail = facts.bagDetail or "an oversized pack",
         spec = context.spec or "",
         specClause = (context.spec and context.spec ~= "") and (" (" .. context.spec .. ")") or "",
     }
@@ -88,6 +89,14 @@ function InCharacter.Chronicle.Hooks.Resolve(kind, facts, context)
         title = (facts.skillName or "Profession") .. " advanced"
     elseif kind == "MANUAL" then
         title = facts.manualTitle or facts.title or "Journal note"
+    elseif kind == "DEATH" then
+        title = facts.title or ("Fell in " .. (facts.zoneName or slots.zone or "the field"))
+    elseif kind == "HC_ENCUMBRANCE" then
+        title = facts.title or "Encumbrance broken"
+    elseif kind == "HC_MOUNT" then
+        title = facts.title or "Mounted without ground rite"
+    elseif kind == "HC_FLY" then
+        title = facts.title or "Flew without sky rite"
     else
         title = facts.title or kind or "Entry"
     end

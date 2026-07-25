@@ -45,6 +45,10 @@ local function MakeEntry(kind, facts, source)
     return entry
 end
 
+function InCharacter.Chronicle.Capture.AddEntry(kind, facts, source)
+    return MakeEntry(kind, facts, source or "auto")
+end
+
 function InCharacter.Chronicle.Capture.AddManual(title, body, kind)
     kind = kind or "MANUAL"
     return MakeEntry(kind, {

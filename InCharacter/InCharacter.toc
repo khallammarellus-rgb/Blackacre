@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: In Character
-## Notes: Immersive RP suite — chronicle journal, discovery beacons, and notice boards
-## Version: 0.2.0
+## Notes: Immersive RP suite — chronicle, hardcore honor log, discovery beacons
+## Version: 0.3.0
 ## Author: khallammarellus-rgb
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
 ## SavedVariables: InCharacterDB
@@ -41,3 +41,5 @@ Chronicle\Store.lua
 Chronicle\Hooks.lua
 Chronicle\Capture.lua
 Chronicle\UI_Chronology.lua
+Hardcore\Monitor.lua
+Hardcore\UI_Gates.lua

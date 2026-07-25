@@ -4,7 +4,7 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 **Traveler’s Chronicle** (journal of quests, feats, titles, craft, and handwritten notes), plus RP discovery beacons and notice boards. Complements Total RP 3 — never replaces it.
 
-**Version:** 0.2.0 (Phase A — Chronicle)  
+**Version:** 0.3.0 (Phase B — Hardcore honor log)  
 **Target:** Retail WoW 12.0.7+  
 **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
@@ -14,9 +14,9 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 | Module | Status |
 |---|---|
-| **Chronicle** — auto log + editable IC prose + parchment journal UI | **0.2.0** |
+| **Chronicle** — auto log + editable IC prose + parchment journal UI | 0.2.0 |
+| **Hardcore honor log** — 6-slot bags, mount/fly rites, deaths | **0.3.0** |
 | Discovery — beacons & notice boards | Shipped |
-| Hardcore integrity log | Planned |
 | Survival meters | Planned |
 | Afterlife return paths | Planned |
 | Leveling roadmap | Planned |
@@ -51,6 +51,7 @@ New-Item -ItemType Junction `
 | Command | Description |
 |---|---|
 | `/ic chronicle` | Open the traveler’s journal (`/ic log`, `/ic journal`) |
+| `/ic hardcore` | Hardcore compact / gatekeeper rites (`/ic gates`, `/ic hc`) |
 | `/ic sample` | Add a sample chronicle entry (dev) |
 | `/ic` | Discovery flyout |
 | `/ic beacon` | Broadcast beacon editor |
@@ -78,6 +79,7 @@ RP prose is **template-based** (no AI in-game). Always editable. K.C. years are 
 
 - [docs/architecture-suite.md](docs/architecture-suite.md) — immersion suite roadmap  
 - [docs/architecture.md](docs/architecture.md) — discovery module build spec  
+- [docs/QA-log.md](docs/QA-log.md) — **checklist QA log (check items off in-game)**  
 - [docs/testing.md](docs/testing.md) — smoke tests  
 
 ---

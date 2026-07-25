@@ -23,8 +23,8 @@
 | Phase | Module | Status |
 |---|---|---|
 | Shipped | Discovery (beacons, boards) | MVP+ |
-| **A** | **Chronicle** (log, hooks, journal UI) | **In progress** |
-| B | Hardcore integrity log | Planned |
+| A | Chronicle (log, hooks, journal UI) | **0.2.0 shipped** |
+| **B** | **Hardcore integrity log** | **0.3.0 shipped** |
 | C | Survival meters | Planned |
 | D | Afterlife return paths | Planned |
 | E | Leveling roadmap | Planned |

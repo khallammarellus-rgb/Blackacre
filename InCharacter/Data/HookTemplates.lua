@@ -24,6 +24,22 @@ InCharacter.HookTemplates = {
         "In {yearKC}, {name} set down a personal note: {manualTitle}. {manualBody}",
         "Journal entry of {name}, {race} {class}, level {level} — {manualTitle}. {manualBody}",
     },
+    DEATH = {
+        "In {yearKC}, {name} fell in {zone}. The {race} {class} tasted the border of mortality — a hard page in any traveler's ledger.",
+        "Death found {name} beneath the skies of {zone}. Whether spirit-roads or darker realms await, the journal records the fall at level {level}.",
+    },
+    HC_ENCUMBRANCE = {
+        "Honor strained: {name} bore packs beyond the six-slot burden ({bagDetail}). The road grows heavier when the pack grows greedy.",
+        "In {yearKC}, {name}'s baggage exceeded the old compact — {bagDetail}. Encumbrance is a choice; the chronicle will not pretend otherwise.",
+    },
+    HC_MOUNT = {
+        "Without completing the ground-mount rite, {name} took saddle in {zone}. Speed without sanction leaves a mark on hardcore honor.",
+        "Hooves and harness before the gatekeeper's leave — {name} rode unsworn. The journal notes the shortcut.",
+    },
+    HC_FLY = {
+        "Wings before blessing: {name} took to the air in {zone} without the flying rite. Sky-roads, too, have their oaths.",
+        "In {yearKC}, {name} flew unlicensed over {zone}. The hardcore ledger records the ascent.",
+    },
     DEFAULT = {
         "In the year {yearKC}, {name} marked a moment in their tale ({kind}). The {race} {class} continues onward from {zone}.",
     },
