@@ -8,6 +8,11 @@ local function InitTome()
         applyToChronicle = true,
         applyToBulletins = false,
     }
+    InCharacter.CharDB.setup = InCharacter.CharDB.setup or {
+        completed = false,
+        version = 1,
+    }
+
     if InCharacter.YearCalendar and InCharacter.YearCalendar.EnsureIdentity then
         InCharacter.YearCalendar.EnsureIdentity()
     end
@@ -57,6 +62,9 @@ local function InitTome()
     end
     if InCharacter.LineageUI and InCharacter.LineageUI.Init then
         InCharacter.LineageUI.Init()
+    end
+    if InCharacter.SetupWizard and InCharacter.SetupWizard.Init then
+        InCharacter.SetupWizard.Init()
     end
 end
 

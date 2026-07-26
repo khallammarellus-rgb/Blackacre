@@ -2,20 +2,20 @@ InCharacter = InCharacter or {}
 InCharacter.UI = InCharacter.UI or {}
 InCharacter.UI.Theme = {}
 
--- Shared native-feeling colors and textures (parchment / quest-log / tome language).
 InCharacter.UI.Theme.Colors = {
     ink = { 0.15, 0.10, 0.05 },
     inkSoft = { 0.25, 0.18, 0.10 },
     gold = { 0.85, 0.70, 0.25 },
     parchment = { 0.92, 0.86, 0.72 },
     page = { 0.97, 0.93, 0.82 },
+    pageFill = { 0.94, 0.88, 0.74 },
     edge = { 0.55, 0.42, 0.22 },
-    spine = { 0.28, 0.18, 0.10 },
-    tabIdle = { 0.45, 0.32, 0.14 },
+    spine = { 0.22, 0.14, 0.08 },
+    tabIdle = { 0.42, 0.30, 0.14 },
     tabActive = { 0.72, 0.55, 0.22 },
+    cover = { 0.32, 0.20, 0.10 },
 }
 
--- Wax seals for bulletin scope tiers
 InCharacter.UI.Theme.Seals = {
     INDIVIDUAL = { label = "Personal", color = { 0.55, 0.45, 0.30 }, short = "P" },
     GROUP = { label = "Company", color = { 0.35, 0.50, 0.65 }, short = "C" },
@@ -27,93 +27,174 @@ InCharacter.UI.Theme.Textures = {
     parchment = "Interface\\AchievementFrame\\UI-Achievement-Parchment-Horizontal",
     parchmentVert = "Interface\\AchievementFrame\\UI-Achievement-Parchment",
     questBG = "Interface\\QuestFrame\\QuestBG",
-    itemText = "Interface\\ItemTextFrame\\ItemText-Bronze-TopLeft",
     dialogEdge = "Interface\\DialogFrame\\UI-DialogBox-Border",
     tooltipEdge = "Interface\\Tooltips\\UI-Tooltip-Border",
     bookIcon = "Interface\\Spellbook\\Spellbook-Icon",
     questBook = "Interface\\QuestFrame\\UI-QuestLog-BookIcon",
-    scrollUp = "Interface\\Buttons\\UI-ScrollBar-ScrollUpButton-Up",
-    -- Quest log nine-slice corners (client paths)
-    qTopLeft = "Interface\\QuestFrame\\UI-QuestLogTitleHighlight",
     stone = "Interface\\FrameGeneral\\UI-Background-Rock",
+    white = "Interface\\Buttons\\WHITE8x8",
 }
 
-function InCharacter.UI.Theme.ApplyParchmentBackdrop(frame, alpha)
-    alpha = alpha or 0.95
+--- Solid filled panel (no stretched quest art gaps).
+function InCharacter.UI.Theme.ApplyFilledPanel(frame, alpha, style)
+    alpha = alpha or 0.96
+    style = style or "page"
+    local bg = InCharacter.UI.Theme.Textures.white
+    local edge = InCharacter.UI.Theme.Textures.tooltipEdge
+    local edgeSize = 14
+    local c
+    if style == "book" then
+        edge = InCharacter.UI.Theme.Textures.dialogEdge
+        edgeSize = 24
+        c = InCharacter.UI.Theme.Colors.pageFill
+    elseif style == "panel" then
+        c = InCharacter.UI.Theme.Colors.parchment
+    else
+        c = InCharacter.UI.Theme.Colors.page
+    end
     frame:SetBackdrop({
-        bgFile = InCharacter.UI.Theme.Textures.parchment,
-        edgeFile = InCharacter.UI.Theme.Textures.tooltipEdge,
-        tile = false,
-        tileSize = 0,
-        edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 },
+        bgFile = bg,
+        edgeFile = edge,
+        tile = true,
+        tileSize = 16,
+        edgeSize = edgeSize,
+        insets = { left = 5, right = 5, top = 5, bottom = 5 },
     })
-    frame:SetBackdropColor(
-        InCharacter.UI.Theme.Colors.parchment[1],
-        InCharacter.UI.Theme.Colors.parchment[2],
-        InCharacter.UI.Theme.Colors.parchment[3],
-        alpha
-    )
-    frame:SetBackdropBorderColor(
-        InCharacter.UI.Theme.Colors.edge[1],
-        InCharacter.UI.Theme.Colors.edge[2],
-        InCharacter.UI.Theme.Colors.edge[3],
-        1
-    )
+    frame:SetBackdropColor(c[1], c[2], c[3], alpha)
+    local e = InCharacter.UI.Theme.Colors.edge
+    frame:SetBackdropBorderColor(e[1], e[2], e[3], 1)
 end
 
---- Full traveler’s tome chrome: deep spine + parchment face + gold edge.
+function InCharacter.UI.Theme.ApplyParchmentBackdrop(frame, alpha)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame, alpha or 0.95, "panel")
+end
+
 function InCharacter.UI.Theme.ApplyBookBackdrop(frame, alpha)
     alpha = alpha or 0.98
+    -- Solid cover fill (never stretch QuestBG — that left empty corners)
     frame:SetBackdrop({
-        bgFile = InCharacter.UI.Theme.Textures.questBG,
+        bgFile = InCharacter.UI.Theme.Textures.white,
         edgeFile = InCharacter.UI.Theme.Textures.dialogEdge,
-        tile = false,
-        tileSize = 0,
-        edgeSize = 24,
-        insets = { left = 8, right = 8, top = 8, bottom = 8 },
+        tile = true,
+        tileSize = 32,
+        edgeSize = 28,
+        insets = { left = 10, right = 10, top = 10, bottom = 10 },
     })
-    frame:SetBackdropColor(
-        InCharacter.UI.Theme.Colors.parchment[1],
-        InCharacter.UI.Theme.Colors.parchment[2],
-        InCharacter.UI.Theme.Colors.parchment[3],
-        alpha
-    )
-    frame:SetBackdropBorderColor(
-        InCharacter.UI.Theme.Colors.gold[1] * 0.7,
-        InCharacter.UI.Theme.Colors.gold[2] * 0.7,
-        InCharacter.UI.Theme.Colors.gold[3] * 0.5,
-        1
-    )
+    local cover = InCharacter.UI.Theme.Colors.cover
+    frame:SetBackdropColor(cover[1], cover[2], cover[3], alpha)
+    local g = InCharacter.UI.Theme.Colors.gold
+    frame:SetBackdropBorderColor(g[1] * 0.75, g[2] * 0.65, g[3] * 0.4, 1)
 
     if not frame._icSpine then
-        local spine = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
-        spine:SetPoint("TOPLEFT", 4, -4)
-        spine:SetPoint("BOTTOMLEFT", 4, 4)
-        spine:SetWidth(18)
+        local spine = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+        spine:SetPoint("TOPLEFT", 6, -8)
+        spine:SetPoint("BOTTOMLEFT", 6, 8)
+        spine:SetWidth(22)
         local s = InCharacter.UI.Theme.Colors.spine
-        spine:SetColorTexture(s[1], s[2], s[3], 0.92)
+        spine:SetColorTexture(s[1], s[2], s[3], 1)
         frame._icSpine = spine
 
+        -- Soft parchment page wash over the cover interior
+        local wash = frame:CreateTexture(nil, "BACKGROUND", nil, -6)
+        wash:SetPoint("TOPLEFT", 28, -12)
+        wash:SetPoint("BOTTOMRIGHT", -12, 12)
+        local p = InCharacter.UI.Theme.Colors.pageFill
+        wash:SetColorTexture(p[1], p[2], p[3], 0.97)
+        frame._icWash = wash
+
         local ribbon = frame:CreateTexture(nil, "ARTWORK")
-        ribbon:SetPoint("TOP", frame, "TOP", 40, 2)
-        ribbon:SetSize(28, 36)
-        ribbon:SetColorTexture(0.55, 0.12, 0.12, 0.85)
+        ribbon:SetPoint("TOP", frame, "TOP", 48, 4)
+        ribbon:SetSize(26, 40)
+        ribbon:SetColorTexture(0.55, 0.12, 0.12, 0.9)
         frame._icRibbon = ribbon
     end
 end
 
 function InCharacter.UI.Theme.ApplyPagePanel(frame, alpha)
-    alpha = alpha or 0.72
-    frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = InCharacter.UI.Theme.Textures.tooltipEdge,
-        edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    local p = InCharacter.UI.Theme.Colors.page
-    frame:SetBackdropColor(p[1], p[2], p[3], alpha)
-    frame:SetBackdropBorderColor(0.45, 0.35, 0.2, 0.9)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame, alpha or 0.92, "page")
+end
+
+--- Outer book window + tab rail slot + content host. Returns frame with .tabRail, .pageHost, .header.
+function InCharacter.UI.Theme.CreateBookShell(name, titleText)
+    local frame = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
+    frame:SetSize(880, 580)
+    frame:SetPoint("CENTER")
+    frame:SetFrameStrata("HIGH")
+    frame:SetToplevel(true)
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:SetClampedToScreen(true)
+    frame:Hide()
+    tinsert(UISpecialFrames, name)
+    InCharacter.UI.Theme.ApplyBookBackdrop(frame, 0.99)
+
+    local icon = frame:CreateTexture(nil, "OVERLAY")
+    icon:SetSize(30, 30)
+    icon:SetPoint("TOPLEFT", 36, -16)
+    icon:SetTexture(InCharacter.UI.Theme.Textures.questBook)
+
+    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    frame.title:SetPoint("LEFT", icon, "RIGHT", 10, 0)
+    frame.title:SetText(titleText or "Traveler’s Tome")
+    InCharacter.UI.Theme.GoldTitle(frame.title)
+
+    frame.subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    frame.subtitle:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, -4)
+    frame.subtitle:SetText("One book for the road — pages turn; windows do not stack")
+    InCharacter.UI.Theme.InkFont(frame.subtitle)
+
+    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", -6, -8)
+    frame.closeButton = close
+
+    -- Left tab rail
+    frame.tabRail = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    frame.tabRail:SetPoint("TOPLEFT", 34, -62)
+    frame.tabRail:SetPoint("BOTTOMLEFT", 14, 16)
+    frame.tabRail:SetWidth(88)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame.tabRail, 0.88, "panel")
+    if frame.tabRail.SetClipsChildren then
+        frame.tabRail:SetClipsChildren(true)
+    end
+
+    -- Main page host (all modules mount here)
+    frame.pageHost = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    frame.pageHost:SetPoint("TOPLEFT", frame.tabRail, "TOPRIGHT", 10, 0)
+    frame.pageHost:SetPoint("BOTTOMRIGHT", -16, 16)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame.pageHost, 0.94, "page")
+    if frame.pageHost.SetClipsChildren then
+        frame.pageHost:SetClipsChildren(true)
+    end
+
+    return frame
+end
+
+--- Parent a feature frame into a book page (no second window).
+function InCharacter.UI.Theme.MountInPage(frame, parent)
+    if not frame or not parent then return end
+    frame:SetParent(parent)
+    frame:ClearAllPoints()
+    frame:SetAllPoints(parent)
+    frame:SetMovable(false)
+    frame:EnableMouse(true)
+    frame:SetFrameStrata(parent:GetFrameStrata() or "HIGH")
+    if frame.SetClipsChildren then
+        frame:SetClipsChildren(true)
+    end
+    -- Strip freestanding chrome if present
+    if frame.closeButton then frame.closeButton:Hide() end
+    for _, child in ipairs({ frame:GetChildren() }) do
+        if child.GetObjectType and child:GetObjectType() == "Button" then
+            local n = child:GetName() or ""
+            if n:find("Close") or (child.GetNormalTexture and child:GetWidth() <= 32 and child:GetHeight() <= 32
+                and child:GetPoint(1) and select(1, child:GetPoint(1)) == "TOPRIGHT") then
+                -- leave generic small buttons; hide UIPanelCloseButton-like
+            end
+        end
+    end
 end
 
 function InCharacter.UI.Theme.SealLabel(scopeTier)
@@ -160,7 +241,7 @@ function InCharacter.UI.Theme.Toast(message)
         toastFrame:SetSize(360, 48)
         toastFrame:SetPoint("TOP", UIParent, "TOP", 0, -120)
         toastFrame:SetFrameStrata("DIALOG")
-        InCharacter.UI.Theme.ApplyParchmentBackdrop(toastFrame, 0.97)
+        InCharacter.UI.Theme.ApplyFilledPanel(toastFrame, 0.97, "panel")
         toastFrame.text = toastFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         toastFrame.text:SetPoint("LEFT", 16, 0)
         toastFrame.text:SetPoint("RIGHT", -16, 0)
@@ -170,10 +251,6 @@ function InCharacter.UI.Theme.Toast(message)
     end
     toastFrame.text:SetText(message or "")
     toastFrame:Show()
-    if toastTimer then
-        toastTimer:Cancel()
-    end
-    toastTimer = C_Timer.NewTimer(4, function()
-        toastFrame:Hide()
-    end)
+    if toastTimer then toastTimer:Cancel() end
+    toastTimer = C_Timer.NewTimer(4, function() toastFrame:Hide() end)
 end

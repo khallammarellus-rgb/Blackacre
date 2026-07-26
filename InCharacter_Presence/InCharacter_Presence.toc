@@ -1,7 +1,7 @@
 ## Interface: 120007
 ## Title: In Character |cffc9a227Presence|r
 ## Notes: Beacons (talking-head, anti-spam) and Bulletins at proximity boards
-## Version: 1.1.0
+## Version: 1.2.0
 ## Author: khallammarellus-rgb
 ## RequiredDeps: InCharacter
 ## Category-enUS: Roleplay

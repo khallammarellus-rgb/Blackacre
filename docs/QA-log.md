@@ -1,7 +1,7 @@
 # In Character — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 1.1.0 (Tome Theme 2.0 · Voice · Bulletin polish) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 1.2.0 (true book · setup wizard) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 
@@ -13,7 +13,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
 - [ ] Character-select AddOns lists **four** entries: In Character, Presence, Tome, Survival (all enabled)
 - [ ] Minimap book icon visible
-- [ ] `/ic packages` shows Presence, Tome, Survival and version **1.1.0**
+- [ ] `/ic packages` shows Presence, Tome, Survival and version **1.2.0**
 - [ ] Disable Presence only → `/ic` hints to enable Presence; `/ic tome` still works
 - [ ] Disable Tome only → right-click minimap hints; Presence still works
 
@@ -45,6 +45,28 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] Boards registered beyond SW/Org/Dalaran (e.g. Valdrakken, Dornogal)
 - [ ] Soft OOC lint on post (`lfg`, `ooc:`, etc.) → confirm dialog
 - [ ] Post still requires board proximity
+
+---
+
+## Phase 1.2 — True book + setup wizard
+
+### Single book window
+
+- [ ] Right-click minimap opens one Traveler’s Tome only
+- [ ] Tabs Pages / Lineage / Honor / Road / Realms / Voice / Share never open a second feature window
+- [ ] `/ic birth`, `/ic hardcore`, `/ic roadmap`, `/ic afterlife` only switch tabs in the same book
+- [ ] Realm picker for afterlife is an in-book overlay (not a floating second frame)
+- [ ] Page fill reaches borders (no empty stretched-texture corners)
+- [ ] Controls do not bleed outside the page host
+
+### Setup wizard
+
+- [ ] New character (no birth year, empty chronicle) auto-opens setup ~1.5s after login
+- [ ] Existing character with birth or chronicle entries does **not** auto-open
+- [ ] Steps: welcome → name/residence → lineage → voice → optional toggles → done
+- [ ] Skip marks setup complete; does not wipe data
+- [ ] `/ic setup` reopens the wizard
+- [ ] Finish lands on Pages tab with tabs re-enabled
 
 ---
 

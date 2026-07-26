@@ -6,6 +6,7 @@ local mainFrame
 local pickerFrame
 local taskChecks = {}
 local pathButtons = {}
+local pageRoot
 
 local function SoftToast(msg)
     if InCharacter.UI and InCharacter.UI.Theme and InCharacter.UI.Theme.Toast then
@@ -15,53 +16,45 @@ local function SoftToast(msg)
     end
 end
 
-local function BuildPicker()
-    pickerFrame = CreateFrame("Frame", "InCharacterAfterlifePicker", UIParent, "BackdropTemplate")
-    pickerFrame:SetSize(480, 420)
-    pickerFrame:SetPoint("CENTER")
-    pickerFrame:SetFrameStrata("DIALOG")
-    pickerFrame:SetMovable(true)
-    pickerFrame:EnableMouse(true)
-    pickerFrame:RegisterForDrag("LeftButton")
-    pickerFrame:SetScript("OnDragStart", pickerFrame.StartMoving)
-    pickerFrame:SetScript("OnDragStop", pickerFrame.StopMovingOrSizing)
+local function BuildPicker(parent)
+    pickerFrame = CreateFrame("Frame", "InCharacterAfterlifePicker", parent, "BackdropTemplate")
+    pickerFrame:SetAllPoints(parent)
+    if pickerFrame.SetClipsChildren then pickerFrame:SetClipsChildren(true) end
+    InCharacter.UI.Theme.ApplyFilledPanel(pickerFrame, 0.96, "page")
     pickerFrame:Hide()
-    tinsert(UISpecialFrames, "InCharacterAfterlifePicker")
-    InCharacter.UI.Theme.ApplyParchmentBackdrop(pickerFrame, 0.98)
 
     local title = pickerFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOP", 0, -14)
+    title:SetPoint("TOPLEFT", 12, -10)
     title:SetText("Choose a realm of death")
     InCharacter.UI.Theme.GoldTitle(title)
 
     local sub = pickerFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    sub:SetPoint("TOP", 0, -38)
-    sub:SetWidth(440)
+    sub:SetPoint("TOPLEFT", 12, -34)
+    sub:SetPoint("TOPRIGHT", -12, -34)
+    sub:SetJustifyH("LEFT")
     sub:SetText("Where does your spirit walk before it returns? This is an IC rite — not a real quest.")
     InCharacter.UI.Theme.InkFont(sub)
 
-    local close = CreateFrame("Button", nil, pickerFrame, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", -2, -2)
-
     local scroll = CreateFrame("ScrollFrame", "InCharacterAfterlifePickerScroll", pickerFrame, "UIPanelScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", 16, -70)
-    scroll:SetPoint("BOTTOMRIGHT", -36, 48)
+    scroll:SetPoint("TOPLEFT", 10, -60)
+    scroll:SetPoint("BOTTOMRIGHT", -28, 48)
 
     local content = CreateFrame("Frame", nil, scroll)
     content:SetSize(420, 40)
     scroll:SetScrollChild(content)
 
     local y = -4
-    for i, path in ipairs(InCharacter.AfterlifePaths) do
+    for i, path in ipairs(InCharacter.AfterlifePaths or {}) do
         local btn = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
-        btn:SetSize(400, 36)
+        btn:SetSize(400, 34)
         btn:SetPoint("TOPLEFT", 4, y)
         btn:SetText(path.name)
         btn:SetScript("OnClick", function()
             local zone = InCharacter.GetZoneContext()
             InCharacter.Afterlife.PathTracker.Start(path.id, zone.zoneName)
             pickerFrame:Hide()
-            InCharacter.Afterlife.UI.ShowMain()
+            if mainFrame then mainFrame:Show() end
+            InCharacter.Afterlife.UI.Refresh()
         end)
         btn:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -71,70 +64,64 @@ local function BuildPicker()
         end)
         btn:SetScript("OnLeave", GameTooltip_Hide)
         pathButtons[i] = btn
-        y = y - 40
+        y = y - 38
     end
     content:SetHeight(math.abs(y) + 10)
 
     local skip = CreateFrame("Button", nil, pickerFrame, "UIPanelButtonTemplate")
-    skip:SetSize(120, 22)
-    skip:SetPoint("BOTTOM", 0, 14)
+    skip:SetSize(140, 22)
+    skip:SetPoint("BOTTOMLEFT", 12, 12)
     skip:SetText("Not this death")
     skip:SetScript("OnClick", function()
         pickerFrame:Hide()
+        if mainFrame then mainFrame:Show() end
         SoftToast("The pale road is left unwalked — for now.")
+    end)
+
+    local back = CreateFrame("Button", nil, pickerFrame, "UIPanelButtonTemplate")
+    back:SetSize(100, 22)
+    back:SetPoint("BOTTOMRIGHT", -12, 12)
+    back:SetText("Back")
+    back:SetScript("OnClick", function()
+        pickerFrame:Hide()
+        if mainFrame then mainFrame:Show() end
     end)
 end
 
-local function BuildMain()
-    mainFrame = CreateFrame("Frame", "InCharacterAfterlifeMain", UIParent, "BackdropTemplate")
-    mainFrame:SetSize(460, 400)
-    mainFrame:SetPoint("CENTER")
-    mainFrame:SetFrameStrata("HIGH")
-    mainFrame:SetMovable(true)
-    mainFrame:EnableMouse(true)
-    mainFrame:RegisterForDrag("LeftButton")
-    mainFrame:SetScript("OnDragStart", mainFrame.StartMoving)
-    mainFrame:SetScript("OnDragStop", mainFrame.StopMovingOrSizing)
-    mainFrame:Hide()
-    tinsert(UISpecialFrames, "InCharacterAfterlifeMain")
-    InCharacter.UI.Theme.ApplyParchmentBackdrop(mainFrame, 0.98)
-
-    local icon = mainFrame:CreateTexture(nil, "OVERLAY")
-    icon:SetSize(28, 28)
-    icon:SetPoint("TOPLEFT", 14, -12)
-    icon:SetTexture("Interface\\Icons\\Spell_Holy_SenseUndead")
+local function BuildMain(parent)
+    mainFrame = CreateFrame("Frame", "InCharacterAfterlifeMain", parent, "BackdropTemplate")
+    mainFrame:SetAllPoints(parent)
+    if mainFrame.SetClipsChildren then mainFrame:SetClipsChildren(true) end
 
     mainFrame.title = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    mainFrame.title:SetPoint("LEFT", icon, "RIGHT", 8, 0)
+    mainFrame.title:SetPoint("TOPLEFT", 12, -10)
     mainFrame.title:SetText("Return Rite")
     InCharacter.UI.Theme.GoldTitle(mainFrame.title)
 
-    local close = CreateFrame("Button", nil, mainFrame, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", -2, -2)
-
     mainFrame.blurb = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    mainFrame.blurb:SetPoint("TOPLEFT", 16, -48)
-    mainFrame.blurb:SetWidth(420)
+    mainFrame.blurb:SetPoint("TOPLEFT", 12, -36)
+    mainFrame.blurb:SetPoint("TOPRIGHT", -12, -36)
     mainFrame.blurb:SetJustifyH("LEFT")
     InCharacter.UI.Theme.InkFont(mainFrame.blurb)
 
     mainFrame.progress = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mainFrame.progress:SetPoint("TOPLEFT", 16, -78)
+    mainFrame.progress:SetPoint("TOPLEFT", 12, -64)
     InCharacter.UI.Theme.InkFont(mainFrame.progress, "header")
 
     mainFrame.taskHost = CreateFrame("Frame", nil, mainFrame)
-    mainFrame.taskHost:SetPoint("TOPLEFT", 12, -100)
-    mainFrame.taskHost:SetSize(430, 220)
+    mainFrame.taskHost:SetPoint("TOPLEFT", 10, -88)
+    mainFrame.taskHost:SetPoint("BOTTOMRIGHT", -10, 72)
+    if mainFrame.taskHost.SetClipsChildren then mainFrame.taskHost:SetClipsChildren(true) end
 
     mainFrame.empty = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    mainFrame.empty:SetPoint("CENTER", 0, 10)
+    mainFrame.empty:SetPoint("CENTER", 0, 20)
     mainFrame.empty:SetWidth(400)
-    mainFrame.empty:SetText("No active return rite.\nOpen the realm picker after a death, or begin one below.")
+    mainFrame.empty:SetText("No active return rite.\nChoose a realm after a death, or begin one below.")
     InCharacter.UI.Theme.InkFont(mainFrame.empty)
 
     local pickBtn = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
     pickBtn:SetSize(130, 24)
-    pickBtn:SetPoint("BOTTOMLEFT", 16, 16)
+    pickBtn:SetPoint("BOTTOMLEFT", 12, 12)
     pickBtn:SetText("Choose realm")
     pickBtn:SetScript("OnClick", function()
         InCharacter.Afterlife.UI.ShowRealmPicker()
@@ -152,14 +139,14 @@ local function BuildMain()
 
     local journal = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
     journal:SetSize(120, 24)
-    journal:SetPoint("BOTTOMRIGHT", -16, 16)
+    journal:SetPoint("BOTTOMRIGHT", -12, 12)
     journal:SetText("Chronicle")
     journal:SetScript("OnClick", function()
-        InCharacter.Chronicle.UI.Show()
+        if InCharacter.TomeHub then InCharacter.TomeHub.Show("chronicle") end
     end)
 
     mainFrame.promptCheck = CreateFrame("CheckButton", nil, mainFrame, "UICheckButtonTemplate")
-    mainFrame.promptCheck:SetPoint("BOTTOMLEFT", 14, 44)
+    mainFrame.promptCheck:SetPoint("BOTTOMLEFT", 10, 40)
     mainFrame.promptCheck:SetScript("OnClick", function(self)
         InCharacter.Afterlife.SetPromptOnDeath(self:GetChecked())
     end)
@@ -217,7 +204,7 @@ local function BuildTasks(path, active)
 end
 
 function InCharacter.Afterlife.UI.Refresh()
-    if not mainFrame or not mainFrame:IsShown() then return end
+    if not mainFrame then return end
     local active = InCharacter.Afterlife.GetActive()
     mainFrame.promptCheck:SetChecked(InCharacter.Afterlife.IsPromptOnDeath())
 
@@ -242,8 +229,26 @@ function InCharacter.Afterlife.UI.Refresh()
     end
 end
 
+function InCharacter.Afterlife.UI.Mount(parent)
+    pageRoot = parent
+    if not mainFrame then
+        BuildMain(parent)
+        BuildPicker(parent)
+    else
+        InCharacter.UI.Theme.MountInPage(mainFrame, parent)
+        if pickerFrame then InCharacter.UI.Theme.MountInPage(pickerFrame, parent) end
+    end
+    if pickerFrame then pickerFrame:Hide() end
+    mainFrame:Show()
+    InCharacter.Afterlife.UI.Refresh()
+end
+
 function InCharacter.Afterlife.UI.ShowMain()
-    if not mainFrame then BuildMain() end
+    if InCharacter.TomeHub then
+        InCharacter.TomeHub.Show("realms")
+        return
+    end
+    if not mainFrame then BuildMain(UIParent) end
     mainFrame:Show()
     InCharacter.Afterlife.UI.Refresh()
 end
@@ -251,21 +256,27 @@ end
 function InCharacter.Afterlife.UI.ShowRealmPicker()
     if InCharacter.Afterlife.GetActive() then
         SoftToast("Finish or abandon your current return rite first.")
-        InCharacter.Afterlife.UI.ShowMain()
+        if mainFrame then mainFrame:Show() end
+        if pickerFrame then pickerFrame:Hide() end
+        InCharacter.Afterlife.UI.Refresh()
         return
     end
-    if not pickerFrame then BuildPicker() end
+    if not pickerFrame then
+        local p = pageRoot or (InCharacter.TomeHub and InCharacter.TomeHub.GetPageHost and InCharacter.TomeHub.GetPageHost("realms")) or UIParent
+        BuildMain(p)
+        BuildPicker(p)
+    end
+    if mainFrame then mainFrame:Hide() end
     pickerFrame:Show()
 end
 
 function InCharacter.Afterlife.UI.Toggle()
-    if mainFrame and mainFrame:IsShown() then
-        mainFrame:Hide()
-    else
-        InCharacter.Afterlife.UI.ShowMain()
+    if InCharacter.TomeHub and InCharacter.TomeHub.Toggle then
+        InCharacter.TomeHub.Toggle("realms")
+        return
     end
+    InCharacter.Afterlife.UI.ShowMain()
 end
 
 function InCharacter.Afterlife.UI.Init()
-    -- lazy-built on first open
 end

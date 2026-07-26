@@ -2,12 +2,12 @@ InCharacter = InCharacter or {}
 InCharacter.UI = InCharacter.UI or {}
 InCharacter.UI.JournalFrame = {}
 
--- Two-panel journal shell. Can be freestanding or parented into the Tome hub.
+-- Two-panel journal shell, designed for embedding in the Tome page host.
 
 function InCharacter.UI.JournalFrame.Create(name, titleText, opts)
     opts = opts or {}
     local parent = opts.parent or UIParent
-    local embedded = opts.embedded == true
+    local embedded = opts.embedded == true or (parent ~= UIParent)
 
     local frame = CreateFrame("Frame", name, parent, "BackdropTemplate")
     if embedded then
@@ -25,70 +25,53 @@ function InCharacter.UI.JournalFrame.Create(name, titleText, opts)
         frame:SetClampedToScreen(true)
         frame:Hide()
         tinsert(UISpecialFrames, name)
-        if InCharacter.UI.Theme.ApplyBookBackdrop then
-            InCharacter.UI.Theme.ApplyBookBackdrop(frame, 0.98)
-        else
-            InCharacter.UI.Theme.ApplyParchmentBackdrop(frame, 0.98)
-        end
+        InCharacter.UI.Theme.ApplyFilledPanel(frame, 0.96, "page")
     end
+    if frame.SetClipsChildren then frame:SetClipsChildren(true) end
 
-    local topPad = embedded and 8 or 60
+    local topPad = embedded and 22 or 52
     local bottomPad = embedded and 40 or 48
-    local sidePad = embedded and 8 or 16
+    local sidePad = 10
 
     if not embedded then
-        local headerBar = frame:CreateTexture(nil, "ARTWORK")
-        headerBar:SetPoint("TOPLEFT", 22, -8)
-        headerBar:SetPoint("TOPRIGHT", -8, -8)
-        headerBar:SetHeight(36)
-        headerBar:SetColorTexture(0.45, 0.32, 0.14, 0.35)
-
-        local icon = frame:CreateTexture(nil, "OVERLAY")
-        icon:SetSize(28, 28)
-        icon:SetPoint("TOPLEFT", 28, -12)
-        icon:SetTexture(InCharacter.UI.Theme.Textures.questBook or "Interface\\Icons\\INV_Misc_Book_09")
-
         frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-        frame.title:SetPoint("LEFT", icon, "RIGHT", 8, 0)
+        frame.title:SetPoint("TOPLEFT", 16, -14)
         frame.title:SetText(titleText or "Journal")
         InCharacter.UI.Theme.GoldTitle(frame.title)
-
         frame.subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        frame.subtitle:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, -6)
+        frame.subtitle:SetPoint("TOPLEFT", 16, -36)
         frame.subtitle:SetText("A private ledger of deeds and days")
         InCharacter.UI.Theme.InkFont(frame.subtitle)
-
         local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
         close:SetPoint("TOPRIGHT", -2, -2)
+        frame.closeButton = close
     else
         frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        frame.title:SetPoint("TOPLEFT", sidePad, -2)
+        frame.title:SetPoint("TOPLEFT", sidePad, -6)
         frame.title:SetText(titleText or "Chronology")
         InCharacter.UI.Theme.InkFont(frame.title, "header")
-
         frame.subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
         frame.subtitle:SetPoint("LEFT", frame.title, "RIGHT", 12, 0)
         frame.subtitle:SetText("Quests, feats, titles — told in order")
-        topPad = 22
     end
 
-    -- Left panel (index)
     frame.leftHost = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     frame.leftHost:SetPoint("TOPLEFT", sidePad, -topPad)
     frame.leftHost:SetPoint("BOTTOMLEFT", sidePad, bottomPad)
-    frame.leftHost:SetWidth(embedded and 240 or 260)
-    InCharacter.UI.Theme.ApplyPagePanel(frame.leftHost, 0.58)
+    frame.leftHost:SetWidth(embedded and 230 or 250)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame.leftHost, 0.9, "panel")
+    if frame.leftHost.SetClipsChildren then frame.leftHost:SetClipsChildren(true) end
 
     frame.leftTitle = frame.leftHost:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.leftTitle:SetPoint("TOPLEFT", 10, -8)
     frame.leftTitle:SetText("Chronology")
     InCharacter.UI.Theme.InkFont(frame.leftTitle, "header")
 
-    -- Right panel (page)
     frame.rightHost = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     frame.rightHost:SetPoint("TOPLEFT", frame.leftHost, "TOPRIGHT", 10, 0)
     frame.rightHost:SetPoint("BOTTOMRIGHT", -sidePad, bottomPad)
-    InCharacter.UI.Theme.ApplyPagePanel(frame.rightHost, 0.72)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame.rightHost, 0.94, "page")
+    if frame.rightHost.SetClipsChildren then frame.rightHost:SetClipsChildren(true) end
 
     frame.rightTitle = frame.rightHost:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.rightTitle:SetPoint("TOPLEFT", 12, -10)
@@ -97,11 +80,10 @@ function InCharacter.UI.JournalFrame.Create(name, titleText, opts)
     frame.rightTitle:SetText("Select an entry")
     InCharacter.UI.Theme.InkFont(frame.rightTitle, "header")
 
-    -- Bottom action bar
     frame.footer = CreateFrame("Frame", nil, frame)
-    frame.footer:SetPoint("BOTTOMLEFT", sidePad, embedded and 4 or 10)
-    frame.footer:SetPoint("BOTTOMRIGHT", -sidePad, embedded and 4 or 10)
-    frame.footer:SetHeight(32)
+    frame.footer:SetPoint("BOTTOMLEFT", sidePad, embedded and 6 or 10)
+    frame.footer:SetPoint("BOTTOMRIGHT", -sidePad, embedded and 6 or 10)
+    frame.footer:SetHeight(30)
 
     frame.footerHint = frame.footer:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     frame.footerHint:SetPoint("LEFT", 0, 0)
@@ -116,5 +98,8 @@ function InCharacter.UI.JournalFrame.Create(name, titleText, opts)
     end
 
     frame._icEmbedded = embedded
+    frame._icSidePad = sidePad
+    frame._icTopPad = topPad
+    frame._icBottomPad = bottomPad
     return frame
 end

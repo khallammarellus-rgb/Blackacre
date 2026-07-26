@@ -6,52 +6,40 @@ local frame
 local stepLines = {}
 local presetButtons = {}
 
-local function Build()
-    frame = CreateFrame("Frame", "InCharacterRoadmap", UIParent, "BackdropTemplate")
-    frame:SetSize(520, 460)
-    frame:SetPoint("CENTER")
-    frame:SetFrameStrata("HIGH")
-    frame:SetMovable(true)
-    frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-    frame:Hide()
-    tinsert(UISpecialFrames, "InCharacterRoadmap")
-    InCharacter.UI.Theme.ApplyParchmentBackdrop(frame, 0.98)
+local function Build(parent)
+    parent = parent or UIParent
+    local embedded = parent ~= UIParent
 
-    local icon = frame:CreateTexture(nil, "OVERLAY")
-    icon:SetSize(28, 28)
-    icon:SetPoint("TOPLEFT", 14, -12)
-    icon:SetTexture("Interface\\Icons\\INV_Misc_Map_01")
+    frame = CreateFrame("Frame", "InCharacterRoadmap", parent, "BackdropTemplate")
+    if embedded then
+        frame:SetAllPoints(parent)
+    else
+        frame:SetSize(520, 460)
+        frame:SetPoint("CENTER")
+        frame:SetFrameStrata("HIGH")
+        frame:Hide()
+        tinsert(UISpecialFrames, "InCharacterRoadmap")
+        InCharacter.UI.Theme.ApplyFilledPanel(frame, 0.96, "page")
+    end
+    if frame.SetClipsChildren then frame:SetClipsChildren(true) end
 
     frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    frame.title:SetPoint("LEFT", icon, "RIGHT", 8, 0)
+    frame.title:SetPoint("TOPLEFT", 12, -10)
     frame.title:SetText("Expedition Chart")
     InCharacter.UI.Theme.GoldTitle(frame.title)
 
     frame.sub = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.sub:SetPoint("TOPLEFT", 16, -46)
-    frame.sub:SetWidth(480)
+    frame.sub:SetPoint("TOPLEFT", 12, -32)
+    frame.sub:SetPoint("TOPRIGHT", -12, -32)
     frame.sub:SetJustifyH("LEFT")
     frame.sub:SetText("Chart a leveling road. The addon suggests when to linger — you control XP lock in game settings.")
     InCharacter.UI.Theme.InkFont(frame.sub)
 
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", -2, -2)
-
-    -- Left: presets
     frame.left = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.left:SetPoint("TOPLEFT", 14, -75)
-    frame.left:SetSize(200, 300)
-    frame.left:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    frame.left:SetBackdropColor(0.95, 0.90, 0.78, 0.5)
-    frame.left:SetBackdropBorderColor(0.45, 0.35, 0.2, 0.9)
+    frame.left:SetPoint("TOPLEFT", 10, -56)
+    frame.left:SetPoint("BOTTOMLEFT", 10, 48)
+    frame.left:SetWidth(190)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame.left, 0.9, "panel")
 
     local leftTitle = frame.left:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     leftTitle:SetPoint("TOPLEFT", 8, -8)
@@ -59,11 +47,11 @@ local function Build()
     InCharacter.UI.Theme.InkFont(leftTitle, "header")
 
     local y = -28
-    for i, preset in ipairs(InCharacter.RoadmapPresets) do
+    for i, preset in ipairs(InCharacter.RoadmapPresets or {}) do
         local btn = CreateFrame("Button", nil, frame.left, "UIPanelButtonTemplate")
-        btn:SetSize(180, 28)
+        btn:SetSize(170, 26)
         btn:SetPoint("TOPLEFT", 8, y)
-        btn:SetText(preset.name:sub(1, 28))
+        btn:SetText(preset.name:sub(1, 24))
         btn:SetScript("OnClick", function()
             InCharacter.Roadmap.Store.StartPreset(preset.id)
             InCharacter.Roadmap.UI.Refresh()
@@ -77,21 +65,14 @@ local function Build()
         end)
         btn:SetScript("OnLeave", GameTooltip_Hide)
         presetButtons[i] = btn
-        y = y - 32
+        y = y - 30
     end
 
-    -- Right: active chart
     frame.right = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.right:SetPoint("TOPLEFT", frame.left, "TOPRIGHT", 12, 0)
-    frame.right:SetPoint("BOTTOMRIGHT", -14, 50)
-    frame.right:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    frame.right:SetBackdropColor(0.97, 0.93, 0.82, 0.65)
-    frame.right:SetBackdropBorderColor(0.45, 0.35, 0.2, 0.9)
+    frame.right:SetPoint("TOPLEFT", frame.left, "TOPRIGHT", 10, 0)
+    frame.right:SetPoint("BOTTOMRIGHT", -10, 48)
+    InCharacter.UI.Theme.ApplyFilledPanel(frame.right, 0.92, "page")
+    if frame.right.SetClipsChildren then frame.right:SetClipsChildren(true) end
 
     frame.chartTitle = frame.right:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.chartTitle:SetPoint("TOPLEFT", 10, -10)
@@ -108,18 +89,18 @@ local function Build()
 
     frame.stepHost = CreateFrame("Frame", nil, frame.right)
     frame.stepHost:SetPoint("TOPLEFT", 8, -55)
-    frame.stepHost:SetSize(260, 250)
+    frame.stepHost:SetPoint("BOTTOMRIGHT", -8, 80)
 
     frame.detail = frame.right:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.detail:SetPoint("BOTTOMLEFT", 10, 40)
-    frame.detail:SetPoint("BOTTOMRIGHT", -10, 40)
+    frame.detail:SetPoint("BOTTOMLEFT", 10, 8)
+    frame.detail:SetPoint("BOTTOMRIGHT", -10, 8)
     frame.detail:SetJustifyH("LEFT")
     frame.detail:SetHeight(70)
     InCharacter.UI.Theme.InkFont(frame.detail)
 
     local fromBirth = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
     fromBirth:SetSize(120, 24)
-    fromBirth:SetPoint("BOTTOMLEFT", 140, 14)
+    fromBirth:SetPoint("BOTTOMLEFT", 140, 12)
     fromBirth:SetText("From lineage")
     fromBirth:SetScript("OnClick", function()
         if InCharacter.Birthpath and InCharacter.Birthpath.ChartFromBirth then
@@ -130,10 +111,11 @@ local function Build()
 
     local advance = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
     advance:SetSize(120, 24)
-    advance:SetPoint("BOTTOMRIGHT", -14, 14)
+    advance:SetPoint("BOTTOMRIGHT", -12, 12)
     advance:SetText("Next chapter")
     advance:SetScript("OnClick", function()
         InCharacter.Roadmap.Store.Advance()
+        InCharacter.Roadmap.UI.Refresh()
     end)
 
     local abandon = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
@@ -147,7 +129,7 @@ local function Build()
     end)
 
     frame.promptCheck = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
-    frame.promptCheck:SetPoint("BOTTOMLEFT", 12, 12)
+    frame.promptCheck:SetPoint("BOTTOMLEFT", 10, 10)
     frame.promptCheck:SetScript("OnClick", function(self)
         InCharacter.Roadmap.SetLockPrompts(self:GetChecked())
     end)
@@ -174,8 +156,10 @@ local function StatusGlyph(status)
 end
 
 function InCharacter.Roadmap.UI.Refresh()
-    if not frame or not frame:IsShown() then return end
-    frame.promptCheck:SetChecked(InCharacter.Roadmap.LockPromptsEnabled())
+    if not frame then return end
+    if frame.promptCheck then
+        frame.promptCheck:SetChecked(InCharacter.Roadmap.LockPromptsEnabled())
+    end
     ClearSteps()
 
     local active = InCharacter.Roadmap.GetActive()
@@ -217,19 +201,25 @@ function InCharacter.Roadmap.UI.Refresh()
     end
 
     local cur = active.steps[active.currentIndex]
-    if cur and frame.detail:GetText() == "" then
+    if cur and (frame.detail:GetText() or "") == "" then
         frame.detail:SetText(cur.lore or "")
     end
 end
 
+function InCharacter.Roadmap.UI.Mount(parent)
+    if not frame then Build(parent)
+    elseif parent then InCharacter.UI.Theme.MountInPage(frame, parent) end
+    frame:Show()
+    InCharacter.Roadmap.UI.Refresh()
+end
+
 function InCharacter.Roadmap.UI.Toggle()
-    if not frame then Build() end
-    if frame:IsShown() then
-        frame:Hide()
-    else
-        frame:Show()
-        InCharacter.Roadmap.UI.Refresh()
+    if InCharacter.TomeHub and InCharacter.TomeHub.Toggle then
+        InCharacter.TomeHub.Toggle("road")
+        return
     end
+    if not frame then Build(UIParent) end
+    if frame:IsShown() then frame:Hide() else frame:Show(); InCharacter.Roadmap.UI.Refresh() end
 end
 
 function InCharacter.Roadmap.UI.Init()

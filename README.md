@@ -4,7 +4,7 @@ A WoW addon for in-character immersive connections rather than OOC social utilit
 
 Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, expedition roadmaps, PvP field reports, and TRP3-friendly export — plus discovery beacons and bulletin boards. Complements Total RP 3; never rewrites TRP3 data.
 
-**Version:** 1.1.0 (Tome Theme 2.0 · Voice · Bulletin polish)  
+**Version:** 1.2.0 (true book Tome · first-run lineage setup)  
 **Target:** Retail WoW 12.0.7+  
 **Repo:** https://github.com/khallammarellus-rgb/In-Character
 
@@ -37,9 +37,11 @@ Child packages declare `## RequiredDeps: InCharacter`. Disable a package to drop
 | **Lineage** — birth year (ADP/BDP) | Tome | 0.8+ |
 | **Presence** — Beacons lite + Bulletins | Presence | 0.9+ |
 | **Multi-package layout** | all | 1.0.0 |
-| **Tome Theme 2.0** — book hub + tabs | Tome | **1.1.0** |
-| **Voice** — race accents (one profile, never mixed) | Tome | **1.1.0** |
-| **Bulletin polish** — more boards, wax seals, OOC lint | Presence | **1.1.0** |
+| **Tome Theme 2.0** — book hub + tabs | Tome | 1.1.0 |
+| **Voice** — race accents (one profile, never mixed) | Tome | 1.1.0 |
+| **Bulletin polish** — more boards, wax seals, OOC lint | Presence | 1.1.0 |
+| **True book** — all Tome modules in one window | Tome | **1.2.0** |
+| **Setup wizard** — first-run character & lineage | Tome | **1.2.0** |
 
 ---
 
@@ -71,7 +73,8 @@ Character select → AddOns → enable **In Character**, **Presence**, **Tome**,
 | `/ic beacon` | Emit / withdraw beacon (no chat text) |
 | `/ic bulletin` | Post a bulletin at a board |
 | `/ic beacons on` / `off` | Receive beacons (default on) |
-| `/ic tome` / `/ic chronicle` | Traveler’s Tome hub (tabs) |
+| `/ic tome` / `/ic chronicle` | Traveler’s Tome (one book, tabs) |
+| `/ic setup` | First-run character & lineage tutorial |
 | `/ic voice` | Accent / IC voice settings |
 | `/ic birth` | Lineage / birth year |
 | `/ic roadmap` | Expedition chart |

@@ -2,7 +2,7 @@ local AceAddon = LibStub("AceAddon-3.0")
 local AceEvent = LibStub("AceEvent-3.0")
 
 InCharacter = InCharacter or {}
-InCharacter.VERSION = "1.1.0"
+InCharacter.VERSION = "1.2.0"
 InCharacter.PREFIX = "IC_RP"
 InCharacter.CHANNEL_NAME = "IC_Channel"
 InCharacter.SEP = "\031"
@@ -235,6 +235,12 @@ SlashCmdList["INCHARACTER"] = function(msg)
         else
             NeedPackage("In Character Tome", "The Tome")
         end
+    elseif msg == "setup" or msg == "tutorial" or msg == "onboard" then
+        if InCharacter.SetupWizard and InCharacter.SetupWizard.Show then
+            InCharacter.SetupWizard.Show()
+        else
+            NeedPackage("In Character Tome", "Setup")
+        end
     elseif msg == "voice" or msg == "accent" then
         if InCharacter.TomeHub and InCharacter.TomeHub.Show then
             InCharacter.TomeHub.Show("voice")
@@ -248,7 +254,9 @@ SlashCmdList["INCHARACTER"] = function(msg)
             NeedPackage("In Character Tome", "Chronicle")
         end
     elseif msg == "hardcore" or msg == "gates" or msg == "hc" then
-        if InCharacter.Hardcore and InCharacter.Hardcore.UI then
+        if InCharacter.TomeHub and InCharacter.TomeHub.Show then
+            InCharacter.TomeHub.Show("honor")
+        elseif InCharacter.Hardcore and InCharacter.Hardcore.UI then
             InCharacter.Hardcore.UI.Toggle()
         else
             NeedPackage("In Character Tome", "Hardcore")
@@ -296,25 +304,34 @@ SlashCmdList["INCHARACTER"] = function(msg)
             NeedPackage("In Character Survival", "Survival")
         end
     elseif msg == "afterlife" or msg == "death" or msg == "return" then
-        if InCharacter.Afterlife and InCharacter.Afterlife.UI then
+        if InCharacter.TomeHub and InCharacter.TomeHub.Show then
+            InCharacter.TomeHub.Show("realms")
+        elseif InCharacter.Afterlife and InCharacter.Afterlife.UI then
             InCharacter.Afterlife.UI.Toggle()
         else
             NeedPackage("In Character Tome", "Afterlife")
         end
     elseif msg == "realms" then
-        if InCharacter.Afterlife and InCharacter.Afterlife.UI then
-            InCharacter.Afterlife.UI.ShowRealmPicker()
+        if InCharacter.TomeHub and InCharacter.TomeHub.Show then
+            InCharacter.TomeHub.Show("realms")
+            if InCharacter.Afterlife and InCharacter.Afterlife.UI and InCharacter.Afterlife.UI.ShowRealmPicker then
+                InCharacter.Afterlife.UI.ShowRealmPicker()
+            end
         else
             NeedPackage("In Character Tome", "Afterlife")
         end
     elseif msg == "roadmap" or msg == "road" or msg == "expedition" or msg == "chart" then
-        if InCharacter.Roadmap and InCharacter.Roadmap.UI then
+        if InCharacter.TomeHub and InCharacter.TomeHub.Show then
+            InCharacter.TomeHub.Show("road")
+        elseif InCharacter.Roadmap and InCharacter.Roadmap.UI then
             InCharacter.Roadmap.UI.Toggle()
         else
             NeedPackage("In Character Tome", "Roadmap")
         end
     elseif msg == "birth" or msg == "identity" or msg == "lineage" or msg == "age" then
-        if InCharacter.LineageUI then
+        if InCharacter.TomeHub and InCharacter.TomeHub.Show then
+            InCharacter.TomeHub.Show("lineage")
+        elseif InCharacter.LineageUI then
             InCharacter.LineageUI.Toggle()
         else
             NeedPackage("In Character Tome", "Lineage")
@@ -379,6 +396,6 @@ SlashCmdList["INCHARACTER"] = function(msg)
             InCharacter.Print("Enable |cffc9a227In Character Presence|r for the presence panel. /ic packages")
         end
     else
-        InCharacter.Print("Commands: /ic, /ic beacon, /ic bulletin, /ic tome, /ic voice, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export, /ic packages")
+        InCharacter.Print("Commands: /ic, /ic setup, /ic tome, /ic beacon, /ic bulletin, /ic voice, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export, /ic packages")
     end
 end

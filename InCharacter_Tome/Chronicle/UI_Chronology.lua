@@ -320,16 +320,19 @@ local function BuildUI()
             local entry = InCharacter.Chronicle.Store.GetById(selectedId)
             if entry then ShowEntry(entry) end
         end
+        local sp = journal._icSidePad or 10
+        local tp = journal._icTopPad or 22
+        local bp = journal._icBottomPad or 40
         if presentationMode then
             journal.leftHost:Hide()
             journal.rightHost:ClearAllPoints()
-            journal.rightHost:SetPoint("TOPLEFT", 16, -60)
-            journal.rightHost:SetPoint("BOTTOMRIGHT", -16, 48)
+            journal.rightHost:SetPoint("TOPLEFT", sp, -tp)
+            journal.rightHost:SetPoint("BOTTOMRIGHT", -sp, bp)
         else
             journal.leftHost:Show()
             journal.rightHost:ClearAllPoints()
-            journal.rightHost:SetPoint("TOPLEFT", journal.leftHost, "TOPRIGHT", 12, 0)
-            journal.rightHost:SetPoint("BOTTOMRIGHT", -16, 48)
+            journal.rightHost:SetPoint("TOPLEFT", journal.leftHost, "TOPRIGHT", 10, 0)
+            journal.rightHost:SetPoint("BOTTOMRIGHT", -sp, bp)
         end
     end)
 
