@@ -102,6 +102,7 @@ Slash aliases: **`/ba`**, **`/blackacre`**, and legacy **`/ic`**.
 | [docs/PRESENCE-FREEZE.md](docs/PRESENCE-FREEZE.md) | Bulletins/Beacons: do not touch until Phase 10 |
 | [docs/UX-VISION.md](docs/UX-VISION.md) | Bethesda × Warcraft UX vision |
 | [docs/THEME-TOKENS.md](docs/THEME-TOKENS.md) | Colors, textures, Theme helpers |
+| [docs/FRAME-LAYERS.md](docs/FRAME-LAYERS.md) | Frame canvas + texture layers (Mayron Ep. 5) |
 | [docs/MEDIA-GUIDE.md](docs/MEDIA-GUIDE.md) | Your custom images in-game |
 | [docs/TOOLING.md](docs/TOOLING.md) | Phase 1 dev loop + BugSack tips |
 | [docs/PHASE1-VISUAL-BASELINE.md](docs/PHASE1-VISUAL-BASELINE.md) | In-game look checklist |

@@ -22,6 +22,7 @@ This is about **in-game** experience design — **not** replacing Blizzard’s B
 **Do aim for:** Bethesda-style *agency and immersion* expressed through *Warcraft-looking* frames. Trail-journal chrome (leather, parchment, gold titles) is the **texture** of that marriage — not a Skyrim skin.
 
 Living Theme code: `Blackacre/UI/Theme.lua` (see [`THEME-TOKENS.md`](THEME-TOKENS.md)).  
+**Frame/layer model (required):** [`FRAME-LAYERS.md`](FRAME-LAYERS.md) — Mayron Ep. 5: frame = canvas; BACKGROUND → BORDER → ARTWORK → OVERLAY → HIGHLIGHT; parent + unlimited children.  
 Custom art: [`MEDIA-GUIDE.md`](MEDIA-GUIDE.md).  
 Presence freeze: [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 

@@ -1,6 +1,38 @@
+-- Blackacre UI Theme
+--
+-- FRAME / LAYER MODEL (Mayron Ep. 5 — use this for all Tome & Menu chrome):
+--   Frame = canvas (parent + unlimited children)
+--   Draw layers on a frame, back → front:
+--     BACKGROUND → BORDER → ARTWORK → OVERLAY → HIGHLIGHT
+--   Sublevel (-8..7) orders regions inside the same layer.
+-- Full write-up: docs/FRAME-LAYERS.md
+
 Blackacre = Blackacre or {}
 Blackacre.UI = Blackacre.UI or {}
 Blackacre.UI.Theme = {}
+
+--- Canonical draw-layer names (engine strings). Prefer these constants in new code.
+Blackacre.UI.Theme.Layer = {
+    BACKGROUND = "BACKGROUND", -- fills, washes, paper
+    BORDER = "BORDER",         -- edge art
+    ARTWORK = "ARTWORK",       -- spine, ornaments, card art
+    OVERLAY = "OVERLAY",       -- text, primary icons, controls chrome
+    HIGHLIGHT = "HIGHLIGHT",   -- mouse hover (auto show/hide)
+}
+
+--- Create a texture on a frame at a known layer/sublevel (defaults: BACKGROUND, 0).
+function Blackacre.UI.Theme.CreateLayeredTexture(frame, layer, sublevel)
+    if not frame then return nil end
+    layer = layer or Blackacre.UI.Theme.Layer.BACKGROUND
+    return frame:CreateTexture(nil, layer, nil, sublevel)
+end
+
+--- Create a font string on OVERLAY by default (text must sit above art).
+function Blackacre.UI.Theme.CreateLayeredFontString(frame, layer, inherits)
+    if not frame then return nil end
+    layer = layer or Blackacre.UI.Theme.Layer.OVERLAY
+    return frame:CreateFontString(nil, layer, inherits or "GameFontHighlight")
+end
 
 Blackacre.UI.Theme.Colors = {
     ink = { 0.15, 0.10, 0.05 },
@@ -71,6 +103,8 @@ end
 
 function Blackacre.UI.Theme.ApplyBookBackdrop(frame, alpha)
     alpha = alpha or 0.98
+    local Layer = Blackacre.UI.Theme.Layer
+    -- Backdrop = frame chrome (fill + edge). Extra art uses explicit layers (Ep. 5 model).
     -- Solid cover fill (never stretch QuestBG — that left empty corners)
     frame:SetBackdrop({
         bgFile = Blackacre.UI.Theme.Textures.white,
@@ -86,7 +120,8 @@ function Blackacre.UI.Theme.ApplyBookBackdrop(frame, alpha)
     frame:SetBackdropBorderColor(g[1] * 0.75, g[2] * 0.65, g[3] * 0.4, 1)
 
     if not frame._baSpine then
-        local spine = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
+        -- BACKGROUND sublevel -8: spine (further back)
+        local spine = Blackacre.UI.Theme.CreateLayeredTexture(frame, Layer.BACKGROUND, -8)
         spine:SetPoint("TOPLEFT", 6, -8)
         spine:SetPoint("BOTTOMLEFT", 6, 8)
         spine:SetWidth(22)
@@ -94,15 +129,16 @@ function Blackacre.UI.Theme.ApplyBookBackdrop(frame, alpha)
         spine:SetColorTexture(s[1], s[2], s[3], 1)
         frame._baSpine = spine
 
-        -- Soft parchment page wash over the cover interior
-        local wash = frame:CreateTexture(nil, "BACKGROUND", nil, -6)
+        -- BACKGROUND sublevel -6: page wash (in front of spine, still behind ARTWORK)
+        local wash = Blackacre.UI.Theme.CreateLayeredTexture(frame, Layer.BACKGROUND, -6)
         wash:SetPoint("TOPLEFT", 28, -12)
         wash:SetPoint("BOTTOMRIGHT", -12, 12)
         local p = Blackacre.UI.Theme.Colors.pageFill
         wash:SetColorTexture(p[1], p[2], p[3], 0.97)
         frame._baWash = wash
 
-        local ribbon = frame:CreateTexture(nil, "ARTWORK")
+        -- ARTWORK: ribbon ornament (above background washes)
+        local ribbon = Blackacre.UI.Theme.CreateLayeredTexture(frame, Layer.ARTWORK, 0)
         ribbon:SetPoint("TOP", frame, "TOP", 48, 4)
         ribbon:SetSize(26, 40)
         ribbon:SetColorTexture(0.55, 0.12, 0.12, 0.9)
