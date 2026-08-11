@@ -80,10 +80,12 @@ See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 
 ## UX / UI & custom art
 
+- **Anchor:** Bethesda design principles (**immersion, freedom, interactive systems**) married to **Warcraft’s in-game visual/UI language** — familiar, but bigger for adventure. **Not** a Base UI replacement.
 - Design system SSOT in code: `InCharacter/UI/Theme.lua` (→ Blackacre later).
-- Docs: [`UX-VISION.md`](UX-VISION.md), [`THEME-TOKENS.md`](THEME-TOKENS.md), [`MEDIA-GUIDE.md`](MEDIA-GUIDE.md).
+- Docs: [`UX-VISION.md`](UX-VISION.md) (surfaces, retcon vs new event, HUD rules), [`THEME-TOKENS.md`](THEME-TOKENS.md), [`MEDIA-GUIDE.md`](MEDIA-GUIDE.md).
+- **Hard split:** **Book shell** = Tome journal only (IC). **Blackacre Menu** = OOC path/settings/mount status. No settings inside the journal.
 - **Custom images are allowed** under `Media/` (TGA preferred), registered in Theme, with Blizzard fallbacks.
-- Visual metaphor: **trail journal** — parchment, leather cover, gold titles, ink body — not TRP3 clone, not plain black boxes.
+- Chrome texture: trail-journal parchment/leather/gold — still *Warcraft*, not a Skyrim HUD clone.
 
 ---
 

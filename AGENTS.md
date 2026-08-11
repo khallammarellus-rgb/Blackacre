@@ -37,7 +37,11 @@ Rename to Blackacre is **Phase 3**, not ad-hoc.
 
 ## UX rule
 
-Player-facing UI goes through **Theme** (`InCharacter/UI/Theme.lua`). Register textures (Blizzard or `Media/`) before use. No new plain black panels for solo features. Presence freeze still applies to cosmetics.
+- **Anchor:** Bethesda (immersion, freedom, interactive design) × Warcraft visual UI — familiar but bigger for adventure. Not a Base UI replacement. Details: [`docs/UX-VISION.md`](docs/UX-VISION.md).
+- **Journal vs Menu:** Book shell = Tome (IC pages only). **Blackacre Menu** = OOC settings, path picker, mount status. Never put settings controls inside journal pages.
+- History-changing Menu edits must offer **retcon** (rewrite original choice only) vs **new event** (log a new beat).
+- HUD meters: minimizable/hideable; hidden → player-only system text reminders; visible → normal popups/toasts.
+- Player-facing chrome goes through **Theme** (`InCharacter/UI/Theme.lua`). Register textures before use. Presence freeze applies until Phase 10.
 
 ## Git / GitHub
 

@@ -86,15 +86,22 @@ Helpers: `SealLabel(scopeTier)`, `FormatSealPrefix(scopeTier)`.
 
 ---
 
-## Which surface for which package
+## Which surface for which package (vision-aligned)
 
-| Package | Primary surface |
-|---------|-----------------|
-| Tome hub / Setup | Book shell + page panels |
-| Survival meters | Parchment tool + HUD bars |
-| Roadmap / lineage (standalone) | Page or parchment; prefer mount in Tome |
-| Presence editors / flyout | Parchment (frozen) |
-| Toasts (all) | `Theme.Toast` |
+See [`UX-VISION.md`](UX-VISION.md) for the full product rules (Bethesda × Warcraft, retcon prompts, HUD hide behavior).
+
+| Surface | Scope | Package / code target |
+|---------|--------|------------------------|
+| **Book shell** | **Tome hub only** | `TomeHub` + `CreateBookShell` |
+| **Blackacre Menu** | OOC: path picker, settings, mount status, experience config | **Not built yet** — do not put these controls inside journal pages |
+| **Page panel** | Achievements, quests, path completion, leveling, manual journal prose | Chronicle / page UIs inside the book |
+| **Parchment tool** | **Bottom-of-Tome** journaling mode toggle (edit auto + manual pages) | Future Tome chrome strip — *not* survival floating panel |
+| **HUD meters** | Always-on survival; minimizable / hideable; dual reminders | `InCharacter_Survival` |
+| **Modal / wizard** | Setup | No design change yet |
+| **Presence** | Beacons / bulletins | Frozen |
+| **Toast** | Soft feedback when HUD visible | `Theme.Toast` |
+
+**Debt vs current code:** Today, path/setup/hardcore tabs still live inside the Tome book. Phase work will peel OOC into **Blackacre Menu** and reserve the book for IC pages + bottom journaling tool.
 
 ---
 
