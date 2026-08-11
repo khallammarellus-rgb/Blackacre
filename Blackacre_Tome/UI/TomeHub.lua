@@ -79,8 +79,18 @@ local function SelectTab(id)
         if btn then
             local active = t.id == id
             btn:SetNormalFontObject(active and GameFontHighlightSmall or GameFontDisableSmall)
-            local c = active and Blackacre.UI.Theme.Colors.tabActive or Blackacre.UI.Theme.Colors.tabIdle
-            btn.bg:SetColorTexture(c[1], c[2], c[3], active and 0.9 or 0.5)
+            -- Pass A: high-contrast active tab (art pass will use Theme tab colors)
+            if active then
+                btn.bg:SetColorTexture(0.55, 0.48, 0.22, 0.95)
+                if btn.SetBackdropBorderColor then
+                    btn:SetBackdropBorderColor(0.85, 0.75, 0.35, 1)
+                end
+            else
+                btn.bg:SetColorTexture(0.30, 0.30, 0.34, 0.85)
+                if btn.SetBackdropBorderColor then
+                    btn:SetBackdropBorderColor(0.5, 0.5, 0.55, 1)
+                end
+            end
         end
         if page then
             if t.id == id then
@@ -111,13 +121,26 @@ local function SelectTab(id)
 end
 
 local function MakeTabButton(parent, tab, index)
-    local btn = CreateFrame("Button", nil, parent)
-    btn:SetSize(76, 30)
-    btn:SetPoint("TOPLEFT", 6, -10 - (index - 1) * 36)
+    -- Pass A: plain tab buttons in left rail (size/spacing for landscaping check)
+    local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    btn:SetSize(88, 32)
+    btn:SetPoint("TOPLEFT", 6, -10 - (index - 1) * 38)
+    if btn.SetBackdrop then
+        btn:SetBackdrop({
+            bgFile = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tile = true,
+            tileSize = 8,
+            edgeSize = 10,
+            insets = { left = 2, right = 2, top = 2, bottom = 2 },
+        })
+        btn:SetBackdropColor(0.25, 0.25, 0.28, 0.9)
+        btn:SetBackdropBorderColor(0.5, 0.5, 0.55, 1)
+    end
     btn.bg = btn:CreateTexture(nil, "BACKGROUND")
-    btn.bg:SetAllPoints()
-    local c = Blackacre.UI.Theme.Colors.tabIdle
-    btn.bg:SetColorTexture(c[1], c[2], c[3], 0.5)
+    btn.bg:SetPoint("TOPLEFT", 3, -3)
+    btn.bg:SetPoint("BOTTOMRIGHT", -3, 3)
+    btn.bg:SetColorTexture(0.30, 0.30, 0.34, 0.85)
     btn:SetText(tab.label)
     btn:SetNormalFontObject(GameFontDisableSmall)
     btn:SetHighlightFontObject(GameFontHighlightSmall)
@@ -331,4 +354,12 @@ end
 function Blackacre.TomeHub.GetFrame()
     if not hub then Build() end
     return hub
+end
+
+--- Hook for footer journaling toggle (Pass A placeholder; logic later).
+function Blackacre.TomeHub.OnJournalToggle(on)
+    -- Pass A: no edit behavior yet — reserved for parchment tool
+    if Blackacre.Print then
+        Blackacre.Print(on and "Journaling mode On (skeleton — no edit yet)." or "Journaling mode Off.")
+    end
 end

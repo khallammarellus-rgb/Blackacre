@@ -150,10 +150,47 @@ function Blackacre.UI.Theme.ApplyPagePanel(frame, alpha)
     Blackacre.UI.Theme.ApplyFilledPanel(frame, alpha or 0.92, "page")
 end
 
---- Outer book window + tab rail slot + content host. Returns frame with .tabRail, .pageHost, .header.
+--- Pass A skeleton chrome: plain box + border only (no spine/ribbon/parchment art).
+--- Use until owner approves layout; Pass B swaps to Achievement-frame art.
+function Blackacre.UI.Theme.ApplySkeletonPanel(frame, alpha)
+    alpha = alpha or 0.95
+    frame:SetBackdrop({
+        bgFile = Blackacre.UI.Theme.Textures.white,
+        edgeFile = Blackacre.UI.Theme.Textures.tooltipEdge,
+        tile = true,
+        tileSize = 16,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 },
+    })
+    -- Neutral gray fill so regions read as structure, not final art
+    frame:SetBackdropColor(0.18, 0.18, 0.20, alpha)
+    frame:SetBackdropBorderColor(0.55, 0.55, 0.58, 1)
+end
+
+local function SkeletonRegionLabel(parent, text)
+    local fs = Blackacre.UI.Theme.CreateLayeredFontString(parent, Blackacre.UI.Theme.Layer.OVERLAY, "GameFontDisableSmall")
+    fs:SetPoint("TOPRIGHT", -6, -4)
+    fs:SetText(text)
+    fs:SetTextColor(0.65, 0.65, 0.7, 0.85)
+    return fs
+end
+
+--- Outer Tome window — Pass A skeleton (Achievement-frame scale).
+--- Returns frame with: .header, .tabRail, .pageHost, .footer, .title, .subtitle, .closeButton
+--- Parent/child tree + layers only; no final Achievement parchment art yet.
 function Blackacre.UI.Theme.CreateBookShell(name, titleText)
+    local Layer = Blackacre.UI.Theme.Layer
+
+    -- Achievement-frame-ish landscape footprint (large readable journal)
+    local WIDTH, HEIGHT = 900, 620
+    local HEADER_H = 58
+    local FOOTER_H = 42
+    local TAB_W = 100
+    local PAD = 12
+    local GAP = 8
+
     local frame = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
-    frame:SetSize(880, 580)
+    frame:SetSize(WIDTH, HEIGHT)
     frame:SetPoint("CENTER")
     frame:SetFrameStrata("HIGH")
     frame:SetToplevel(true)
@@ -165,42 +202,83 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame:SetClampedToScreen(true)
     frame:Hide()
     tinsert(UISpecialFrames, name)
-    Blackacre.UI.Theme.ApplyBookBackdrop(frame, 0.99)
 
-    local icon = frame:CreateTexture(nil, "OVERLAY")
-    icon:SetSize(30, 30)
-    icon:SetPoint("TOPLEFT", 36, -16)
-    icon:SetTexture(Blackacre.UI.Theme.Textures.questBook)
+    -- Root: plain box (Pass A). Pass B will call ApplyBookBackdrop / Achievement textures.
+    frame._baShellPass = "A" -- "A" skeleton | "B" art
+    Blackacre.UI.Theme.ApplySkeletonPanel(frame, 0.96)
+    SkeletonRegionLabel(frame, "TOME ROOT")
 
-    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    frame.title:SetPoint("LEFT", icon, "RIGHT", 10, 0)
+    -- HEADER (child canvas)
+    frame.header = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    frame.header:SetPoint("TOPLEFT", PAD, -PAD)
+    frame.header:SetPoint("TOPRIGHT", -PAD, -PAD)
+    frame.header:SetHeight(HEADER_H)
+    Blackacre.UI.Theme.ApplySkeletonPanel(frame.header, 0.92)
+    frame.header:SetBackdropColor(0.22, 0.22, 0.26, 0.95)
+    SkeletonRegionLabel(frame.header, "HEADER")
+
+    frame.title = Blackacre.UI.Theme.CreateLayeredFontString(frame.header, Layer.OVERLAY, "GameFontNormalLarge")
+    frame.title:SetPoint("TOPLEFT", 12, -10)
     frame.title:SetText(titleText or "Traveler’s Tome")
-    Blackacre.UI.Theme.GoldTitle(frame.title)
+    frame.title:SetTextColor(0.95, 0.90, 0.70) -- readable gold-ish, not final Theme gold pass
 
-    frame.subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.subtitle:SetPoint("TOPLEFT", icon, "BOTTOMLEFT", 0, -4)
-    frame.subtitle:SetText("One book for the road — pages turn; windows do not stack")
-    Blackacre.UI.Theme.InkFont(frame.subtitle)
+    frame.subtitle = Blackacre.UI.Theme.CreateLayeredFontString(frame.header, Layer.OVERLAY, "GameFontHighlightSmall")
+    frame.subtitle:SetPoint("TOPLEFT", frame.title, "BOTTOMLEFT", 0, -4)
+    frame.subtitle:SetPoint("RIGHT", frame.header, "RIGHT", -40, 0)
+    frame.subtitle:SetJustifyH("LEFT")
+    frame.subtitle:SetText("Skeleton Pass A — layout only (Achievement-frame scale)")
+    frame.subtitle:SetTextColor(0.75, 0.75, 0.78)
 
-    local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", -6, -8)
+    local close = CreateFrame("Button", nil, frame.header, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", 2, 2)
     frame.closeButton = close
 
-    -- Left tab rail
+    -- FOOTER (parchment tool / journaling strip — skeleton placeholder)
+    frame.footer = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    frame.footer:SetPoint("BOTTOMLEFT", PAD, PAD)
+    frame.footer:SetPoint("BOTTOMRIGHT", -PAD, PAD)
+    frame.footer:SetHeight(FOOTER_H)
+    Blackacre.UI.Theme.ApplySkeletonPanel(frame.footer, 0.92)
+    frame.footer:SetBackdropColor(0.20, 0.22, 0.24, 0.95)
+    SkeletonRegionLabel(frame.footer, "FOOTER / JOURNAL TOOL")
+
+    frame.footerHint = Blackacre.UI.Theme.CreateLayeredFontString(frame.footer, Layer.OVERLAY, "GameFontHighlightSmall")
+    frame.footerHint:SetPoint("LEFT", 12, 0)
+    frame.footerHint:SetText("Journaling tool (placeholder) — edit mode later")
+    frame.footerHint:SetTextColor(0.7, 0.7, 0.72)
+
+    frame.journalToggle = CreateFrame("Button", nil, frame.footer, "UIPanelButtonTemplate")
+    frame.journalToggle:SetSize(120, 24)
+    frame.journalToggle:SetPoint("RIGHT", -12, 0)
+    frame.journalToggle:SetText("Journal: Off")
+    frame.journalToggle._baOn = false
+    frame.journalToggle:SetScript("OnClick", function(self)
+        self._baOn = not self._baOn
+        self:SetText(self._baOn and "Journal: On" or "Journal: Off")
+        if Blackacre.TomeHub and Blackacre.TomeHub.OnJournalToggle then
+            Blackacre.TomeHub.OnJournalToggle(self._baOn)
+        end
+    end)
+
+    -- TAB RAIL (left)
     frame.tabRail = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.tabRail:SetPoint("TOPLEFT", 34, -62)
-    frame.tabRail:SetPoint("BOTTOMLEFT", 14, 16)
-    frame.tabRail:SetWidth(88)
-    Blackacre.UI.Theme.ApplyFilledPanel(frame.tabRail, 0.88, "panel")
+    frame.tabRail:SetPoint("TOPLEFT", frame.header, "BOTTOMLEFT", 0, -GAP)
+    frame.tabRail:SetPoint("BOTTOMLEFT", frame.footer, "TOPLEFT", 0, GAP)
+    frame.tabRail:SetWidth(TAB_W)
+    Blackacre.UI.Theme.ApplySkeletonPanel(frame.tabRail, 0.92)
+    frame.tabRail:SetBackdropColor(0.16, 0.17, 0.20, 0.95)
+    SkeletonRegionLabel(frame.tabRail, "TABS")
     if frame.tabRail.SetClipsChildren then
         frame.tabRail:SetClipsChildren(true)
     end
 
-    -- Main page host (all modules mount here)
+    -- PAGE HOST (main content — modules mount here)
     frame.pageHost = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.pageHost:SetPoint("TOPLEFT", frame.tabRail, "TOPRIGHT", 10, 0)
-    frame.pageHost:SetPoint("BOTTOMRIGHT", -16, 16)
-    Blackacre.UI.Theme.ApplyFilledPanel(frame.pageHost, 0.94, "page")
+    frame.pageHost:SetPoint("TOPLEFT", frame.tabRail, "TOPRIGHT", GAP, 0)
+    frame.pageHost:SetPoint("BOTTOMRIGHT", frame.footer, "TOPRIGHT", 0, GAP)
+    Blackacre.UI.Theme.ApplySkeletonPanel(frame.pageHost, 0.92)
+    frame.pageHost:SetBackdropColor(0.14, 0.14, 0.16, 0.97)
+    SkeletonRegionLabel(frame.pageHost, "PAGE HOST")
     if frame.pageHost.SetClipsChildren then
         frame.pageHost:SetClipsChildren(true)
     end
