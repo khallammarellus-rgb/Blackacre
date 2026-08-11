@@ -1,5 +1,8 @@
+-- Blackacre core bootstrap (Ace3).
+-- Feature SavedVariables: BlackacreDB / BlackacreCharDB (legacy flat tables).
+-- Options profiles: BlackacreAceDB via AceDB-3.0 (Phase 2).
+
 local AceAddon = LibStub("AceAddon-3.0")
-local AceEvent = LibStub("AceEvent-3.0")
 
 Blackacre = Blackacre or {}
 Blackacre.VERSION = "2.0.0-dev"
@@ -7,6 +10,15 @@ Blackacre.PREFIX = "BA_RP"
 Blackacre.CHANNEL_NAME = "BA_Channel"
 Blackacre.SEP = "\031"
 Blackacre._loadedPackages = Blackacre._loadedPackages or {}
+
+-- Locale table filled after Locales/enUS.lua loads (AceLocale).
+local function L(key)
+    local locale = Blackacre.L
+    if locale and locale[key] then
+        return locale[key]
+    end
+    return key
+end
 
 Blackacre.STATUS = {
     ACTIVE = "ACTIVE",
@@ -124,8 +136,17 @@ if not BlackacreDB._migratedFromIC and type(InCharacterDB) ~= "table" then
     BlackacreDB._migratedFromIC = true
 end
 
-local addon = AceAddon:NewAddon("Blackacre", "AceEvent-3.0", "AceComm-3.0")
+-- Ace mixins: events, comms, console, timer (bucket available via LibStub when needed).
+local addon = AceAddon:NewAddon("Blackacre", "AceEvent-3.0", "AceComm-3.0", "AceConsole-3.0", "AceTimer-3.0")
 Blackacre.addon = addon
+
+-- AceDB defaults for OPTIONS only (minimap, quiet, future Menu prefs).
+local aceDefaults = {
+    profile = {
+        minimap = { hide = false },
+        quietNotifications = false,
+    },
+}
 
 --- Child packages call this after their files load (RequiredDeps: Blackacre).
 function Blackacre.RegisterPackage(name, initFn)
@@ -181,14 +202,25 @@ function Blackacre.GetCharName()
 end
 
 function Blackacre.Print(msg)
-    print("|cffc9a227Blackacre:|r " .. msg)
+    local prefix = L("PRINT_PREFIX")
+    if prefix == "PRINT_PREFIX" then
+        prefix = "|cffc9a227Blackacre:|r "
+    end
+    print(prefix .. msg)
 end
 
 local function NeedPackage(pkg, feature)
-    Blackacre.Print(string.format("%s requires the |cffc9a227%s|r package (enable it in AddOns).", feature, pkg))
+    local fmt = L("NEED_PACKAGE")
+    if fmt == "NEED_PACKAGE" then
+        fmt = "%s requires the |cffc9a227%s|r package (enable it in AddOns)."
+    end
+    Blackacre.Print(string.format(fmt, feature, pkg))
 end
 
 function addon:OnInitialize()
+    -- Locale (enUS is default true in NewLocale)
+    Blackacre.L = LibStub("AceLocale-3.0"):GetLocale("Blackacre", true)
+
     -- Re-run migration in case SavedVariables finished loading after file parse
     MigrateFromInCharacter()
     BlackacreDB = BlackacreDB or DefaultAccountDB()
@@ -235,6 +267,25 @@ function addon:OnInitialize()
         showNameZone = true,
         showNameProximity = true,
     }
+
+    -- AceDB options profile (separate SV — does not rewrite chronicle/survival data)
+    self.db = LibStub("AceDB-3.0"):New("BlackacreAceDB", aceDefaults, true)
+    Blackacre.db = self.db
+    -- Seed quiet from existing char setting once
+    if Blackacre.CharDB.settings.quietNotifications ~= nil and self.db.profile.quietNotifications == false then
+        self.db.profile.quietNotifications = Blackacre.CharDB.settings.quietNotifications and true or false
+    end
+    -- Prefer AceDB minimap hide over legacy BlackacreDB.minimap if both exist
+    if BlackacreDB.minimap and BlackacreDB.minimap.hide ~= nil and self.db.profile.minimap then
+        -- one-way: first AceDB profile inherits old hide flag
+        if self.db.profile.minimap.hide == false and BlackacreDB.minimap.hide then
+            self.db.profile.minimap.hide = true
+        end
+    end
+
+    if Blackacre.Options and Blackacre.Options.Init then
+        Blackacre.Options.Init(self)
+    end
 
     -- Core only — Presence / Tome / Survival self-init via RegisterPackage
     Blackacre.Comms.Init(self)
@@ -431,13 +482,19 @@ SlashCmdList["BLACKACRE"] = function(msg)
         Blackacre.Print(string.format("v%s core · packages: %s",
             Blackacre.VERSION,
             (#list > 0) and table.concat(list, ", ") or "(none — enable Presence/Tome/Survival)"))
+    elseif msg == "config" or msg == "options" or msg == "opt" then
+        if Blackacre.Options and Blackacre.Options.Open then
+            Blackacre.Options.Open()
+        else
+            Blackacre.Print("Options not ready.")
+        end
     elseif msg == "" then
         if Blackacre.Flyout and Blackacre.Flyout.Toggle then
             Blackacre.Flyout.Toggle()
         else
-            Blackacre.Print("Enable |cffc9a227Blackacre Presence|r for the presence panel. /ic packages")
+            Blackacre.Print("Enable |cffc9a227Blackacre Presence|r for the presence panel. /ba packages")
         end
     else
-        Blackacre.Print("Commands: /ic, /ic setup, /ic tome, /ic beacon, /ic bulletin, /ic voice, /ic birth, /ic roadmap, /ic hardcore, /ic survival, /ic afterlife, /ic export, /ic packages")
+        Blackacre.Print("Commands: /ba, /ba config, /ba setup, /ba tome, /ba survival, /ba packages (aliases: /blackacre, /ic)")
     end
 end

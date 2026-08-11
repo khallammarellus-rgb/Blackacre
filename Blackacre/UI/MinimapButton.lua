@@ -46,10 +46,25 @@ function Blackacre.MinimapButton.Init()
         end,
     })
 
-    if not BlackacreDB.minimap then
-        BlackacreDB.minimap = { hide = false }
+    -- Prefer AceDB profile minimap (Phase 2); fall back to legacy BlackacreDB.minimap
+    local minimapDB
+    if Blackacre.db and Blackacre.db.profile and Blackacre.db.profile.minimap then
+        minimapDB = Blackacre.db.profile.minimap
+    else
+        BlackacreDB.minimap = BlackacreDB.minimap or { hide = false }
+        minimapDB = BlackacreDB.minimap
     end
-    icon:Register("Blackacre", dataObj, BlackacreDB.minimap)
+    icon:Register("Blackacre", dataObj, minimapDB)
+end
+
+function Blackacre.MinimapButton.Refresh()
+    local minimapDB = Blackacre.db and Blackacre.db.profile and Blackacre.db.profile.minimap
+    if not minimapDB then return end
+    if minimapDB.hide then
+        icon:Hide("Blackacre")
+    else
+        icon:Show("Blackacre")
+    end
 end
 
 function Blackacre.MinimapButton.Notify()

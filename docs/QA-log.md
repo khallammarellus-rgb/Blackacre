@@ -1,7 +1,7 @@
 # Blackacre — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
-**Last build:** 1.2.0 (true book · setup wizard) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
+**Last build:** 1.2.0 (true book · setup wizard) · **Repo:** https://github.com/khallammarellus-rgb/Blackacre
 
 How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if useful.
 

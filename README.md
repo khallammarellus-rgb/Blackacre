@@ -6,7 +6,7 @@ Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, ex
 
 **Version:** 2.0.0-dev (renamed from In Character · Blackacre identity)  
 **Target:** Retail WoW 12.0.7+ (`## Interface: 120007`)  
-**Repo:** https://github.com/khallammarellus-rgb/In-Character (GitHub name may lag product name)
+**Repo:** https://github.com/khallammarellus-rgb/Blackacre (GitHub name may lag product name)
 
 ---
 
@@ -48,7 +48,7 @@ Child packages declare `## RequiredDeps: Blackacre`. Disable a package to drop t
 ## Install (development)
 
 ```powershell
-git clone https://github.com/khallammarellus-rgb/In-Character.git
+git clone https://github.com/khallammarellus-rgb/Blackacre.git
 ```
 
 Junction **all four** folders into WoW AddOns (Admin PowerShell if needed):

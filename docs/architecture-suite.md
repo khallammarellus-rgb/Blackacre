@@ -2,7 +2,7 @@
 
 **Product:** Blackacre suite — modular packages (core + Presence + Tome + Survival) combining discovery, chronicle, survival, hardcore integrity, afterlife paths, roadmaps, PvP reports, and peer sharing. See `docs/packages.md`.
 
-**Repo:** https://github.com/khallammarellus-rgb/In-Character  
+**Repo:** https://github.com/khallammarellus-rgb/Blackacre  
 **Target:** Retail WoW 12.0.7+
 
 ---
