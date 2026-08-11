@@ -1,8 +1,8 @@
 # Theme tokens inventory
 
 **Source of truth (code):** `Blackacre/UI/Theme.lua`  
-**Namespace today:** `Blackacre.UI.Theme`  
-**After Phase 3 rename:** `Blackacre.UI.Theme` (same structure).
+**Namespace:** `Blackacre.UI.Theme`  
+**Frame/layer rules:** [`FRAME-LAYERS.md`](FRAME-LAYERS.md) — BACKGROUND → BORDER → ARTWORK → OVERLAY → HIGHLIGHT  
 
 This file is a human-readable inventory. If code and this doc disagree, **code wins** — then update this doc.
 
