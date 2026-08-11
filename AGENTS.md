@@ -11,6 +11,8 @@ Instructions for coding agents (Grok CLI and similar) working in this repository
 5. [`docs/FRAME-LAYERS.md`](docs/FRAME-LAYERS.md) — **frame canvas + draw layers** (Mayron Ep. 5; required for Tome/Menu UI)  
 6. [`docs/MEDIA-GUIDE.md`](docs/MEDIA-GUIDE.md) — custom images  
 7. [`docs/TOOLING.md`](docs/TOOLING.md) — edit → `/reload` → `/ba`  
+8. [`docs/UI-ELEMENT-WORKFLOW.md`](docs/UI-ELEMENT-WORKFLOW.md) — **Pass A skeleton → B art → C combine → D DBM hard pass**  
+9. [`docs/DBM-HYGIENE.md`](docs/DBM-HYGIENE.md) — hard-pass standards (DBM-Core style)
 
 ## Human is the driver
 
@@ -45,6 +47,8 @@ Disk path may still be `C:\Users\kvebe\InCharacter` (repo folder); **addon packa
 - HUD meters: min/hide; hidden → player-only system text; visible → popups/toasts.  
 - Theme: `Blackacre/UI/Theme.lua`. Presence freeze until Phase 10.  
 - **UI structure:** Frame = canvas with parent/children; paint with layers BACKGROUND → BORDER → ARTWORK → OVERLAY → HIGHLIGHT (see FRAME-LAYERS.md). Do not put body text under page art.  
+- **Per element:** Pass **A** plain box layout (text/size/buttons/position) → **B** textures/art → **C** combine → **D** DBM hygiene hard pass. Do not skip to art before owner OKs skeleton.  
+- **Templates:** Tome ≈ Achievement Frame chrome; Menu ≈ Settings/Game Menu; Survival ≈ status bars (keep current meters for now).
 
 ## Namespaces
 
