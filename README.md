@@ -91,6 +91,19 @@ Character select → AddOns → enable **In Character**, **Presence**, **Tome**,
 
 ---
 
+## Blackacre (next evolution)
+
+This suite is being guided toward **Blackacre** (rename + solo RP overhaul). Phase 0 docs only so far — **no rename yet**.
+
+| Doc | Purpose |
+|-----|---------|
+| [AGENTS.md](AGENTS.md) | Rules for coding agents / Grok CLI |
+| [docs/BLACKACRE-BRIEF.md](docs/BLACKACRE-BRIEF.md) | Product brief & priorities |
+| [docs/PRESENCE-FREEZE.md](docs/PRESENCE-FREEZE.md) | Bulletins/Beacons: do not touch until Phase 10 |
+| [docs/UX-VISION.md](docs/UX-VISION.md) | Immersive UI vision |
+| [docs/THEME-TOKENS.md](docs/THEME-TOKENS.md) | Colors, textures, Theme helpers |
+| [docs/MEDIA-GUIDE.md](docs/MEDIA-GUIDE.md) | Your custom images in-game |
+
 ## Architecture & QA
 
 - [docs/architecture-suite.md](docs/architecture-suite.md) — suite roadmap  

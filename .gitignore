@@ -1,6 +1,38 @@
+# OS / editor junk
 Thumbs.db
 .DS_Store
 *.tmp
 *.swp
-WTF/
+*~
+*.bak
+
+# Logs and local WoW dumps (never commit)
 *.log
+WTF/
+
+# Lua bytecode if ever generated
+*.luac
+
+# Optional local IDE noise (uncomment if you prefer not to share)
+# .vscode/
+# .idea/
+
+# Art working masters — keep exports (TGA) in Media/, not PSD/XCF dumps
+Media/_source/
+**/Media/_source/
+*.psd
+*.psb
+*.xcf
+*.afdesign
+*.afphoto
+
+# Large intermediate exports you might drop in the tree by mistake
+*.blend
+*.tiff
+*.tif
+
+# Python cache if helper scripts appear later
+__pycache__/
+*.py[cod]
+.venv/
+venv/
