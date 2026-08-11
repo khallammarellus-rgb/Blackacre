@@ -1,0 +1,17 @@
+## Interface: 120007
+## Title: Blackacre |cffc9a227Presence|r
+## Notes: Beacons (talking-head, anti-spam) and Bulletins at proximity boards
+## Version: 2.0.0-dev
+## Author: khallammarellus-rgb
+## RequiredDeps: Blackacre
+## Category-enUS: Roleplay
+
+Data\SentenceTemplates.lua
+Data\Boards.lua
+Data\BeaconDisplay.lua
+UI\Flyout.lua
+UI\BoardView.lua
+UI\PostEditor.lua
+Presence\BeaconHead.lua
+Presence\BeaconPins.lua
+Bootstrap.lua

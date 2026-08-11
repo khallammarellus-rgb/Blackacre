@@ -1,4 +1,4 @@
-# In Character — multi-package layout
+# Blackacre — multi-package layout
 
 **Version:** 1.0.0
 
@@ -8,32 +8,32 @@ Modeled after Total RP 3’s modular TOC layout: one **core** addon owns SavedVa
 
 ```
 In-Character/
-  InCharacter/                 # core
-  InCharacter_Presence/
-  InCharacter_Tome/
-  InCharacter_Survival/
+  Blackacre/                 # core
+  Blackacre_Presence/
+  Blackacre_Tome/
+  Blackacre_Survival/
 ```
 
 Each folder is a separate Blizzard addon entry under `Interface/AddOns/`.
 
 ## Load contract
 
-1. **Core** (`InCharacter`) loads first.
+1. **Core** (`Blackacre`) loads first.
 2. AceAddon `OnInitialize`: DB migrate, `Comms`, `Lifecycle`, `History`, minimap.
-3. Child TOCs use `## RequiredDeps: InCharacter`.
+3. Child TOCs use `## RequiredDeps: Blackacre`.
 4. Each child’s last file `Bootstrap.lua` calls:
 
 ```lua
-InCharacter.RegisterPackage("Presence", InitPresence)
+Blackacre.RegisterPackage("Presence", InitPresence)
 ```
 
 `RegisterPackage` runs the init function once and records the package name (`/ic packages`).
 
 ## Shared globals
 
-- `InCharacter` table — single namespace across packages  
-- `InCharacterDB` / `InCharacterCharDB` — only declared in core TOC  
-- Prefix `IC_RP`, channel `IC_Channel` — core only  
+- `Blackacre` table — single namespace across packages  
+- `BlackacreDB` / `BlackacreCharDB` — only declared in core TOC  
+- Prefix `BA_RP`, channel `BA_Channel` — core only  
 
 Packages must **not** redeclare SavedVariables.
 
@@ -49,7 +49,7 @@ Slash commands and minimap print a short hint if a required package is missing.
 
 ## Adding a new package
 
-1. Create `InCharacter_Foo/` with `InCharacter_Foo.toc` and `## RequiredDeps: InCharacter`.
-2. Put Lua under that folder; extend `InCharacter.*` tables.
-3. End with `Bootstrap.lua` calling `InCharacter.RegisterPackage("Foo", InitFn)`.
+1. Create `Blackacre_Foo/` with `Blackacre_Foo.toc` and `## RequiredDeps: Blackacre`.
+2. Put Lua under that folder; extend `Blackacre.*` tables.
+3. End with `Bootstrap.lua` calling `Blackacre.RegisterPackage("Foo", InitFn)`.
 4. Junction into AddOns and enable on character select.

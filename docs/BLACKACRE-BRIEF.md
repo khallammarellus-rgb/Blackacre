@@ -1,9 +1,9 @@
 # Blackacre — Project Brief & Operating Instructions
 
-**Status:** Phase 0 (docs / freeze). Working tree still named **In Character** until Phase 3 rename.  
-**Repo path:** `C:\Users\kvebe\InCharacter`  
+**Status:** Packages renamed to **Blackacre** (v2.0.0-dev). Phase 1 tooling in place.  
+**Repo path:** `C:\Users\kvebe\InCharacter` (disk folder may lag; addon packages are `Blackacre*`)  
 **Target client:** Retail WoW mainline (`## Interface: 120007` — verify on each patch).  
-**Current suite version:** 1.2.0 (In Character packages).
+**Current suite version:** 2.0.0-dev.
 
 This document is the long-form product brief for humans and coding agents. Session-start rules for Grok CLI also live in root [`AGENTS.md`](../AGENTS.md).
 
@@ -11,7 +11,7 @@ This document is the long-form product brief for humans and coding agents. Sessi
 
 ## User profile & working style
 
-- Owner is **not** a professional developer; first serious WoW addon (after In Character experiments).
+- Owner is **not** a professional developer; first serious WoW addon (after early In Character experiments, now Blackacre).
 - Stack: VS Code + WoW API extension, Git, Grok CLI with GitHub access. Windows 11.
 - **You (the human) direct every major decision.** The CLI does heavy lifting, explains clearly, shows before/after, and teaches how to navigate and proof code.
 - Prefer **small, reviewable steps** over giant rewrites.
@@ -23,7 +23,7 @@ This document is the long-form product brief for humans and coding agents. Sessi
 
 ## Goal
 
-Rename and overhaul **In Character** into **Blackacre**: Skyrim-inspired RPG / solo RP in World of Warcraft (especially RP servers). Light community layer later so other Blackacre users can optionally see developments via signals.
+Rename and overhaul **Blackacre** into **Blackacre**: Skyrim-inspired RPG / solo RP in World of Warcraft (especially RP servers). Light community layer later so other Blackacre users can optionally see developments via signals.
 
 ### Core features (priority order — solo first)
 
@@ -81,7 +81,7 @@ See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 ## UX / UI & custom art
 
 - **Anchor:** Bethesda design principles (**immersion, freedom, interactive systems**) married to **Warcraft’s in-game visual/UI language** — familiar, but bigger for adventure. **Not** a Base UI replacement.
-- Design system SSOT in code: `InCharacter/UI/Theme.lua` (→ Blackacre later).
+- Design system SSOT in code: `Blackacre/UI/Theme.lua` (→ Blackacre later).
 - Docs: [`UX-VISION.md`](UX-VISION.md) (surfaces, retcon vs new event, HUD rules), [`THEME-TOKENS.md`](THEME-TOKENS.md), [`MEDIA-GUIDE.md`](MEDIA-GUIDE.md).
 - **Hard split:** **Book shell** = Tome journal only (IC). **Blackacre Menu** = OOC path/settings/mount status. No settings inside the journal.
 - **Custom images are allowed** under `Media/` (TGA preferred), registered in Theme, with Blizzard fallbacks.
@@ -121,14 +121,14 @@ Detail + per-phase UX: session plan / roadmap notes. Success = clean Ace3-style 
 
 ---
 
-## Current package map (pre-rename)
+## Current package map
 
 | Folder | Role |
 |--------|------|
-| `InCharacter` | Core: DB, comms, lifecycle, theme, TRP3 bridge, minimap |
-| `InCharacter_Survival` | Hunger / thirst / exposure |
-| `InCharacter_Tome` | Chronicle, roadmap, lineage, setup, afterlife, hardcore, PvP, share |
-| `InCharacter_Presence` | **FREEZE** — beacons & bulletins |
+| `Blackacre` | Core: DB, comms, lifecycle, theme, TRP3 bridge, minimap |
+| `Blackacre_Survival` | Hunger / thirst / exposure |
+| `Blackacre_Tome` | Chronicle, roadmap, lineage, setup, afterlife, hardcore, PvP, share |
+| `Blackacre_Presence` | **FREEZE** — beacons & bulletins |
 
 ---
 

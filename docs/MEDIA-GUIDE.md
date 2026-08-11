@@ -16,10 +16,10 @@ The CLI wires paths and UI; **you** own the art files and copyright.
 
 ## Folder layout (create when you are ready)
 
-Today the core package is still `InCharacter/`. After Phase 3 rename it becomes `Blackacre/`. Use the same relative structure either way:
+Today the core package is still `Blackacre/`. After Phase 3 rename it becomes `Blackacre/`. Use the same relative structure either way:
 
 ```
-InCharacter/                    # or Blackacre/ later
+Blackacre/                    # or Blackacre/ later
 └── Media/
     ├── Brand/
     │   └── minimap.tga         # minimap / LDB icon
@@ -60,18 +60,18 @@ Tools: GIMP (free), Photoshop, Aseprite, Paint.NET + TGA plugin, etc.
 Path from the WoW install root, for example:
 
 ```text
-Interface\AddOns\InCharacter\Media\Brand\minimap
+Interface\AddOns\Blackacre\Media\Brand\minimap
 ```
 
 In Lua (after registration):
 
 ```lua
 -- Theme.lua — single registry (illustrative; applied in a later phase)
-InCharacter.UI.Theme.Textures.minimap =
-    "Interface\\AddOns\\InCharacter\\Media\\Brand\\minimap"
+Blackacre.UI.Theme.Textures.minimap =
+    "Interface\\AddOns\\Blackacre\\Media\\Brand\\minimap"
 
 -- Feature code
-icon:SetTexture(InCharacter.UI.Theme.Textures.minimap)
+icon:SetTexture(Blackacre.UI.Theme.Textures.minimap)
 ```
 
 Notes:

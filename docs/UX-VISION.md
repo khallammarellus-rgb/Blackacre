@@ -21,7 +21,7 @@ This is about **in-game** experience design — **not** replacing Blizzard’s B
 
 **Do aim for:** Bethesda-style *agency and immersion* expressed through *Warcraft-looking* frames. Trail-journal chrome (leather, parchment, gold titles) is the **texture** of that marriage — not a Skyrim skin.
 
-Living Theme code: `InCharacter/UI/Theme.lua` (see [`THEME-TOKENS.md`](THEME-TOKENS.md)).  
+Living Theme code: `Blackacre/UI/Theme.lua` (see [`THEME-TOKENS.md`](THEME-TOKENS.md)).  
 Custom art: [`MEDIA-GUIDE.md`](MEDIA-GUIDE.md).  
 Presence freeze: [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 
@@ -186,4 +186,4 @@ Richer “ornate grimoire” only if you choose it explicitly later.
 3. `/ic survival` — meters; later: hide vs visible reminder modes.  
 4. Compare to this doc: *familiar Warcraft, bigger adventure?*  
 
-VS Code: `InCharacter/UI/Theme.lua`, then Tome / Survival UI files.
+VS Code: `Blackacre/UI/Theme.lua`, then Tome / Survival UI files.

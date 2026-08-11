@@ -1,6 +1,6 @@
-# In Character — Immersion Suite Architecture
+# Blackacre — Immersion Suite Architecture
 
-**Product:** In Character suite — modular packages (core + Presence + Tome + Survival) combining discovery, chronicle, survival, hardcore integrity, afterlife paths, roadmaps, PvP reports, and peer sharing. See `docs/packages.md`.
+**Product:** Blackacre suite — modular packages (core + Presence + Tome + Survival) combining discovery, chronicle, survival, hardcore integrity, afterlife paths, roadmaps, PvP reports, and peer sharing. See `docs/packages.md`.
 
 **Repo:** https://github.com/khallammarellus-rgb/In-Character  
 **Target:** Retail WoW 12.0.7+
@@ -38,7 +38,7 @@
 
 ### Data
 
-Per-character `InCharacterCharDB.chronicle.entries[]`:
+Per-character `BlackacreCharDB.chronicle.entries[]`:
 
 ```
 ChronicleEntry {

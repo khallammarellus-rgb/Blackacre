@@ -1,4 +1,4 @@
-# In Character — QA Log
+# Blackacre — QA Log
 
 Check items off as you verify in-game. Mark fails with notes under **Failures**.  
 **Last build:** 1.2.0 (true book · setup wizard) · **Repo:** https://github.com/khallammarellus-rgb/In-Character
@@ -11,7 +11,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 
 - [ ] `/reload` — no Lua errors (TRP3 enabled)
 - [ ] `/reload` — no Lua errors (TRP3 disabled)
-- [ ] Character-select AddOns lists **four** entries: In Character, Presence, Tome, Survival (all enabled)
+- [ ] Character-select AddOns lists **four** entries: Blackacre, Presence, Tome, Survival (all enabled)
 - [ ] Minimap book icon visible
 - [ ] `/ic packages` shows Presence, Tome, Survival and version **1.2.0**
 - [ ] Disable Presence only → `/ic` hints to enable Presence; `/ic tome` still works
@@ -251,7 +251,7 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 ### Peer summary
 
 - [ ] `/ic share` without name prints usage help
-- [ ] `/ic share FriendName` sends request (both need In Character)
+- [ ] `/ic share FriendName` sends request (both need Blackacre)
 - [ ] Friend receives summary card in chat (name, honor, rites, headlines)
 - [ ] Requester sees toast “Received summary from …”
 - [ ] `/ic ping` still works alongside share

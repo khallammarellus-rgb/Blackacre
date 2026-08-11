@@ -1,4 +1,4 @@
-# In Character — Smoke Test Checklist
+# Blackacre — Smoke Test Checklist
 
 Run these after `/reload` with the addon enabled.
 

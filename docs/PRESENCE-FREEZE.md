@@ -1,8 +1,7 @@
 # Presence freeze — Bulletins & Beacons
 
 **Status:** Frozen for feature and cosmetic work until **Phase 10**.  
-**Package folder (today):** `InCharacter_Presence/`  
-**Package folder (after Phase 3 rename):** `Blackacre_Presence/`
+**Package folder:** `Blackacre_Presence/`
 
 ---
 
@@ -12,14 +11,14 @@ Do **not** change behavior, UI layout, data shapes, or message formats for:
 
 | Area | Location (approx.) |
 |------|---------------------|
-| Presence package | `InCharacter_Presence/**` (all files) |
-| Beacon / bulletin lifecycle | `InCharacter/Core/Lifecycle.lua` |
-| Comms payloads used by Presence | `InCharacter/Core/Comms.lua` (careful: shared with future Community) |
-| History drafts for beacons/bulletins | `InCharacter/History/History.lua` |
+| Presence package | `Blackacre_Presence/**` (all files) |
+| Beacon / bulletin lifecycle | `Blackacre/Core/Lifecycle.lua` |
+| Comms payloads used by Presence | `Blackacre/Core/Comms.lua` (careful: shared with future Community) |
+| History drafts for beacons/bulletins | `Blackacre/History/History.lua` |
 | Profanity / blocklist (bulletin safety) | `Core/ProfanityFilter.lua`, `Data/Blocklist.lua` |
-| Slash entry points | `/ic`, `/ic beacon`, `/ic bulletin`, `/ic beacons on\|off` |
+| Slash entry points | `/ba` (aliases `/blackacre`, `/ic`), `beacon`, `bulletin`, `beacons on\|off` |
 | Minimap left-click / shift-right beacon | `UI/MinimapButton.lua` |
-| DB keys | `InCharacterDB.beacons`, `.bulletins`, `.notices`, `.history`, `.mutes`; CharDB `presence.*`, bulletin TTL settings |
+| DB keys | `BlackacreDB.beacons`, `.bulletins`, `.notices`, `.history`, `.mutes`; CharDB `presence.*`, bulletin TTL settings |
 
 ---
 
@@ -27,8 +26,8 @@ Do **not** change behavior, UI layout, data shapes, or message formats for:
 
 | Change type | Allowed? | Notes |
 |-------------|----------|--------|
-| Phase 3 **rename** of folder/TOC/globals/strings | Yes | Behavior must stay identical; re-test beacons after rename |
-| SavedVariables migration InCharacter → Blackacre | Yes | Must copy Presence keys intact |
+| Folder/TOC/global rename (completed → Blackacre) | Done | Re-test beacons after `/reload` |
+| SavedVariables migration In Character → Blackacre | Yes | Keep Presence keys intact (`_migratedFromIC`) |
 | Comments / docs pointing at freeze | Yes | |
 | Fixing a **crash** that blocks all of core | Ask human first | Prefer minimal fix |
 | Visual restyle of Presence | **No** | Wait for Phase 10 |

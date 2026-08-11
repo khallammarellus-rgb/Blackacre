@@ -1,7 +1,7 @@
 # Theme tokens inventory
 
-**Source of truth (code):** `InCharacter/UI/Theme.lua`  
-**Namespace today:** `InCharacter.UI.Theme`  
+**Source of truth (code):** `Blackacre/UI/Theme.lua`  
+**Namespace today:** `Blackacre.UI.Theme`  
 **After Phase 3 rename:** `Blackacre.UI.Theme` (same structure).
 
 This file is a human-readable inventory. If code and this doc disagree, **code wins** — then update this doc.
@@ -30,7 +30,7 @@ RGB components are 0–1 floats.
 
 | Gap | Notes |
 |-----|--------|
-| Survival bar colors | Still partly hard-coded in `InCharacter_Survival/Survival/UI_Meters.lua` — migrate to Theme in **Phase 4** |
+| Survival bar colors | Still partly hard-coded in `Blackacre_Survival/Survival/UI_Meters.lua` — migrate to Theme in **Phase 4** |
 | Book ribbon red | Hard-coded `0.55, 0.12, 0.12` in `ApplyBookBackdrop` — candidate for `Colors.ribbon` |
 | Meter “critical” tint | Should be Theme tokens when Survival polish lands |
 
@@ -96,7 +96,7 @@ See [`UX-VISION.md`](UX-VISION.md) for the full product rules (Bethesda × Warcr
 | **Blackacre Menu** | OOC: path picker, settings, mount status, experience config | **Not built yet** — do not put these controls inside journal pages |
 | **Page panel** | Achievements, quests, path completion, leveling, manual journal prose | Chronicle / page UIs inside the book |
 | **Parchment tool** | **Bottom-of-Tome** journaling mode toggle (edit auto + manual pages) | Future Tome chrome strip — *not* survival floating panel |
-| **HUD meters** | Always-on survival; minimizable / hideable; dual reminders | `InCharacter_Survival` |
+| **HUD meters** | Always-on survival; minimizable / hideable; dual reminders | `Blackacre_Survival` |
 | **Modal / wizard** | Setup | No design change yet |
 | **Presence** | Beacons / bulletins | Frozen |
 | **Toast** | Soft feedback when HUD visible | `Theme.Toast` |
@@ -116,6 +116,6 @@ See [`UX-VISION.md`](UX-VISION.md) for the full product rules (Bethesda × Warcr
 
 ## VS Code navigation
 
-1. Open `InCharacter/UI/Theme.lua` — entire design system.  
+1. Open `Blackacre/UI/Theme.lua` — entire design system.  
 2. Search feature for `Theme.Apply` or `Theme.GoldTitle` to see consumers.  
-3. Survival local colors: `InCharacter_Survival/Survival/UI_Meters.lua` (Phase 4 cleanup target).
+3. Survival local colors: `Blackacre_Survival/Survival/UI_Meters.lua` (Phase 4 cleanup target).

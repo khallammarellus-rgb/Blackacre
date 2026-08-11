@@ -1,0 +1,96 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "Lua 5.1",
+    "builtin": {
+      "basic": "enable",
+      "bit": "enable",
+      "bit32": "enable",
+      "builtin": "enable",
+      "debug": "disable",
+      "io": "disable",
+      "jit": "disable",
+      "math": "enable",
+      "os": "disable",
+      "package": "disable",
+      "string": "enable",
+      "table": "enable",
+      "utf8": "disable"
+    }
+  },
+  "workspace": {
+    "library": [],
+    "ignoreDir": [
+      ".git",
+      "Blackacre/Libs",
+      "docs"
+    ],
+    "checkThirdParty": false
+  },
+  "diagnostics": {
+    "globals": [
+      "Blackacre",
+      "BlackacreDB",
+      "BlackacreCharDB",
+      "InCharacterDB",
+      "InCharacterCharDB",
+      "LibStub",
+      "ChatThrottleLib",
+      "LibDeflate",
+      "TRP3_API",
+      "SlashCmdList",
+      "SLASH_BLACKACRE1",
+      "SLASH_BLACKACRE2",
+      "SLASH_BLACKACRE3",
+      "UIParent",
+      "UISpecialFrames",
+      "CreateFrame",
+      "GameFontNormal",
+      "GameFontNormalLarge",
+      "GameFontHighlight",
+      "GameFontHighlightSmall",
+      "BackdropTemplate",
+      "UIPanelCloseButton",
+      "UIPanelButtonTemplate",
+      "UICheckButtonTemplate",
+      "UIDropDownMenuTemplate",
+      "InputBoxTemplate",
+      "C_Map",
+      "C_Timer",
+      "C_ChatInfo",
+      "C_QuestLog",
+      "C_AchievementInfo",
+      "UnitName",
+      "UnitLevel",
+      "UnitClass",
+      "UnitRace",
+      "UnitAffectingCombat",
+      "IsIndoors",
+      "IsResting",
+      "GetSubZoneText",
+      "GetChannelList",
+      "strtrim",
+      "tinsert",
+      "date",
+      "time",
+      "wipe",
+      "hooksecurefunc",
+      "UIDropDownMenu_Initialize",
+      "UIDropDownMenu_CreateInfo",
+      "UIDropDownMenu_AddButton",
+      "UIDropDownMenu_SetSelectedValue",
+      "UIDropDownMenu_SetText",
+      "UIDropDownMenu_SetWidth"
+    ],
+    "disable": [
+      "lowercase-global",
+      "undefined-field"
+    ]
+  },
+  "completion": {
+    "callSnippet": "Both"
+  },
+  "hint": {
+    "enable": true
+  }
+}
