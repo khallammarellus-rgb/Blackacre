@@ -27,6 +27,8 @@ Instructions for coding agents (Grok CLI and similar) working in this repository
 
 **Not** the same as Afterlife “paths” (death rites in Tome). Keep those separate.
 
+**Life Path data (offline):** `Blackacre_Tome/Data/Paths/` — owner fills `zones`/`quests`; see `docs/PATHS-GUIDE.md`. Catalog API: `Blackacre.Paths.Get` / `List`.
+
 ## Codebase shape
 
 ```
