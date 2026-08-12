@@ -68,39 +68,86 @@ end
 local function ShowEntry(entry)
     if not journal or not entry then return end
     selectedId = entry.id
-    journal.rightTitle:SetText(entry.title or "Untitled")
-    journal.meta:SetText(string.format(
-        "%s · %s · %s · %s",
-        KindLabel(entry.kind),
-        FormatDate(entry.createdAt),
-        entry.zoneName or "Unknown lands",
-        Blackacre.YearCalendar.FormatYear(entry.yearKC)
-    ))
-    journal.bodyEdit:SetText(entry.body or "")
-    journal.titleEdit:SetText(entry.title or "")
+    -- Single title line on right page (avoid double/fuzzy stack)
+    if journal.rightTitle then
+        journal.rightTitle:SetText(entry.title or "Untitled")
+        journal.rightTitle:Show()
+    end
+    if journal.meta then
+        journal.meta:SetText(string.format(
+            "%s · %s · %s · %s",
+            KindLabel(entry.kind),
+            FormatDate(entry.createdAt),
+            entry.zoneName or "Unknown lands",
+            Blackacre.YearCalendar and Blackacre.YearCalendar.FormatYear and Blackacre.YearCalendar.FormatYear(entry.yearKC) or ""
+        ))
+    end
+    if journal.titleEdit then
+        journal.titleEdit:SetText(entry.title or "")
+        -- Hide title edit under the display title unless journaling mode
+        if journal._baJournalMode then
+            journal.titleEdit:Show()
+            journal.rightTitle:Hide()
+        else
+            journal.titleEdit:Hide()
+            journal.rightTitle:Show()
+        end
+    end
+    if journal.bodyEdit then
+        journal.bodyEdit:SetText(entry.body or "")
+        -- Prevent "doubled" look: no shadow layer, solid ink only
+        journal.bodyEdit:SetTextColor(0.15, 0.10, 0.05, 1)
+        if journal.bodyEdit.SetShadowColor then
+            journal.bodyEdit:SetShadowColor(0, 0, 0, 0)
+        end
+    end
     if presentationMode then
-        journal.bodyEdit:SetTextColor(0.15, 0.10, 0.05)
-        journal.bodyEdit:Disable()
-        journal.titleEdit:Disable()
-        journal.editHint:SetText("Presentation — reading the open page")
+        if journal.bodyEdit then journal.bodyEdit:Disable() end
+        if journal.titleEdit then journal.titleEdit:Disable() end
+        if journal.editHint then journal.editHint:SetText("Presentation — reading the open page") end
     else
-        journal.bodyEdit:Enable()
-        journal.titleEdit:Enable()
-        journal.editHint:SetText("Edit the ink, then press Save page")
+        if journal.bodyEdit then
+            if journal._baJournalMode then journal.bodyEdit:Enable() else journal.bodyEdit:Disable() end
+        end
+        if journal.titleEdit then
+            if journal._baJournalMode then journal.titleEdit:Enable() else journal.titleEdit:Disable() end
+        end
+        if journal.editHint then
+            journal.editHint:SetText(journal._baJournalMode and "Edit, then press Save page" or "Turn Journal: On in the footer to edit")
+        end
     end
     RefreshList()
 end
 
 local function SaveSelected()
-    if not selectedId then return end
-    Blackacre.Chronicle.Store.Update(selectedId, {
-        title = journal.titleEdit:GetText() or "",
-        body = journal.bodyEdit:GetText() or "",
+    if not journal then return end
+    if not selectedId then
+        if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.Toast then
+            Blackacre.UI.Theme.Toast("Select a page in the contents first.")
+        elseif Blackacre.Print then
+            Blackacre.Print("Select a page in the contents first.")
+        end
+        return
+    end
+    if journal.bodyEdit then journal.bodyEdit:ClearFocus() end
+    if journal.titleEdit then journal.titleEdit:ClearFocus() end
+    local titleText = journal.titleEdit and journal.titleEdit:GetText() or ""
+    local bodyText = journal.bodyEdit and journal.bodyEdit:GetText() or ""
+    local entry = Blackacre.Chronicle.Store.Update(selectedId, {
+        title = titleText,
+        body = bodyText,
     })
-    local entry = Blackacre.Chronicle.Store.GetById(selectedId)
     if entry then
         ShowEntry(entry)
-        Blackacre.UI.Theme.Toast("Page saved to the journal.")
+        if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.Toast then
+            Blackacre.UI.Theme.Toast("Page saved to the journal.")
+        elseif Blackacre.Print then
+            Blackacre.Print("Page saved.")
+        end
+    else
+        if Blackacre.Print then
+            Blackacre.Print("Could not save — entry missing.")
+        end
     end
 end
 
@@ -168,39 +215,49 @@ local function BuildManualDialog()
 end
 
 local function BuildUI()
-    local parent
+    local parent, tocParent, pageParent
     local embedded = false
-    if Blackacre.TomeHub and Blackacre.TomeHub.GetChronicleParent then
-        parent = Blackacre.TomeHub.GetChronicleParent()
-        embedded = parent ~= nil
+    if Blackacre.TomeHub then
+        if Blackacre.TomeHub.GetChronicleParent then
+            parent = Blackacre.TomeHub.GetChronicleParent()
+            embedded = parent ~= nil
+        end
+        if Blackacre.TomeHub.GetChronicleTocParent then
+            tocParent = Blackacre.TomeHub.GetChronicleTocParent()
+        end
+        if Blackacre.TomeHub.GetChroniclePageParent then
+            pageParent = Blackacre.TomeHub.GetChroniclePageParent()
+        end
     end
-    journal = Blackacre.UI.JournalFrame.Create("BlackacreJournal", "Traveler's Chronicle", {
-        parent = parent,
+    journal = Blackacre.UI.JournalFrame.Create("BlackacreJournal", "Table of Contents", {
+        parent = parent or UIParent,
         embedded = embedded,
+        tocParent = tocParent,
+        pageParent = pageParent,
     })
-    if not embedded then
-        journal:SetSubtitle("Quests, feats, titles, craft — a story told in order")
-    end
+    journal:SetSubtitle("Search or choose a page — read on the right leaf.")
     journal:Show()
+    journal._baJournalMode = false
 
-    -- Search
+    -- Search (TOC)
     journal.searchBox = CreateFrame("EditBox", nil, journal.leftHost, "InputBoxTemplate")
-    journal.searchBox:SetSize(160, 20)
-    journal.searchBox:SetPoint("TOPLEFT", 10, -28)
+    journal.searchBox:SetSize(150, 22)
+    journal.searchBox:SetPoint("TOPLEFT", 14, -58)
     journal.searchBox:SetAutoFocus(false)
     journal.searchBox:SetScript("OnTextChanged", function(self)
         searchText = self:GetText() or ""
         RefreshList()
     end)
 
-    journal.listCount = journal.leftHost:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    journal.listCount = journal.leftHost:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     journal.listCount:SetPoint("LEFT", journal.searchBox, "RIGHT", 8, 0)
     journal.listCount:SetText("0 entries")
+    Blackacre.UI.Theme.ApplyMailBodyFont(journal.listCount, -1)
 
     -- Sort toggle
     local sortBtn = CreateFrame("Button", nil, journal.leftHost, "UIPanelButtonTemplate")
-    sortBtn:SetSize(70, 20)
-    sortBtn:SetPoint("TOPRIGHT", -8, -28)
+    sortBtn:SetSize(72, 22)
+    sortBtn:SetPoint("TOPRIGHT", -12, -58)
     sortBtn:SetText("Newest")
     sortBtn:SetScript("OnClick", function(self)
         oldestFirst = not oldestFirst
@@ -208,22 +265,22 @@ local function BuildUI()
         RefreshList()
     end)
 
-    -- Scrollable-looking list of rows
-    local listTop = -54
+    -- TOC rows (table of contents on left page)
+    local listTop = -90
     for i = 1, MAX_ROWS do
         local btn = CreateFrame("Button", nil, journal.leftHost)
-        btn:SetSize(240, 28)
-        btn:SetPoint("TOPLEFT", 8, listTop - (i - 1) * 28)
+        btn:SetSize(220, 30)
+        btn:SetPoint("TOPLEFT", 12, listTop - (i - 1) * 32)
         btn:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
 
-        btn.label = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        btn.label = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         btn.label:SetPoint("TOPLEFT", 4, -2)
         btn.label:SetPoint("TOPRIGHT", -4, -2)
         btn.label:SetJustifyH("LEFT")
-        Blackacre.UI.Theme.InkFont(btn.label)
+        Blackacre.UI.Theme.ApplyMailBodyFont(btn.label, 0)
 
         btn.sub = btn:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-        btn.sub:SetPoint("TOPLEFT", 4, -14)
+        btn.sub:SetPoint("TOPLEFT", 4, -16)
         btn.sub:SetJustifyH("LEFT")
 
         btn:SetScript("OnClick", function(self)
@@ -235,38 +292,65 @@ local function BuildUI()
         entryButtons[i] = btn
     end
 
-    -- Right page content
-    journal.meta = journal.rightHost:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    journal.meta:SetPoint("TOPLEFT", 12, -28)
-    journal.meta:SetPoint("TOPRIGHT", -12, -28)
+    -- Right page content (single display title; edit boxes when journaling)
+    journal.meta = journal.rightHost:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    journal.meta:SetPoint("TOPLEFT", 16, -36)
+    journal.meta:SetPoint("TOPRIGHT", -16, -36)
     journal.meta:SetJustifyH("LEFT")
     journal.meta:SetText("")
+    Blackacre.UI.Theme.ApplyMailBodyFont(journal.meta, -1)
 
     journal.titleEdit = CreateFrame("EditBox", nil, journal.rightHost, "InputBoxTemplate")
-    journal.titleEdit:SetPoint("TOPLEFT", 16, -50)
-    journal.titleEdit:SetPoint("TOPRIGHT", -16, -50)
-    journal.titleEdit:SetHeight(22)
+    journal.titleEdit:SetPoint("TOPLEFT", 16, -12)
+    journal.titleEdit:SetPoint("TOPRIGHT", -16, -12)
+    journal.titleEdit:SetHeight(24)
     journal.titleEdit:SetAutoFocus(false)
+    journal.titleEdit:Hide()
 
-    journal.editHint = journal.rightHost:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    journal.editHint:SetPoint("TOPLEFT", 16, -76)
-    journal.editHint:SetText("Edit the ink, then press Save page")
+    journal.editHint = journal.rightHost:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    journal.editHint:SetPoint("TOPLEFT", 16, -56)
+    journal.editHint:SetText("Turn Journal: On in the footer to edit")
+    Blackacre.UI.Theme.ApplyMailBodyFont(journal.editHint, -1)
 
-    -- Multiline body
+    -- Multiline body — mail-like font; no double draw
     local bodyScroll = CreateFrame("ScrollFrame", "BlackacreJournalBodyScroll", journal.rightHost, "UIPanelScrollFrameTemplate")
-    bodyScroll:SetPoint("TOPLEFT", 12, -96)
-    bodyScroll:SetPoint("BOTTOMRIGHT", -32, 48)
+    bodyScroll:SetPoint("TOPLEFT", 14, -78)
+    bodyScroll:SetPoint("BOTTOMRIGHT", -28, 44)
 
     journal.bodyEdit = CreateFrame("EditBox", nil, bodyScroll)
     journal.bodyEdit:SetMultiLine(true)
-    journal.bodyEdit:SetFontObject(GameFontHighlight)
-    journal.bodyEdit:SetWidth(420)
     journal.bodyEdit:SetAutoFocus(false)
-    journal.bodyEdit:SetTextInsets(4, 4, 4, 4)
+    journal.bodyEdit:SetTextInsets(6, 6, 6, 6)
     journal.bodyEdit:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-    Blackacre.UI.Theme.InkFont(journal.bodyEdit)
+    journal.bodyEdit:SetScript("OnCursorChanged", function(self, x, y, w, h)
+        -- Keep caret visible in scroll frame
+        local offset = bodyScroll:GetVerticalScroll()
+        local height = bodyScroll:GetHeight()
+        if y > 0 then
+            bodyScroll:SetVerticalScroll(offset - y)
+        elseif (-y + h) > height then
+            bodyScroll:SetVerticalScroll(offset + ((-y + h) - height))
+        end
+    end)
+    Blackacre.UI.Theme.ApplyMailBodyFont(journal.bodyEdit, 2)
+    journal.bodyEdit:SetTextColor(0.15, 0.10, 0.05, 1)
+    if journal.bodyEdit.SetShadowColor then
+        journal.bodyEdit:SetShadowColor(0, 0, 0, 0)
+    end
     bodyScroll:SetScrollChild(journal.bodyEdit)
-    journal.bodyEdit:SetHeight(400)
+    local function SizeBody()
+        local w = bodyScroll:GetWidth()
+        if w and w > 50 then
+            journal.bodyEdit:SetWidth(w - 8)
+        else
+            journal.bodyEdit:SetWidth(360)
+        end
+        journal.bodyEdit:SetHeight(math.max(400, bodyScroll:GetHeight() or 400))
+    end
+    bodyScroll:SetScript("OnSizeChanged", SizeBody)
+    SizeBody()
+    journal.bodyEdit:Disable()
+    journal.bodyScroll = bodyScroll
 
     -- Footer buttons
     local function FooterButton(text, xOff, onClick)
@@ -418,4 +502,53 @@ function Blackacre.Chronicle.UI.OnNewEntry(entry)
             ShowEntry(entry)
         end
     end
+end
+
+function Blackacre.Chronicle.UI.SetJournalMode(on)
+    if not journal then
+        Blackacre.Chronicle.UI.EnsureBuilt()
+    end
+    journal._baJournalMode = on and true or false
+    if selectedId then
+        local e = Blackacre.Chronicle.Store.GetById(selectedId)
+        if e then ShowEntry(e) end
+    else
+        if journal.editHint then
+            journal.editHint:SetText(on and "Select a page, edit, then Save" or "Turn Journal: On in the footer to edit")
+        end
+        if journal.titleEdit then
+            if on then journal.titleEdit:Show() else journal.titleEdit:Hide() end
+        end
+        if journal.rightTitle then
+            if on then journal.rightTitle:Hide() else journal.rightTitle:Show() end
+        end
+        if journal.bodyEdit then
+            if on then journal.bodyEdit:Enable() else journal.bodyEdit:Disable() end
+        end
+    end
+end
+
+--- Flip to previous/next entry in the current TOC list (book page arrows).
+function Blackacre.Chronicle.UI.TurnPage(delta)
+    delta = delta or 1
+    Blackacre.Chronicle.UI.EnsureBuilt()
+    local list = Blackacre.Chronicle.Store.List({
+        kind = filterKind,
+        search = searchText,
+        oldestFirst = oldestFirst,
+    })
+    if #list == 0 then return end
+    local idx = 1
+    if selectedId then
+        for i = 1, #list do
+            if list[i].id == selectedId then
+                idx = i
+                break
+            end
+        end
+    end
+    idx = idx + delta
+    if idx < 1 then idx = 1 end
+    if idx > #list then idx = #list end
+    ShowEntry(list[idx])
 end
