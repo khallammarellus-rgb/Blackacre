@@ -107,8 +107,11 @@ function Blackacre.YearCalendar.GetYearKC()
 end
 
 function Blackacre.YearCalendar.FormatYear(year)
+    -- Prefer faction-aware display (Alliance K.C. / Horde ADP only)
+    if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.FormatFactionYear then
+        return Blackacre.UI.Theme.FormatFactionYear(year)
+    end
     if year and year > 200 then
-        -- treat as K.C. number from old call sites
         local adp = Blackacre.YearCalendar.FromKC(year)
         return Blackacre.YearCalendar.FormatYearADP(adp)
     end

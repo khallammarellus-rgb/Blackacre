@@ -82,12 +82,19 @@ local function ShowBookSpread(isChronicle)
         hub.pageHost:Hide()
         hub.prevPageBtn:Show()
         hub.nextPageBtn:Show()
+        if hub.pageLabel then hub.pageLabel:Show() end
+        if hub.chronicleBookmark then hub.chronicleBookmark:Show() end
+        if hub.toolStrip then hub.toolStrip:Show() end
     else
         hub.leftPage:Hide()
         hub.rightPage:Hide()
         hub.pageHost:Show()
         hub.prevPageBtn:Hide()
         hub.nextPageBtn:Hide()
+        if hub.pageLabel then hub.pageLabel:Hide() end
+        if hub.toolStrip then hub.toolStrip:Hide() end
+        -- Bookmark still available to jump back to TOC
+        if hub.chronicleBookmark then hub.chronicleBookmark:Show() end
     end
 end
 
