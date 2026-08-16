@@ -1,6 +1,8 @@
 Blackacre = Blackacre or {}
 Blackacre.Survival = Blackacre.Survival or {}
 Blackacre.Survival.Engine = {}
+-- Build stamp: if chat does not show this after /reload, the client did not load this file.
+Blackacre.Survival.Engine.BUILD = "2026-08-13-no-aura-scan"
 
 local TICK_SEC = 12
 local CRITICAL = 15
@@ -162,8 +164,64 @@ function Blackacre.Survival.Engine.SetEnabled(on)
     end
 end
 
+-- Best-effort food/drink cast names (own casts are readable; auras are often secret).
+local FOOD_HINTS = {
+    "food", "feast", "meal", "banquet", "well fed", "stew", "soup", "roast",
+    "bread", "pie", "cake", "sausage", "fish", "seafood", "haunch", "ribs",
+}
+local DRINK_HINTS = {
+    "drink", "refreshment", "tea", "coffee", "juice", "water", "wine", "ale", "mead", "milk",
+}
+
+local function SpellNameMatches(name, hints)
+    if not name or name == "" then return false end
+    local lower = name:lower()
+    for i = 1, #hints do
+        if lower:find(hints[i], 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+local function GetSpellNameSafe(spellID)
+    if not spellID then return "" end
+    if C_Spell and C_Spell.GetSpellName then
+        return C_Spell.GetSpellName(spellID) or ""
+    end
+    if GetSpellInfo then
+        return GetSpellInfo(spellID) or ""
+    end
+    return ""
+end
+
+-- Quiet top-up when a food/drink cast succeeds (no toast spam).
+local lastAutoRecoverAt = 0
+local AUTO_RECOVER_THROTTLE = 8
+
+local function QuietTopUp(kind, amount)
+    local now = GetTime and GetTime() or time()
+    if now - lastAutoRecoverAt < AUTO_RECOVER_THROTTLE then
+        return
+    end
+    lastAutoRecoverAt = now
+    local s = EnsureDB()
+    if not s.enabled then return end
+    if kind == "hunger" then
+        s.hunger = Clamp(s.hunger + amount)
+    elseif kind == "thirst" then
+        s.thirst = Clamp(s.thirst + amount)
+    end
+    if Blackacre.Survival.UI and Blackacre.Survival.UI.Refresh then
+        Blackacre.Survival.UI.Refresh()
+    end
+end
+
 function Blackacre.Survival.Engine.Init()
     EnsureDB()
+    if Blackacre.Print then
+        Blackacre.Print("Survival engine " .. (Blackacre.Survival.Engine.BUILD or "?") .. " loaded.")
+    end
     local frame = CreateFrame("Frame")
     frame:RegisterEvent("PLAYER_ENTERING_WORLD")
     frame:RegisterEvent("ZONE_CHANGED")
@@ -171,41 +229,28 @@ function Blackacre.Survival.Engine.Init()
     frame:RegisterEvent("ZONE_CHANGED_INDOORS")
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-    frame:RegisterUnitEvent("UNIT_AURA", "player")
-    frame:SetScript("OnEvent", function(_, event)
-        if event == "UNIT_AURA" then
-            -- Well Fed / Drink style recovery (best-effort via aura names)
-            for i = 1, 40 do
-                local aura = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex and C_UnitAuras.GetAuraDataByIndex("player", i, "HELPFUL")
-                if not aura then break end
-                local name = aura.name or ""
-                local lower = name:lower()
-                if lower:find("well fed", 1, true) or lower:find("food", 1, true) then
-                    -- light passive top-up while buffed; throttle via last food tick
-                    local s = EnsureDB()
-                    s._foodBuff = true
-                elseif lower:find("drink", 1, true) or lower:find("refreshment", 1, true) then
-                    local s = EnsureDB()
-                    s._drinkBuff = true
-                end
+    -- Do NOT scan player auras via GetAuraDataByIndex: on current retail that
+    -- path is secret while this addon is tainted and spams Lua errors (UNIT_AURA).
+    -- Own spellcast success remains readable for best-effort food/drink recovery.
+    frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+    frame:SetScript("OnEvent", function(_, event, ...)
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            local unitTarget, _, spellID = ...
+            if unitTarget ~= "player" then return end
+            local name = GetSpellNameSafe(spellID)
+            if SpellNameMatches(name, FOOD_HINTS) then
+                QuietTopUp("hunger", 1.5)
+            elseif SpellNameMatches(name, DRINK_HINTS) then
+                QuietTopUp("thirst", 1.5)
             end
-        else
-            if Blackacre.Survival.UI and Blackacre.Survival.UI.Refresh then
-                Blackacre.Survival.UI.Refresh()
-            end
+            return
+        end
+        if Blackacre.Survival.UI and Blackacre.Survival.UI.Refresh then
+            Blackacre.Survival.UI.Refresh()
         end
     end)
 
     C_Timer.NewTicker(TICK_SEC, function()
-        local s = EnsureDB()
-        if s._foodBuff then
-            s.hunger = Clamp(s.hunger + 1.5)
-            s._foodBuff = false
-        end
-        if s._drinkBuff then
-            s.thirst = Clamp(s.thirst + 1.5)
-            s._drinkBuff = false
-        end
         Blackacre.Survival.Engine.Tick()
     end)
 end

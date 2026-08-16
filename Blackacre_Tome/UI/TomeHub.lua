@@ -1,24 +1,92 @@
--- Traveler's Chronicle hub — open-book layout + Adventure Guide–style tabs.
+-- Traveler's Chronicle hub — IC open book + separate OOC Backstory Menus frame.
+-- DBM hygiene: locals, Theme-owned art paths, no feature logic in Theme.
 Blackacre = Blackacre or {}
 Blackacre.TomeHub = {}
 
 local hub
+local menu -- Backstory Menus (OOC parent)
 local tabButtons = {}
 local pages = {}
-local activeTab = "chronicle"
+local activeMenuTab = "lineage"
 local mounted = {}
 local setupMode = false
-local bookPageIndex = 1
+local escGate -- Esc: sidecar first, then tome (not both at once)
+local suppressEscGate = false
 
--- Horizontal tabs (not settings list). Chronicle is the left bookmark, not a row here.
-local TABS = {
-    { id = "lineage", label = "Lineage", tip = "Birth year and longevity" },
-    { id = "honor", label = "Honor", tip = "Hardcore compact" },
-    { id = "road", label = "Road", tip = "Expedition chart" },
-    { id = "realms", label = "Realms", tip = "Afterlife return rites" },
-    { id = "voice", label = "Voice", tip = "Accent and IC voice" },
-    { id = "share", label = "Share", tip = "Export and peer cards" },
+--- Remove a global frame name from UISpecialFrames (Esc closes all entries at once).
+local function RemoveFromUISpecialFrames(name)
+    if not name or not UISpecialFrames then return end
+    for i = #UISpecialFrames, 1, -1 do
+        if UISpecialFrames[i] == name then
+            tremove(UISpecialFrames, i)
+        end
+    end
+end
+
+local function EnsureEscGate()
+    if escGate then return escGate end
+    escGate = CreateFrame("Frame", "BlackacreTomeEscGate")
+    escGate:Hide()
+    tinsert(UISpecialFrames, "BlackacreTomeEscGate")
+    escGate:SetScript("OnHide", function(self)
+        if suppressEscGate then return end
+        -- First Esc: close Backstory sidecar only; re-arm gate for second Esc
+        if menu and menu:IsShown() then
+            menu:Hide()
+            if hub and hub:IsShown() then
+                C_Timer.After(0, function()
+                    if hub and hub:IsShown() and escGate then
+                        suppressEscGate = true
+                        escGate:Show()
+                        suppressEscGate = false
+                    end
+                end)
+            end
+            return
+        end
+        -- Second Esc (or Esc with no sidecar): close tome
+        if hub and hub:IsShown() then
+            hub:Hide()
+        end
+    end)
+    return escGate
+end
+
+local function SyncEscGate()
+    EnsureEscGate()
+    if hub and hub:IsShown() then
+        if not escGate:IsShown() then
+            suppressEscGate = true
+            escGate:Show()
+            suppressEscGate = false
+        end
+    else
+        suppressEscGate = true
+        if escGate:IsShown() then escGate:Hide() end
+        suppressEscGate = false
+    end
+end
+
+-- OOC backstory modules — NOT IC journal tabs (immersion)
+-- Labels are tooltip-only; tabs show icons (owner polish pack).
+local MENU_TABS = {
+    { id = "lineage", label = "Lineage", tip = "Birth year and longevity", icon = "spell_holy_borrowedtime" },
+    { id = "honor", label = "Survival", tip = "Hardcore / survival compact", icon = "achievement_zone_tanaris_01" },
+    { id = "road", label = "Paths", tip = "Expedition chart / life paths", icon = "ability_hunter_pathfinding" },
+    { id = "realms", label = "Afterlife", tip = "Afterlife return rites", icon = "achievement_bg_xkills_avgraveyard" },
+    { id = "voice", label = "Voice", tip = "Accent and IC voice", icon = "inv_misc_horn_03" },
+    { id = "share", label = "Share", tip = "Export and peer cards", icon = "inv_10_specialization_inscription_sharedknowledge_color1" },
 }
+
+local function Theme()
+    return Blackacre.UI and Blackacre.UI.Theme
+end
+
+local function EjTexturePath()
+    local th = Theme()
+    return (th and th.Textures and th.Textures.ejTextures)
+        or "Interface\\EncounterJournal\\UI-EncounterJournalTextures"
+end
 
 local function EnsureVoiceDB()
     Blackacre.CharDB.voice = Blackacre.CharDB.voice or {
@@ -30,7 +98,7 @@ local function EnsureVoiceDB()
 end
 
 local function SetTabsEnabled(on)
-    for _, t in ipairs(TABS) do
+    for _, t in ipairs(MENU_TABS) do
         local btn = tabButtons[t.id]
         if btn then
             if on then btn:Enable() else btn:Disable() end
@@ -38,64 +106,52 @@ local function SetTabsEnabled(on)
         end
     end
     if hub and hub.chronicleBookmark then
-        hub.chronicleBookmark:SetEnabled(on and true or false)
+        if on then
+            if hub.chronicleBookmark.Enable then hub.chronicleBookmark:Enable() end
+        else
+            if hub.chronicleBookmark.Disable then hub.chronicleBookmark:Disable() end
+        end
         hub.chronicleBookmark:SetAlpha(on and 1 or 0.35)
     end
 end
 
---- Style a tab: active = gold outline + white text (owner request).
-local function StyleTabButton(btn, active)
+local function StyleBookmarkTab(btn, active)
     if not btn then return end
-    if active then
-        btn:SetBackdropColor(0.25, 0.18, 0.08, 0.95)
-        btn:SetBackdropBorderColor(0.95, 0.82, 0.35, 1)
-        if btn.label then
-            btn.label:SetTextColor(1, 1, 1, 1)
+    local th = Theme()
+    local T = th and th.Textures
+    -- Guild bank tab face (owner pick)
+    if btn.bg then
+        local path = (T and T.guildBankTab) or "Interface\\GuildBankFrame\\UI-GuildBankFrame-Tab"
+        btn.bg:SetTexture(path)
+        btn.bg:SetTexCoord(0, 1, 0, 1)
+        if active then
+            btn.bg:SetVertexColor(1, 0.95, 0.75, 1)
+        else
+            btn.bg:SetVertexColor(0.75, 0.72, 0.68, 0.95)
         end
-        btn:SetNormalFontObject(GameFontHighlight)
-    else
-        btn:SetBackdropColor(0.18, 0.16, 0.14, 0.9)
-        btn:SetBackdropBorderColor(0.45, 0.40, 0.32, 1)
-        if btn.label then
-            btn.label:SetTextColor(0.85, 0.80, 0.70, 1)
-        end
-        btn:SetNormalFontObject(GameFontNormal)
+    end
+    if btn.icon then
+        btn.icon:SetVertexColor(1, 1, 1, active and 1 or 0.85)
+    end
+    if btn.glow then
+        btn.glow:Hide()
+    end
+    if btn.label then
+        btn.label:SetText("")
     end
 end
 
-local function StyleChronicleBookmark(active)
-    if not hub or not hub.chronicleBookmark then return end
-    if active then
-        hub.chronicleBookmark:SetBackdropColor(0.55, 0.40, 0.12, 0.98)
-        hub.chronicleBookmark:SetBackdropBorderColor(1, 0.9, 0.4, 1)
-    else
-        hub.chronicleBookmark:SetBackdropColor(0.35, 0.22, 0.12, 0.95)
-        hub.chronicleBookmark:SetBackdropBorderColor(0.85, 0.70, 0.30, 1)
-    end
-end
-
-local function ShowBookSpread(isChronicle)
+local function ShowBookAsChronicle()
     if not hub then return end
-    if isChronicle then
-        hub.leftPage:Show()
-        hub.rightPage:Show()
-        hub.pageHost:Hide()
-        hub.prevPageBtn:Show()
-        hub.nextPageBtn:Show()
-        if hub.pageLabel then hub.pageLabel:Show() end
-        if hub.chronicleBookmark then hub.chronicleBookmark:Show() end
-        if hub.toolStrip then hub.toolStrip:Show() end
-    else
-        hub.leftPage:Hide()
-        hub.rightPage:Hide()
-        hub.pageHost:Show()
-        hub.prevPageBtn:Hide()
-        hub.nextPageBtn:Hide()
-        if hub.pageLabel then hub.pageLabel:Hide() end
-        if hub.toolStrip then hub.toolStrip:Hide() end
-        -- Bookmark still available to jump back to TOC
-        if hub.chronicleBookmark then hub.chronicleBookmark:Show() end
-    end
+    hub.leftPage:Show()
+    hub.rightPage:Show()
+    hub.pageHost:Hide()
+    hub.prevPageBtn:Show()
+    hub.nextPageBtn:Show()
+    if hub.leftPageNum then hub.leftPageNum:Show() end
+    if hub.rightPageNum then hub.rightPageNum:Show() end
+    if hub.chronicleBookmark then hub.chronicleBookmark:Show() end
+    if hub.toolStrip then hub.toolStrip:Show() end
 end
 
 local function MountTab(id)
@@ -127,15 +183,15 @@ local function MountTab(id)
     mounted[id] = true
 end
 
-local function SelectTab(id)
-    if setupMode and id ~= "setup" then return end
-    activeTab = id
+local function SelectMenuTab(id)
+    if setupMode then return end
+    activeMenuTab = id or activeMenuTab or "lineage"
 
-    for _, t in ipairs(TABS) do
-        StyleTabButton(tabButtons[t.id], t.id == id)
+    for _, t in ipairs(MENU_TABS) do
+        StyleBookmarkTab(tabButtons[t.id], t.id == activeMenuTab)
         local page = pages[t.id]
         if page then
-            if t.id == id then
+            if t.id == activeMenuTab then
                 MountTab(t.id)
                 page:Show()
             else
@@ -144,60 +200,73 @@ local function SelectTab(id)
         end
     end
 
-    -- Chronicle uses two-page spread, not pageHost modules
-    local isChron = (id == "chronicle")
-    StyleChronicleBookmark(isChron)
-    ShowBookSpread(isChron)
-    if pages.chronicle then
-        if isChron then
-            MountTab("chronicle")
-            pages.chronicle:Show()
-        else
-            pages.chronicle:Hide()
+    local function SafeCall(label, fn)
+        if not fn then return end
+        local ok, err = pcall(fn)
+        if not ok and Blackacre.Print then
+            Blackacre.Print("|cffff6666Backstory " .. label .. ":|r " .. tostring(err))
         end
     end
 
-    if pages.setup then
-        if id == "setup" then pages.setup:Show() else pages.setup:Hide() end
-    end
-
-    if id == "chronicle" and Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.OnHubShow then
-        Blackacre.Chronicle.UI.OnHubShow()
-    elseif id == "lineage" and Blackacre.LineageUI and Blackacre.LineageUI.Refresh then
-        Blackacre.LineageUI.Refresh()
-    elseif id == "honor" and Blackacre.Hardcore and Blackacre.Hardcore.UI then
-        Blackacre.Hardcore.UI.Refresh()
-    elseif id == "road" and Blackacre.Roadmap and Blackacre.Roadmap.UI then
-        Blackacre.Roadmap.UI.Refresh()
-    elseif id == "realms" and Blackacre.Afterlife and Blackacre.Afterlife.UI then
-        Blackacre.Afterlife.UI.Refresh()
-    elseif id == "voice" and pages.voice and pages.voice.Refresh then
-        pages.voice:Refresh()
+    if activeMenuTab == "lineage" and Blackacre.LineageUI and Blackacre.LineageUI.Refresh then
+        SafeCall("lineage", Blackacre.LineageUI.Refresh)
+    elseif activeMenuTab == "honor" and Blackacre.Hardcore and Blackacre.Hardcore.UI then
+        SafeCall("honor", Blackacre.Hardcore.UI.Refresh)
+    elseif activeMenuTab == "road" and Blackacre.Roadmap and Blackacre.Roadmap.UI then
+        SafeCall("road", Blackacre.Roadmap.UI.Refresh)
+    elseif activeMenuTab == "realms" and Blackacre.Afterlife and Blackacre.Afterlife.UI then
+        SafeCall("realms", Blackacre.Afterlife.UI.Refresh)
+    elseif activeMenuTab == "voice" and pages.voice and pages.voice.Refresh then
+        SafeCall("voice", function() pages.voice:Refresh() end)
     end
 end
 
-local function MakeHorizontalTab(parent, tab, index)
-    local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    btn:SetSize(92, 28)
-    btn:SetPoint("LEFT", parent, "LEFT", 8 + (index - 1) * 96, 0)
-    btn:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 8, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    btn.label = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    btn.label:SetPoint("CENTER")
-    btn.label:SetText(tab.label)
-    btn:SetFontString(btn.label)
-    StyleTabButton(btn, false)
-    btn:SetScript("OnClick", function() SelectTab(tab.id) end)
-    btn:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText(tab.tip or tab.label)
-        GameTooltip:Show()
+local function MakeBookmarkTab(parent, tab, index)
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetSize(48, 56)
+    btn:SetPoint("TOPLEFT", parent, "TOPRIGHT", -16, -36 - (index - 1) * 56)
+    btn:SetFrameLevel((parent:GetFrameLevel() or 1) + 8)
+
+    btn.bg = btn:CreateTexture(nil, "BACKGROUND")
+    btn.bg:SetAllPoints(btn)
+
+    btn.icon = btn:CreateTexture(nil, "ARTWORK")
+    btn.icon:SetSize(28, 28)
+    btn.icon:SetPoint("CENTER", 0, 2)
+    if Theme() and Theme().SetIconTexture then
+        Theme().SetIconTexture(btn.icon, tab.icon, 25)
+    else
+        btn.icon:SetTexture("Interface\\Icons\\" .. (tab.icon or "INV_Misc_QuestionMark"))
+    end
+
+    btn.glow = btn:CreateTexture(nil, "HIGHLIGHT")
+    btn.glow:SetAllPoints(btn)
+    btn.glow:SetColorTexture(0.95, 0.82, 0.35, 0.22)
+    btn.glow:Hide()
+
+    btn.label = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    btn.label:SetPoint("BOTTOM", 0, 2)
+    btn.label:SetText("")
+
+    StyleBookmarkTab(btn, false)
+    btn:SetScript("OnClick", function()
+        if Theme() and Theme().PlayUISound then Theme().PlayUISound("menuTab") end
+        SelectMenuTab(tab.id)
     end)
-    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    btn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText(tab.label)
+        if tab.tip then
+            GameTooltip:AddLine(tab.tip, 0.85, 0.85, 0.85, true)
+        end
+        GameTooltip:Show()
+        if self.glow then self.glow:Show() end
+    end)
+    btn:SetScript("OnLeave", function(self)
+        GameTooltip:Hide()
+        if self.glow then self.glow:Hide() end
+        StyleBookmarkTab(self, tab.id == activeMenuTab)
+    end)
     tabButtons[tab.id] = btn
     return btn
 end
@@ -211,27 +280,34 @@ local function MakePage(parent, id)
     return page
 end
 
+local function ApplyMenuBodyFont(fs)
+    if not fs then return end
+    -- One point smaller than default highlight for denser Backstory menus
+    local path, size, flags = GameFontHighlight:GetFont()
+    if path then
+        fs:SetFont(path, math.max(10, (size or 12) - 1), flags or "")
+    end
+    Blackacre.UI.Theme.ApplyMailBodyFont(fs, -1)
+end
+
 local function BuildVoicePage(page)
-    local title = page:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", 16, -14)
+    local title = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", 32, -32)
     title:SetText("Voice")
     Blackacre.UI.Theme.GoldTitle(title)
-
-    page.hint = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    page.hint:SetPoint("TOPLEFT", 16, -44)
-    page.hint:SetPoint("TOPRIGHT", -16, -44)
-    page.hint:SetJustifyH("LEFT")
-    page.hint:SetText("One accent profile per character — never mixed mid-entry. Auto follows your race.")
-    Blackacre.UI.Theme.ApplyMailBodyFont(page.hint, 0)
+    do
+        local path, size, flags = GameFontNormalLarge:GetFont()
+        if path then title:SetFont(path, math.max(11, (size or 14) - 1), flags or "") end
+    end
 
     page.profile = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    page.profile:SetPoint("TOPLEFT", 16, -80)
-    Blackacre.UI.Theme.ApplyMailBodyFont(page.profile, 0)
+    page.profile:SetPoint("TOPLEFT", 32, -72)
+    ApplyMenuBodyFont(page.profile)
 
     local accents = { "auto", "none", "dwarf", "orc", "undead", "goblin", "blood_elf", "night_elf", "tauren", "draenei", "pandaren", "vulpera", "human", "afrikaans" }
     page.dropdown = CreateFrame("Frame", "BATomeVoiceAccent", page, "UIDropDownMenuTemplate")
-    page.dropdown:SetPoint("TOPLEFT", 0, -110)
-    UIDropDownMenu_SetWidth(page.dropdown, 180)
+    page.dropdown:SetPoint("TOPLEFT", 16, -110)
+    UIDropDownMenu_SetWidth(page.dropdown, 220)
     UIDropDownMenu_Initialize(page.dropdown, function()
         for _, id in ipairs(accents) do
             local info = UIDropDownMenu_CreateInfo()
@@ -245,31 +321,46 @@ local function BuildVoicePage(page)
         end
     end)
 
+    -- Short labels + tooltips (no long explanatory paragraphs on the panel)
     page.chronCheck = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-    page.chronCheck:SetPoint("TOPLEFT", 16, -160)
+    page.chronCheck:SetPoint("TOPLEFT", 32, -180)
     local ct = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    ct:SetPoint("LEFT", page.chronCheck, "RIGHT", 4, 0)
-    ct:SetText("Apply accent to new chronicle pages")
-    Blackacre.UI.Theme.ApplyMailBodyFont(ct, 0)
+    ct:SetPoint("LEFT", page.chronCheck, "RIGHT", 10, 0)
+    ct:SetText("Chronicle")
+    ApplyMenuBodyFont(ct)
     page.chronCheck:SetScript("OnClick", function(self)
         EnsureVoiceDB().applyToChronicle = self:GetChecked()
     end)
+    page.chronCheck:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Apply accent to chronicle")
+        GameTooltip:AddLine("When checked, new auto journal pages use this accent profile.", 0.85, 0.85, 0.85, true)
+        GameTooltip:Show()
+    end)
+    page.chronCheck:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     page.bullCheck = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-    page.bullCheck:SetPoint("TOPLEFT", 16, -194)
+    page.bullCheck:SetPoint("TOPLEFT", 32, -230)
     local bt = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    bt:SetPoint("LEFT", page.bullCheck, "RIGHT", 4, 0)
-    bt:SetText("Apply accent to bulletins on post")
-    Blackacre.UI.Theme.ApplyMailBodyFont(bt, 0)
+    bt:SetPoint("LEFT", page.bullCheck, "RIGHT", 10, 0)
+    bt:SetText("Bulletins")
+    ApplyMenuBodyFont(bt)
     page.bullCheck:SetScript("OnClick", function(self)
         EnsureVoiceDB().applyToBulletins = self:GetChecked()
     end)
+    page.bullCheck:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Apply accent to bulletins")
+        GameTooltip:AddLine("When checked, bulletin posts use this accent on send.", 0.85, 0.85, 0.85, true)
+        GameTooltip:Show()
+    end)
+    page.bullCheck:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     page.sample = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    page.sample:SetPoint("TOPLEFT", 16, -240)
-    page.sample:SetPoint("TOPRIGHT", -16, -240)
+    page.sample:SetPoint("TOPLEFT", 32, -290)
+    page.sample:SetPoint("TOPRIGHT", -32, -290)
     page.sample:SetJustifyH("LEFT")
-    Blackacre.UI.Theme.ApplyMailBodyFont(page.sample, 0)
+    ApplyMenuBodyFont(page.sample)
 
     function page:Refresh()
         local v = EnsureVoiceDB()
@@ -277,7 +368,7 @@ local function BuildVoicePage(page)
         page.chronCheck:SetChecked(v.applyToChronicle ~= false)
         page.bullCheck:SetChecked(v.applyToBulletins == true)
         local resolved = Blackacre.Voice and Blackacre.Voice.ResolveProfile and Blackacre.Voice.ResolveProfile() or "none"
-        page.profile:SetText("Active profile: " .. tostring(resolved))
+        page.profile:SetText("Active: " .. tostring(resolved))
         if Blackacre.Voice and Blackacre.Voice.Apply then
             page.sample:SetText("Sample: " .. Blackacre.Voice.Apply("I am looking for the thing near the mountain, yes?"))
         else
@@ -288,65 +379,173 @@ local function BuildVoicePage(page)
 end
 
 local function BuildSharePage(page)
-    local title = page:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", 16, -14)
+    local title = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    title:SetPoint("TOPLEFT", 32, -32)
     title:SetText("Share")
     Blackacre.UI.Theme.GoldTitle(title)
-
-    page.body = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    page.body:SetPoint("TOPLEFT", 16, -48)
-    page.body:SetPoint("TOPRIGHT", -16, -48)
-    page.body:SetJustifyH("LEFT")
-    page.body:SetText("Copy a TRP3-friendly summary to the clipboard, or whisper a peer:\n/ba share PlayerName")
-    Blackacre.UI.Theme.ApplyMailBodyFont(page.body, 0)
+    do
+        local path, size, flags = GameFontNormalLarge:GetFont()
+        if path then title:SetFont(path, math.max(11, (size or 14) - 1), flags or "") end
+    end
 
     local exp = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
-    exp:SetSize(140, 26)
-    exp:SetPoint("BOTTOMLEFT", 16, 16)
+    exp:SetSize(160, 28)
+    exp:SetPoint("TOPLEFT", 32, -80)
     exp:SetText("Export copy")
     exp:SetScript("OnClick", function()
         if Blackacre.Share and Blackacre.Share.Export then
             Blackacre.Share.Export.CopyToClipboard()
         end
     end)
+    exp:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Export copy")
+        GameTooltip:AddLine("Copy a TRP3-friendly summary to the clipboard.", 0.85, 0.85, 0.85, true)
+        GameTooltip:AddLine("Whisper: /ba share PlayerName", 0.7, 0.7, 0.7, true)
+        GameTooltip:Show()
+    end)
+    exp:SetScript("OnLeave", function() GameTooltip:Hide() end)
     mounted.share = true
 end
 
-local function Build()
-    hub = Blackacre.UI.Theme.CreateBookShell("BlackacreTomeHub", "Traveler's Chronicle")
+local function PlaceMenuAsSidecar()
+    if not menu or not hub then return end
+    menu:ClearAllPoints()
+    -- Sidecar to the RIGHT of the open tome (not stacked on top)
+    menu:SetPoint("TOPLEFT", hub, "TOPRIGHT", 8, 0)
+end
 
-    for i, tab in ipairs(TABS) do
-        MakeHorizontalTab(hub.tabBar, tab, i)
+--- OOC Backstory Menus parent (sidecar to the IC journal book).
+local function BuildBackstoryMenu()
+    if menu then return menu end
+    local Layer = Blackacre.UI.Theme.Layer
+
+    menu = CreateFrame("Frame", "BlackacreBackstoryMenu", UIParent, "BackdropTemplate")
+    menu:SetSize(640, 560)
+    menu:SetFrameStrata("HIGH")
+    menu:SetToplevel(true)
+    menu:SetMovable(true)
+    menu:EnableMouse(true)
+    menu:RegisterForDrag("LeftButton")
+    menu:SetScript("OnDragStart", menu.StartMoving)
+    menu:SetScript("OnDragStop", menu.StopMovingOrSizing)
+    menu:SetClampedToScreen(true)
+    menu:Hide()
+    -- Not in UISpecialFrames: Esc is owned by BlackacreTomeEscGate (sidecar first, then tome)
+
+    -- Faction FrameGeneral kits (Alliance / Horde from player data)
+    if Blackacre.UI.Theme.ApplyFactionFrameChrome then
+        Blackacre.UI.Theme.ApplyFactionFrameChrome(menu)
+    else
+        Blackacre.UI.Theme.ApplyBookShellChrome(menu)
     end
 
-    -- Non-chronicle modules mount on full pageHost
-    for _, tab in ipairs(TABS) do
-        MakePage(hub.pageHost, tab.id)
+    menu.header = CreateFrame("Frame", nil, menu, "BackdropTemplate")
+    menu.header:SetPoint("TOPLEFT", 14, -14)
+    menu.header:SetPoint("TOPRIGHT", -14, -14)
+    menu.header:SetHeight(36)
+    menu.header:EnableMouse(true)
+    menu.header:RegisterForDrag("LeftButton")
+    menu.header:SetScript("OnDragStart", function() menu:StartMoving() end)
+    menu.header:SetScript("OnDragStop", function() menu:StopMovingOrSizing() end)
+    Blackacre.UI.Theme.ApplyBookChromeBar(menu.header, "header")
+    menu.header:SetFrameLevel((menu:GetFrameLevel() or 1) + 5)
+
+    menu.title = Blackacre.UI.Theme.CreateLayeredFontString(menu.header, Layer.OVERLAY, "GameFontNormal")
+    menu.title:SetPoint("LEFT", 16, 0)
+    menu.title:SetText("Backstory Menus")
+    Blackacre.UI.Theme.GoldTitle(menu.title)
+    do
+        local path, size, flags = GameFontNormalLarge:GetFont()
+        if path then menu.title:SetFont(path, math.max(11, (size or 14) - 1), flags or "") end
     end
 
-    -- Chronicle marker only (hosts are leftPage/rightPage). Do not cover the book.
-    pages.chronicle = CreateFrame("Frame", nil, hub.bookOpen)
-    pages.chronicle:SetSize(1, 1)
-    pages.chronicle:SetPoint("TOPLEFT", hub.bookOpen, "TOPLEFT", 0, 0)
-    pages.chronicle:EnableMouse(false)
-    pages.chronicle:Hide()
-    pages.chronicle.tocHost = hub.leftPage
-    pages.chronicle.pageHost = hub.rightPage
+    local close = CreateFrame("Button", nil, menu.header, "UIPanelButtonTemplate")
+    close:SetSize(28, 22)
+    close:SetPoint("RIGHT", -10, 0)
+    close:SetText("X")
+    close:SetScript("OnClick", function() menu:Hide() end)
+    menu.closeButton = close
 
-    hub.chronicleHost = pages.chronicle
+    -- Content host; soft page fill over faction art
+    menu.content = CreateFrame("Frame", nil, menu, "BackdropTemplate")
+    menu.content:SetPoint("TOPLEFT", 20, -64)
+    menu.content:SetPoint("BOTTOMRIGHT", -20, 20)
+    menu.content:SetFrameLevel((menu:GetFrameLevel() or 1) + 4)
+    Blackacre.UI.Theme.ApplyFilledPanel(menu.content, 0.88, "page")
+
+    for i, tab in ipairs(MENU_TABS) do
+        MakeBookmarkTab(menu, tab, i) -- parent = outer shell so tabs hang past edge
+        MakePage(menu.content, tab.id)
+    end
 
     BuildVoicePage(pages.voice)
     BuildSharePage(pages.share)
 
-    pages.setup = MakePage(hub.pageHost, "setup")
+    menu._built = true
+    return menu
+end
 
-    hub._built = true
-    SelectTab("chronicle")
+local function Build()
+    local ok, err = pcall(function()
+        if not Blackacre.UI or not Blackacre.UI.Theme or not Blackacre.UI.Theme.CreateBookShell then
+            error("Theme.CreateBookShell missing — core UI failed to load")
+        end
+        hub = Blackacre.UI.Theme.CreateBookShell("BlackacreTomeHub", "Traveler's Chronicle")
+        -- Esc hierarchy via BlackacreTomeEscGate (not raw hub name — that closed sidecar+tome together)
+        RemoveFromUISpecialFrames("BlackacreTomeHub")
+        EnsureEscGate()
+        hub:HookScript("OnShow", function()
+            SyncEscGate()
+            if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.PlayUISound then
+                Blackacre.UI.Theme.PlayUISound("bookOpen") -- adventure flourish (local)
+            end
+        end)
+        hub:HookScript("OnHide", function()
+            if menu then menu:Hide() end
+            SyncEscGate()
+            if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.PlayUISound then
+                Blackacre.UI.Theme.PlayUISound("bookClose") -- local only (Wowhead igSpellBookClose / 830)
+            end
+        end)
+
+        -- IC book only: chronicle hosts (no feature tabs on the book)
+        pages.chronicle = CreateFrame("Frame", nil, hub.bookOpen)
+        pages.chronicle:SetSize(1, 1)
+        pages.chronicle:SetPoint("TOPLEFT", hub.bookOpen, "TOPLEFT", 0, 0)
+        pages.chronicle:EnableMouse(false)
+        pages.chronicle:Hide()
+        pages.chronicle.tocHost = hub.leftPage
+        pages.chronicle.pageHost = hub.rightPage
+        hub.chronicleHost = pages.chronicle
+
+        -- pageHost still used for setup wizard embedding if needed
+        pages.setup = CreateFrame("Frame", nil, hub.pageHost)
+        pages.setup:SetAllPoints(hub.pageHost)
+        pages.setup:Hide()
+
+        BuildBackstoryMenu()
+
+        hub._built = true
+        ShowBookAsChronicle()
+        MountTab("chronicle")
+        if pages.chronicle then pages.chronicle:Show() end
+        if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.OnHubShow then
+            pcall(Blackacre.Chronicle.UI.OnHubShow)
+        end
+    end)
+    if not ok then
+        hub = nil
+        if Blackacre.Print then
+            Blackacre.Print("|cffff6666Tome failed to build:|r " .. tostring(err))
+        else
+            print("|cffff6666Blackacre Tome failed to build:|r " .. tostring(err))
+        end
+    end
 end
 
 function Blackacre.TomeHub.GetChronicleParent()
     if not hub then Build() end
-    -- Two-page: journal embeds into right page; TOC into left
     return pages.chronicle
 end
 
@@ -362,24 +561,28 @@ end
 
 function Blackacre.TomeHub.GetPageHost(id)
     if not hub then Build() end
-    return pages[id or activeTab]
+    BuildBackstoryMenu()
+    return pages[id or activeMenuTab]
 end
 
 function Blackacre.TomeHub.Init()
-    if not hub then Build() end
 end
 
 function Blackacre.TomeHub.SetSetupMode(on)
     setupMode = on and true or false
     SetTabsEnabled(not setupMode)
     if setupMode then
-        for _, t in ipairs(TABS) do
-            if pages[t.id] then pages[t.id]:Hide() end
-        end
         if pages.chronicle then pages.chronicle:Hide() end
-        if pages.setup then pages.setup:Show() end
-        ShowBookSpread(false)
-        activeTab = "setup"
+        if pages.setup then
+            pages.setup:Show()
+            hub.pageHost:Show()
+            hub.leftPage:Hide()
+            hub.rightPage:Hide()
+        end
+    else
+        ShowBookAsChronicle()
+        if pages.setup then pages.setup:Hide() end
+        if pages.chronicle then pages.chronicle:Show() end
     end
 end
 
@@ -387,28 +590,112 @@ function Blackacre.TomeHub.IsSetupMode()
     return setupMode
 end
 
+function Blackacre.TomeHub.ShowBackstoryMenu(tabId)
+    if not hub or not hub._built then Build() end
+    BuildBackstoryMenu()
+    if not menu then return end
+    if not hub:IsShown() then hub:Show() end
+    PlaceMenuAsSidecar()
+    SelectMenuTab(tabId or activeMenuTab or "lineage")
+    if not menu:IsShown() and Theme() and Theme().PlayUISound then
+        Theme().PlayUISound("softFlourish")
+    end
+    menu:Show()
+    SyncEscGate()
+end
+
+function Blackacre.TomeHub.HideBackstoryMenu()
+    if menu then menu:Hide() end
+    SyncEscGate()
+end
+
+function Blackacre.TomeHub.ToggleBackstoryMenu(tabId)
+    if not menu or not menu._built then
+        Blackacre.TomeHub.ShowBackstoryMenu(tabId)
+        return
+    end
+    if menu:IsShown() and (not tabId or tabId == activeMenuTab) then
+        menu:Hide()
+    else
+        Blackacre.TomeHub.ShowBackstoryMenu(tabId)
+    end
+end
+
 function Blackacre.TomeHub.Show(tabId)
-    if not hub then Build() end
-    if setupMode and tabId ~= "setup" then
-        hub:Show()
+    if not hub or not hub._built then Build() end
+    if not hub then
+        if Blackacre.Print then
+            Blackacre.Print("Tome is not available (build failed). Check chat for red errors.")
+        end
         return
     end
-    if tabId == "setup" then
-        hub:Show()
-        return
+    local ok, err = pcall(function()
+        if setupMode and tabId ~= "setup" then
+            hub:Show()
+            return
+        end
+        if tabId == "setup" then
+            hub:Show()
+            return
+        end
+        -- Known OOC menu tabs open Backstory frame; chronicle/default opens the book
+        local isMenu = false
+        for _, t in ipairs(MENU_TABS) do
+            if t.id == tabId then isMenu = true break end
+        end
+        if isMenu then
+            hub:Show()
+            ShowBookAsChronicle()
+            MountTab("chronicle")
+            if pages.chronicle then pages.chronicle:Show() end
+            if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.OnHubShow then
+                pcall(Blackacre.Chronicle.UI.OnHubShow)
+            end
+            Blackacre.TomeHub.ShowBackstoryMenu(tabId)
+        else
+            ShowBookAsChronicle()
+            MountTab("chronicle")
+            if pages.chronicle then pages.chronicle:Show() end
+            if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.OnHubShow then
+                pcall(Blackacre.Chronicle.UI.OnHubShow)
+            end
+            hub:Show()
+        end
+    end)
+    if not ok then
+        if Blackacre.Print then
+            Blackacre.Print("|cffff6666Tome open failed:|r " .. tostring(err))
+        else
+            print("|cffff6666Blackacre Tome open failed:|r " .. tostring(err))
+        end
     end
-    SelectTab(tabId or activeTab or "chronicle")
-    hub:Show()
 end
 
 function Blackacre.TomeHub.Hide()
     if hub then hub:Hide() end
+    if menu then menu:Hide() end
 end
 
 function Blackacre.TomeHub.Toggle(tabId)
-    if not hub then Build() end
-    if hub:IsShown() and (not tabId or tabId == activeTab) and not setupMode then
+    if not hub or not hub._built then Build() end
+    if not hub then
+        if Blackacre.Print then
+            Blackacre.Print("Tome is not available (build failed). Check chat for red errors.")
+        end
+        return
+    end
+    local isMenu = false
+    for _, t in ipairs(MENU_TABS) do
+        if t.id == tabId then isMenu = true break end
+    end
+    if isMenu then
+        Blackacre.TomeHub.ToggleBackstoryMenu(tabId)
+        if not hub:IsShown() then hub:Show() end
+        return
+    end
+    if hub:IsShown() and not setupMode then
         hub:Hide()
+        if menu then menu:Hide() end
     else
         Blackacre.TomeHub.Show(tabId)
     end
@@ -432,7 +719,6 @@ function Blackacre.TomeHub.OnJournalToggle(on)
     end
 end
 
---- Page turn within chronicle list (delta = -1 or +1).
 function Blackacre.TomeHub.TurnPage(delta)
     if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.TurnPage then
         Blackacre.Chronicle.UI.TurnPage(delta)

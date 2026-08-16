@@ -61,11 +61,84 @@ local function BuildOptions()
                         set = function(_, v)
                             if not Blackacre.db then return end
                             Blackacre.db.profile.quietNotifications = v and true or false
-                            -- Mirror into char settings for existing toast code paths
                             if Blackacre.CharDB and Blackacre.CharDB.settings then
                                 Blackacre.CharDB.settings.quietNotifications = v and true or false
                             end
                         end,
+                    },
+                    survival = {
+                        type = "toggle",
+                        name = "Survival tracking",
+                        desc = "When off, hunger/thirst/exposure stop decaying and no longer update the journal.",
+                        order = 3,
+                        get = function()
+                            local s = Blackacre.CharDB and Blackacre.CharDB.survival
+                            if s and s.enabled == false then return false end
+                            return true
+                        end,
+                        set = function(_, v)
+                            if Blackacre.Survival and Blackacre.Survival.Engine and Blackacre.Survival.Engine.SetEnabled then
+                                Blackacre.Survival.Engine.SetEnabled(v and true or false)
+                            else
+                                Blackacre.CharDB = Blackacre.CharDB or {}
+                                Blackacre.CharDB.survival = Blackacre.CharDB.survival or {}
+                                Blackacre.CharDB.survival.enabled = v and true or false
+                            end
+                            if Blackacre.Survival and Blackacre.Survival.UI and Blackacre.Survival.UI.Refresh then
+                                Blackacre.Survival.UI.Refresh()
+                            end
+                        end,
+                    },
+                },
+            },
+            journal = {
+                type = "group",
+                name = "Chronicle",
+                order = 3,
+                inline = true,
+                args = {
+                    bodyFont = {
+                        type = "select",
+                        name = "Journal body font",
+                        desc = "Font for chronicle page body text and sticky notes only. Does not change titles, headers, or Backstory menus.",
+                        order = 1,
+                        values = function()
+                            local t = {}
+                            local cat = Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.GetBodyFontCatalog
+                                and Blackacre.UI.Theme.GetBodyFontCatalog()
+                                or {}
+                            for _, row in ipairs(cat) do
+                                t[row.key] = row.name
+                            end
+                            if not next(t) then
+                                t.default = "Default (WoW mail)"
+                            end
+                            return t
+                        end,
+                        get = function()
+                            if Blackacre.db and Blackacre.db.profile and Blackacre.db.profile.bodyFontKey then
+                                return Blackacre.db.profile.bodyFontKey
+                            end
+                            if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.Fonts then
+                                return Blackacre.UI.Theme.Fonts.activeKey or "default"
+                            end
+                            return "default"
+                        end,
+                        set = function(_, key)
+                            if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.SetBodyFontKey then
+                                Blackacre.UI.Theme.SetBodyFontKey(key, false)
+                            elseif Blackacre.db and Blackacre.db.profile then
+                                Blackacre.db.profile.bodyFontKey = key
+                            end
+                        end,
+                    },
+                    bodyFontNote = {
+                        type = "description",
+                        order = 2,
+                        name = "Body + sticky notes only (not titles or Backstory menus).\n"
+                            .. "|cffffcc00Empty boxes?|r That font lacks those characters. Prefer Default / Friz / Skurri / Morpheus for full text.\n"
+                            .. "Hobbiton & Middle Earth are decorative; symbols like | are rewritten as plain text (WoW cannot mix two fonts in one line).",
+                        fontSize = "medium",
                     },
                 },
             },

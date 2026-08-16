@@ -45,7 +45,18 @@ local function MakeEntry(kind, facts, source)
     return entry
 end
 
+-- Owner policy: chronicle auto-pages from quests/achievements/lineage/road/etc.
+-- Do NOT log survival meters or mount/sky hardcore rites.
+local BLOCKED_KINDS = {
+    SURVIVAL = true,
+    HC_MOUNT = true,
+    HC_FLY = true,
+}
+
 function Blackacre.Chronicle.Capture.AddEntry(kind, facts, source)
+    if kind and BLOCKED_KINDS[kind] then
+        return nil
+    end
     return MakeEntry(kind, facts, source or "auto")
 end
 

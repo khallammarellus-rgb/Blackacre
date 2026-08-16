@@ -5,7 +5,6 @@ local CTL = ChatThrottleLib
 local AceSerializer = LibStub("AceSerializer-3.0")
 local LibDeflate = LibDeflate
 
-local addon
 local CHANNEL_NAME = Blackacre.CHANNEL_NAME
 local PREFIX = Blackacre.PREFIX
 local SEP = Blackacre.SEP
@@ -108,8 +107,12 @@ local function GetCached(kind, id)
 end
 
 function Blackacre.Comms.Init(addonRef)
-    addon = addonRef
-    addon:RegisterComm(PREFIX, "OnCommReceived")
+    -- Prefer the AceAddon passed from OnInitialize; fall back to global.
+    local ace = addonRef or Blackacre.addon
+    if not ace then return end
+    -- Register a function ref (not a method name): colon-style
+    -- `function addon:OnCommReceived` fails at load when local addon is nil.
+    ace:RegisterComm(PREFIX, Blackacre.Comms.OnCommReceived)
 end
 
 function Blackacre.Comms.Enable()
@@ -286,7 +289,8 @@ local function HandleBulletinSummary(fields, sender)
     end
 end
 
-function addon:OnCommReceived(prefix, message, distribution, sender)
+-- AceComm function-ref callback: (prefix, message, distribution, sender) — no self.
+function Blackacre.Comms.OnCommReceived(prefix, message, distribution, sender)
     if prefix ~= PREFIX or not message then return end
     if sender == UnitName("player") then return end
     if C_FriendList.IsIgnored(sender) then return end

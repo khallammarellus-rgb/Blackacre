@@ -159,7 +159,8 @@ How to use: change `- [ ]` to `- [x]` when pass. Add date/character in Notes if 
 - [ ] **Eat** button or `/ic eat` raises hunger + toast
 - [ ] **Drink** / `/ic drink` raises thirst + toast
 - [ ] **Rest** / `/ic rest` raises exposure (blocked in combat with message)
-- [ ] Well Fed / drink-style buffs give light passive top-up (best-effort)
+- [ ] Eating/drinking casts (spell name match) give light quiet top-up (best-effort; no aura scan — secret-value safe)
+- [ ] `/reload` with Survival enabled — no `GetAuraDataByIndex` / secret-aura taint spam
 
 ### Critical & chronicle
 

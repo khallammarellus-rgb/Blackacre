@@ -65,3 +65,21 @@ Use this checklist **after** an element’s art is accepted (Pass D).
 1. Browse DBM-Core on GitHub: how modules load, how locals are used at file top.  
 2. Note event registration patterns and short, dense functions.  
 3. Apply the **spirit** (hygiene + performance), not boss-mod specifics.
+
+---
+
+## Pass D notes — Tome UI (2026-08 polish slice)
+
+Applied to `UI_Chronology.lua`, `TomeHub.lua`, `Theme.lua` (body fonts / chrome menus):
+
+| Rule | Application |
+|------|-------------|
+| Locals / upvalues | File-local helpers; `Theme()` accessor; no one-off globals |
+| Theme owns paths | Popup menus via `ApplyChromeMenuFrame`; parchment via `GetParchmentPath` |
+| No double work | `RenderSpread(skipRebuild)` after `TurnPage` / `GoToToc` / jump already rebuilt |
+| No tick waste | `OnUpdate` only during sticky resize; cleared in `ClearLeaf` / drag stop |
+| Frames reused | Tool strip / menus built once (`_baBuilt`, `journal.stickyMenu`, `addNoteMenu`) |
+| IC vs OOC | Backstory Menus = separate parent; journal pages stay story-only |
+| Dead code | Removed unused `White` alias path, unused right-click wire helper |
+
+**Still known debt (acceptable until next element):** sticky cards recreate each render (pool later if row count grows); full entry-list rebuild on each flip (cheap at hundreds of entries).

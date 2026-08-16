@@ -145,6 +145,8 @@ local aceDefaults = {
     profile = {
         minimap = { hide = false },
         quietNotifications = false,
+        -- Chronicle body + sticky notes only (see Theme.Fonts)
+        bodyFontKey = "default",
     },
 }
 
@@ -285,6 +287,10 @@ function addon:OnInitialize()
 
     if Blackacre.Options and Blackacre.Options.Init then
         Blackacre.Options.Init(self)
+    end
+
+    if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.LoadBodyFontFromDB then
+        Blackacre.UI.Theme.LoadBodyFontFromDB()
     end
 
     -- Core only — Presence / Tome / Survival self-init via RegisterPackage
@@ -482,6 +488,13 @@ SlashCmdList["BLACKACRE"] = function(msg)
         Blackacre.Print(string.format("v%s core · packages: %s",
             Blackacre.VERSION,
             (#list > 0) and table.concat(list, ", ") or "(none — enable Presence/Tome/Survival)"))
+    elseif msg == "bookart" then
+        local path = Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.GetBookArtPath
+            and Blackacre.UI.Theme.GetBookArtPath()
+            or "Interface\\EncounterJournal\\UI-EJ-JournalBG"
+        Blackacre.Print("Book art = Adventure Journal (dungeon journal) texture:")
+        print("|cffffffff" .. path .. "|r")
+        Blackacre.Print("Set in Theme.Textures.bookArt (same as Theme.Textures.ejJournalBG).")
     elseif msg == "config" or msg == "options" or msg == "opt" then
         if Blackacre.Options and Blackacre.Options.Open then
             Blackacre.Options.Open()
