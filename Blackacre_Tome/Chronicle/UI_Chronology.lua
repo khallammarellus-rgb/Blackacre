@@ -541,14 +541,19 @@ local function StopStickyResize(card)
     card:SetScript("OnUpdate", nil)
 end
 
-local function SetStickyMenuIcon(card, locked)
-    if not card or not card.menuBtn or not card.menuBtn.icon then return end
-    local T = Theme() and Theme().Textures
-    if locked then
-        card.menuBtn.icon:SetTexture((T and T.noteMenuIcon) or "Interface\\GossipFrame\\HealerGossipIcon")
-    else
-        card.menuBtn.icon:SetTexture((T and T.noteLockIcon) or "Interface\\ChatFrame\\UI-ChatFrame-LockIcon")
+--- Show settings wheel OR (lock + delete) on the note itself — no pop-out menu.
+local function ShowStickyActionRow(card, showActions)
+    if not card then return end
+    if card.settingsBtn then
+        if showActions then card.settingsBtn:Hide() else card.settingsBtn:Show() end
     end
+    if card.lockBtn then
+        if showActions then card.lockBtn:Show() else card.lockBtn:Hide() end
+    end
+    if card.deleteBtn then
+        if showActions then card.deleteBtn:Show() else card.deleteBtn:Hide() end
+    end
+    card._baActionsOpen = showActions and true or false
 end
 
 local function ApplyStickyLocked(card, locked)
@@ -557,9 +562,9 @@ local function ApplyStickyLocked(card, locked)
     note.pinned = locked and true or false
     card._baEditOpen = not locked
     StopStickyResize(card)
-    SetStickyMenuIcon(card, locked)
-
+    -- Locked = settings wheel only; unlocked edit can still use settings → lock/delete row
     if locked then
+        ShowStickyActionRow(card, false)
         card:SetMovable(false)
         if card.header then
             card.header:RegisterForDrag("LeftButton")
@@ -609,82 +614,26 @@ local function DeleteStickyNote(entry, note)
 end
 
 local function BuildStickyMenu()
-    if journal.stickyMenu then return end
-    local m = CreateFrame("Frame", "BlackacreStickyMenu", UIParent, "BackdropTemplate")
-    m:SetSize(72, 40)
-    m:SetFrameStrata("FULLSCREEN_DIALOG")
-    if Theme() and Theme().ApplyChromeMenuFrame then
-        Theme().ApplyChromeMenuFrame(m)
+    -- Pop-out menu removed (E0): lock/delete live on the scrap itself.
+    if journal and journal.stickyMenu then
+        journal.stickyMenu:Hide()
     end
-    m:Hide()
-    m:EnableMouse(true)
-    -- Pin (lock) icon button
-    local pin = CreateFrame("Button", nil, m)
-    pin:SetSize(22, 22)
-    pin:SetPoint("LEFT", 8, 0)
-    pin.icon = pin:CreateTexture(nil, "ARTWORK")
-    pin.icon:SetAllPoints()
-    pin.icon:SetTexture((Theme() and Theme().Textures and Theme().Textures.noteLockIcon)
-        or "Interface\\ChatFrame\\UI-ChatFrame-LockIcon")
-    m.btn1 = pin
-    -- Delete = red X from CommonIcons
-    local del = CreateFrame("Button", nil, m)
-    del:SetSize(22, 22)
-    del:SetPoint("RIGHT", -8, 0)
-    del.icon = del:CreateTexture(nil, "ARTWORK")
-    del.icon:SetAllPoints()
-    local T = Theme() and Theme().Textures
-    local coords = Theme() and Theme().TexCoords and Theme().TexCoords.commonIconsDelete
-    del.icon:SetTexture((T and T.commonIcons) or "Interface\\Common\\CommonIcons")
-    if coords then
-        del.icon:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
-    else
-        -- Fallback: group loot pass (clear red X)
-        del.icon:SetTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
-    end
-    m.btn2 = del
-    journal.stickyMenu = m
-end
-
---- Open pin/delete menu + unlock; lock icon on note locks; right-click still toggles.
-local function OpenStickyMenu(card, entry, note)
-    BuildStickyMenu()
-    local menu = journal.stickyMenu
-    if not menu then return end
-    ApplyStickyLocked(card, false)
-    menu:ClearAllPoints()
-    menu:SetPoint("TOPLEFT", card, "TOPRIGHT", 4, 0)
-    menu:SetFrameLevel(200)
-    menu:Show()
-    menu.btn1:SetScript("OnClick", function()
-        if card.box then note.text = card.box:GetText() or note.text end
-        SaveStickyGeometry(card)
-        ApplyStickyLocked(card, true)
-        PersistStickies(entry)
-        if Theme() and Theme().PlayUISound then Theme().PlayUISound("pinSoft") end
-        HideStickyMenu()
-    end)
-    menu.btn2:SetScript("OnClick", function()
-        DeleteStickyNote(entry, note)
-    end)
-    if card.box then card.box:SetFocus() end
 end
 
 local function ToggleStickyRightClick(card, entry, note)
-    BuildStickyMenu()
-    local menu = journal.stickyMenu
-    if not menu then return end
-
+    -- Right-click still toggles lock without a floating menu
     if card._baEditOpen then
         if card.box then note.text = card.box:GetText() or note.text end
         SaveStickyGeometry(card)
         ApplyStickyLocked(card, true)
         PersistStickies(entry)
-        HideStickyMenu()
+        ShowStickyActionRow(card, false)
         if Theme() and Theme().PlayUISound then Theme().PlayUISound("pinSoft") end
         return
     end
-    OpenStickyMenu(card, entry, note)
+    ApplyStickyLocked(card, false)
+    ShowStickyActionRow(card, true)
+    if card.box then card.box:SetFocus() end
 end
 
 --- Freeform sticky scrap (Spellbook page fill); menu icon TR; resize offline icon BR.
@@ -701,15 +650,14 @@ local function CreateStickyCard(parent, entry, note, index)
     card:SetFrameLevel((parent:GetFrameLevel() or 1) + 10)
     card:SetClampedToScreen(false)
     local T = Theme() and Theme().Textures
-    local fill = (T and T.stickyFill) or (T and T.spellbookPage)
-        or (Theme() and Theme().GetParchmentPath and Theme().GetParchmentPath())
+    local edge = (T and T.tooltipEdge) or "Interface\\Tooltips\\UI-Tooltip-Border"
     card:SetBackdrop({
-        bgFile = fill,
-        edgeFile = nil,
-        tile = false,
-        tileSize = 0,
-        edgeSize = 0,
-        insets = { left = 0, right = 0, top = 0, bottom = 0 },
+        bgFile = (T and T.white) or "Interface\\Buttons\\WHITE8x8",
+        edgeFile = edge,
+        tile = true,
+        tileSize = 8,
+        edgeSize = 10,
+        insets = { left = 3, right = 3, top = 3, bottom = 3 },
     })
     card:SetBackdropColor(1, 0.98, 0.92, 0.97)
     card:EnableMouse(true)
@@ -752,26 +700,54 @@ local function CreateStickyCard(parent, entry, note, index)
     end)
     card.header = header
 
-    -- Top-right menu: healer gossip → open pin/delete; becomes lock to pin
-    local menuBtn = CreateFrame("Button", nil, card)
-    menuBtn:SetSize(16, 16)
-    menuBtn:SetPoint("TOPRIGHT", -3, -3)
-    menuBtn.icon = menuBtn:CreateTexture(nil, "ARTWORK")
-    menuBtn.icon:SetAllPoints()
-    menuBtn:SetScript("OnClick", function()
-        if card._baEditOpen then
-            -- Lock note
-            if card.box then note.text = card.box:GetText() or note.text end
-            SaveStickyGeometry(card)
-            ApplyStickyLocked(card, true)
-            PersistStickies(entry)
-            HideStickyMenu()
-            if Theme() and Theme().PlayUISound then Theme().PlayUISound("pinSoft") end
-        else
-            OpenStickyMenu(card, entry, note)
-        end
+    -- Top-right: settings wheel → reveals lock + delete on the note (no pop-out)
+    local gearPath = (T and T.optionsGear) or "Interface\\Buttons\\UI-OptionsButton"
+    local lockPath = (T and T.noteLockIcon) or "Interface\\ChatFrame\\UI-ChatFrame-LockIcon"
+    local delPath = "Interface\\Buttons\\UI-GroupLoot-Pass-Up"
+
+    local settingsBtn = CreateFrame("Button", nil, card)
+    settingsBtn:SetSize(16, 16)
+    settingsBtn:SetPoint("TOPRIGHT", -3, -3)
+    settingsBtn.icon = settingsBtn:CreateTexture(nil, "ARTWORK")
+    settingsBtn.icon:SetAllPoints()
+    settingsBtn.icon:SetTexture(gearPath)
+    settingsBtn:SetScript("OnClick", function()
+        -- Unlock for edit and show lock/delete on the scrap
+        ApplyStickyLocked(card, false)
+        ShowStickyActionRow(card, true)
+        if card.box then card.box:SetFocus() end
     end)
-    card.menuBtn = menuBtn
+    card.settingsBtn = settingsBtn
+    card.menuBtn = settingsBtn -- legacy alias
+
+    local lockBtn = CreateFrame("Button", nil, card)
+    lockBtn:SetSize(16, 16)
+    lockBtn:SetPoint("TOPRIGHT", -22, -3)
+    lockBtn.icon = lockBtn:CreateTexture(nil, "ARTWORK")
+    lockBtn.icon:SetAllPoints()
+    lockBtn.icon:SetTexture(lockPath)
+    lockBtn:Hide()
+    lockBtn:SetScript("OnClick", function()
+        if card.box then note.text = card.box:GetText() or note.text end
+        SaveStickyGeometry(card)
+        ApplyStickyLocked(card, true)
+        PersistStickies(entry)
+        ShowStickyActionRow(card, false)
+        if Theme() and Theme().PlayUISound then Theme().PlayUISound("pinSoft") end
+    end)
+    card.lockBtn = lockBtn
+
+    local deleteBtn = CreateFrame("Button", nil, card)
+    deleteBtn:SetSize(16, 16)
+    deleteBtn:SetPoint("TOPRIGHT", -41, -3)
+    deleteBtn.icon = deleteBtn:CreateTexture(nil, "ARTWORK")
+    deleteBtn.icon:SetAllPoints()
+    deleteBtn.icon:SetTexture(delPath)
+    deleteBtn:Hide()
+    deleteBtn:SetScript("OnClick", function()
+        DeleteStickyNote(entry, note)
+    end)
+    card.deleteBtn = deleteBtn
 
     local status = header:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     status:SetPoint("LEFT", 4, 0)
@@ -1183,18 +1159,10 @@ local function RenderTocLeaf(leaf, items, heading, leafSide)
     -- leafSide kept for callers; page # always flush to this leaf's right edge
     leaf._baLeafSide = leafSide
 
-    -- Heading on Achievement Alert Background
-    local T = Theme() and Theme().Textures
     local titleBg = leaf:CreateTexture(nil, "ARTWORK")
     titleBg:SetPoint("TOPLEFT", 10, -8)
     titleBg:SetSize(math.min(w - 24, 280), 28)
-    if T and T.alertBackground then
-        titleBg:SetTexture(T.alertBackground)
-        titleBg:SetTexCoord(0, 1, 0, 1)
-        titleBg:SetVertexColor(1, 1, 1, 0.9)
-    else
-        titleBg:SetColorTexture(0.2, 0.15, 0.08, 0.5)
-    end
+    titleBg:SetColorTexture(0.2, 0.15, 0.08, 0.5)
     AddKid(leaf, titleBg)
     local title = leaf:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("CENTER", titleBg, "CENTER", 0, 0)
@@ -1205,16 +1173,10 @@ local function RenderTocLeaf(leaf, items, heading, leafSide)
     local y = -44
     for _, row in ipairs(items) do
         if row.kind == "year" then
-            -- Year on Reward Background strip (centered)
             local yearBg = leaf:CreateTexture(nil, "ARTWORK")
             yearBg:SetPoint("TOP", leaf, "TOP", 0, y)
             yearBg:SetSize(math.min(w - 40, 220), 18)
-            if T and T.rewardBackground then
-                yearBg:SetTexture(T.rewardBackground)
-                yearBg:SetVertexColor(1, 1, 1, 0.95)
-            else
-                yearBg:SetColorTexture(0.35, 0.28, 0.12, 0.55)
-            end
+            yearBg:SetColorTexture(0.35, 0.28, 0.12, 0.55)
             AddKid(leaf, yearBg)
             local yearFs = leaf:CreateFontString(nil, "OVERLAY", "GameFontNormal")
             yearFs:SetPoint("CENTER", yearBg, "CENTER", 0, 0)

@@ -117,27 +117,24 @@ end
 
 local function StyleBookmarkTab(btn, active)
     if not btn then return end
-    local th = Theme()
-    local T = th and th.Textures
-    -- Guild bank tab face (owner pick)
     if btn.bg then
-        local path = (T and T.guildBankTab) or "Interface\\GuildBankFrame\\UI-GuildBankFrame-Tab"
-        btn.bg:SetTexture(path)
-        btn.bg:SetTexCoord(0, 1, 0, 1)
-        if active then
-            btn.bg:SetVertexColor(1, 0.95, 0.75, 1)
-        else
-            btn.bg:SetVertexColor(0.75, 0.72, 0.68, 0.95)
-        end
+        btn.bg:SetColorTexture(0.18, 0.14, 0.10, active and 0.95 or 0.8)
     end
     if btn.icon then
-        btn.icon:SetVertexColor(1, 1, 1, active and 1 or 0.85)
+        btn.icon:ClearAllPoints()
+        btn.icon:SetSize(20, 20)
+        btn.icon:SetPoint("CENTER", btn, "CENTER", 0, 4)
+        btn.icon:SetVertexColor(1, 1, 1, active and 1 or 0.88)
+        if type(btn.icon:GetTexture()) == "string" and tostring(btn.icon:GetTexture()):find("Icons") then
+            btn.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        end
     end
     if btn.glow then
         btn.glow:Hide()
     end
     if btn.label then
-        btn.label:SetText("")
+        btn.label:SetText(active and (btn._baTabLabel or "") or "")
+        btn.label:SetTextColor(1, 0.92, 0.55, 1)
     end
 end
 
@@ -222,26 +219,27 @@ local function SelectMenuTab(id)
 end
 
 local function MakeBookmarkTab(parent, tab, index)
+    -- Hit box sized to tab face (icon-centered); no red panel button
     local btn = CreateFrame("Button", nil, parent)
-    btn:SetSize(48, 56)
-    btn:SetPoint("TOPLEFT", parent, "TOPRIGHT", -16, -36 - (index - 1) * 56)
+    btn:SetSize(40, 52)
+    btn:SetPoint("TOPLEFT", parent, "TOPRIGHT", -18, -32 - (index - 1) * 54)
     btn:SetFrameLevel((parent:GetFrameLevel() or 1) + 8)
 
     btn.bg = btn:CreateTexture(nil, "BACKGROUND")
     btn.bg:SetAllPoints(btn)
+    btn.bg:SetColorTexture(0.18, 0.14, 0.10, 0.9)
+    btn._baTabLabel = tab.label or ""
 
     btn.icon = btn:CreateTexture(nil, "ARTWORK")
-    btn.icon:SetSize(28, 28)
-    btn.icon:SetPoint("CENTER", 0, 2)
-    if Theme() and Theme().SetIconTexture then
-        Theme().SetIconTexture(btn.icon, tab.icon, 25)
-    else
-        btn.icon:SetTexture("Interface\\Icons\\" .. (tab.icon or "INV_Misc_QuestionMark"))
-    end
+    btn.icon:SetSize(20, 20)
+    btn.icon:SetPoint("CENTER", 0, 3)
+    btn.icon:SetTexture("Interface\\Icons\\" .. (tab.icon or "INV_Misc_QuestionMark"))
+    btn.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 
     btn.glow = btn:CreateTexture(nil, "HIGHLIGHT")
     btn.glow:SetAllPoints(btn)
-    btn.glow:SetColorTexture(0.95, 0.82, 0.35, 0.22)
+    btn.glow:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+    btn.glow:SetBlendMode("ADD")
     btn.glow:Hide()
 
     btn.label = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")

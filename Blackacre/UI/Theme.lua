@@ -84,6 +84,10 @@ Blackacre.UI.Theme.Textures = {
     frameAlliance = "Interface\\FrameGeneral\\UIFrameAlliance",
     frameHorde = "Interface\\FrameGeneral\\UIFrameHorde",
     guildBankTab = "Interface\\GuildBankFrame\\UI-GuildBankFrame-Tab",
+    -- Icon chrome: Achievement icon frame wraps Interface\\Icons\\* (owner E0)
+    iconFrame = "Interface\\AchievementFrame\\UI-Achievement-IconFrame",
+    microSpellbook = "Interface\\Buttons\\UI-MicroButton-Spellbook-Down",
+    optionsGear = "Interface\\Buttons\\UI-OptionsButton",
     bookIcon = "Interface\\Spellbook\\Spellbook-Icon",
     questBook = "Interface\\QuestFrame\\UI-QuestLog-BookIcon",
     stone = "Interface\\FrameGeneral\\UI-Background-Rock",
@@ -105,10 +109,11 @@ Blackacre.UI.Theme.Textures = {
     spellbookPage2 = "Interface\\Spellbook\\Spellbook-Page-2",
 }
 
---- CommonIcons sheet: red X slice (approx; tweak after /reload if off)
+--- Piece crops (UV 0–1). Prefer Blizzard XML when found; tweak after /reload.
 Blackacre.UI.Theme.TexCoords = Blackacre.UI.Theme.TexCoords or {
-    -- Red X region on CommonIcons (wide atlas; refined if needed in polish)
     commonIconsDelete = { 0.50, 0.55, 0.0, 0.10 },
+    -- Guild bank side tab: trim transparent pad so face fills button (E0)
+    guildBankTab = { 0.08, 0.92, 0.02, 0.98 },
 }
 
 --- EJ side-tab slices (Blizzard_EncounterJournal.xml EncounterTabTemplate family)
@@ -366,48 +371,55 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.header:SetScript("OnDragStart", function() frame:StartMoving() end)
     frame.header:SetScript("OnDragStop", function() frame:StopMovingOrSizing() end)
     Blackacre.UI.Theme.ApplyBookChromeBar(frame.header, "header")
+    frame.header:SetFrameLevel((frame:GetFrameLevel() or 1) + 30)
 
     frame.title = Blackacre.UI.Theme.CreateLayeredFontString(frame.header, Layer.OVERLAY, "GameFontNormalHuge")
     frame.title:SetPoint("LEFT", 14, 0)
     frame.title:SetText(titleText or "Traveler's Chronicle")
     Blackacre.UI.Theme.GoldTitle(frame.title)
 
-    -- ONE close X — hides the whole tome only
+    -- Stock labeled close (no experimental icon BLP)
     local close = CreateFrame("Button", nil, frame.header, "UIPanelButtonTemplate")
     close:SetSize(32, 26)
     close:SetPoint("RIGHT", -8, 0)
+    close:SetFrameLevel((frame.header:GetFrameLevel() or 1) + 5)
     close:SetText("X")
     close:SetScript("OnClick", function() frame:Hide() end)
-    Blackacre.UI.Theme.ApplyBookToolButton(close)
     frame.closeButton = close
+    close:Show()
 
-    -- FOOTER (parent tools + Backstory Menus entry)
+    -- FOOTER — raised above book art so tools never disappear
     frame.footer = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     frame.footer:SetPoint("BOTTOMLEFT", PAD, PAD)
     frame.footer:SetPoint("BOTTOMRIGHT", -PAD, PAD)
     frame.footer:SetHeight(FOOTER_H)
     Blackacre.UI.Theme.ApplyBookChromeBar(frame.footer, "footer")
+    frame.footer:SetFrameLevel((frame:GetFrameLevel() or 1) + 30)
 
-    -- Edit Journal icon (inscription) — replaces Journal: On/Off text + Save on toggle off
-    frame.journalToggle = CreateFrame("Button", nil, frame.footer)
-    frame.journalToggle:SetSize(28, 28)
-    frame.journalToggle:SetPoint("LEFT", 12, 0)
-    frame.journalToggle._baOn = false
-    do
-        local ic = frame.journalToggle:CreateTexture(nil, "ARTWORK")
-        ic:SetAllPoints()
-        Blackacre.UI.Theme.SetIconTexture(ic, "ui_profession_inscription", 25)
-        frame.journalToggle.icon = ic
-        local hl = frame.journalToggle:CreateTexture(nil, "HIGHLIGHT")
-        hl:SetAllPoints()
-        hl:SetColorTexture(1, 0.92, 0.5, 0.25)
+    -- Labeled stock buttons (same layout/function as E0; no framed BLP icons)
+    local fl = (frame.footer:GetFrameLevel() or 1) + 5
+    local function Tip(btn, title, body)
+        btn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(title)
+            if body then GameTooltip:AddLine(body, 0.85, 0.85, 0.85, true) end
+            GameTooltip:Show()
+        end)
+        btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
     end
+
+    frame.journalToggle = CreateFrame("Button", nil, frame.footer, "UIPanelButtonTemplate")
+    frame.journalToggle:SetSize(110, 26)
+    frame.journalToggle:SetPoint("LEFT", 12, 0)
+    frame.journalToggle:SetFrameLevel(fl)
+    frame.journalToggle:SetText("Journal: Off")
+    frame.journalToggle._baOn = false
+    Tip(frame.journalToggle, "Edit Journal", "Toggle edit mode. Turning off also saves the open page.")
     frame.journalToggle:SetScript("OnClick", function(self)
         local wasOn = self._baOn
         self._baOn = not self._baOn
-        self:SetAlpha(self._baOn and 1 or 0.72)
+        self:SetText(self._baOn and "Journal: On" or "Journal: Off")
         if wasOn and not self._baOn then
-            -- Leaving edit mode also saves
             if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.SaveSelected then
                 Blackacre.Chronicle.UI.SaveSelected()
             end
@@ -417,43 +429,28 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
             Blackacre.TomeHub.OnJournalToggle(self._baOn)
         end
     end)
-    frame.journalToggle:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("Edit Journal")
-        GameTooltip:AddLine(self._baOn and "On — click to lock and save." or "Off — click to edit pages.", 0.85, 0.85, 0.85, true)
-        GameTooltip:Show()
-    end)
-    frame.journalToggle:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    frame.journalToggle:SetAlpha(0.72)
 
-    -- OOC backstory menus live on a separate parent frame (immersion: not IC journal tabs)
     frame.backstoryBtn = CreateFrame("Button", nil, frame.footer, "UIPanelButtonTemplate")
-    frame.backstoryBtn:SetSize(130, 26)
+    frame.backstoryBtn:SetSize(90, 26)
     frame.backstoryBtn:SetPoint("RIGHT", -10, 0)
-    frame.backstoryBtn:SetText("Backstory…")
+    frame.backstoryBtn:SetFrameLevel(fl)
+    frame.backstoryBtn:SetText("Backstory")
+    Tip(frame.backstoryBtn, "Backstory Menus", "Lineage, Survival, Paths, Afterlife, Voice, Share — OOC tools.")
     frame.backstoryBtn:SetScript("OnClick", function()
         Blackacre.UI.Theme.PlayUISound("toolClick")
         if Blackacre.TomeHub and Blackacre.TomeHub.ToggleBackstoryMenu then
             Blackacre.TomeHub.ToggleBackstoryMenu()
         end
     end)
-    frame.backstoryBtn:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("Backstory Menus")
-        GameTooltip:AddLine("Lineage, Survival, Paths, Afterlife, Voice, Share — OOC tools.", 0.85, 0.85, 0.85, true)
-        GameTooltip:Show()
-    end)
-    frame.backstoryBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Blackacre.UI.Theme.ApplyBookToolButton(frame.backstoryBtn)
 
-    -- Jump-to-page (footer, left of Backstory)
     frame.pageJump = CreateFrame("EditBox", nil, frame.footer, "InputBoxTemplate")
-    frame.pageJump:SetSize(40, 22)
-    frame.pageJump:SetPoint("RIGHT", frame.backstoryBtn, "LEFT", -28, 0)
+    frame.pageJump:SetSize(36, 20)
+    frame.pageJump:SetPoint("RIGHT", frame.backstoryBtn, "LEFT", -44, 0)
     frame.pageJump:SetAutoFocus(false)
     frame.pageJump:SetNumeric(true)
     frame.pageJump:SetMaxLetters(4)
     frame.pageJump:SetText("1")
+    frame.pageJump:SetFrameLevel(fl)
     frame.pageJump:SetScript("OnEnterPressed", function(self)
         local n = tonumber(self:GetText())
         if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.GoToPage then
@@ -463,9 +460,11 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     end)
 
     frame.pageJumpBtn = CreateFrame("Button", nil, frame.footer, "UIPanelButtonTemplate")
-    frame.pageJumpBtn:SetSize(24, 22)
+    frame.pageJumpBtn:SetSize(36, 24)
     frame.pageJumpBtn:SetPoint("LEFT", frame.pageJump, "RIGHT", 2, 0)
-    frame.pageJumpBtn:SetText("→")
+    frame.pageJumpBtn:SetFrameLevel(fl)
+    frame.pageJumpBtn:SetText("Go")
+    Tip(frame.pageJumpBtn, "Jump to page", "Type a leaf number, then click or press Enter.")
     frame.pageJumpBtn:SetScript("OnClick", function()
         Blackacre.UI.Theme.PlayUISound("toolClick")
         local n = tonumber(frame.pageJump:GetText())
@@ -473,48 +472,26 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
             Blackacre.Chronicle.UI.GoToPage(n)
         end
     end)
-    frame.pageJumpBtn:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("Jump to page")
-        GameTooltip:AddLine("Type a leaf number, then click or press Enter.", 0.85, 0.85, 0.85, true)
-        GameTooltip:Show()
-    end)
-    frame.pageJumpBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    Blackacre.UI.Theme.ApplyBookToolButton(frame.pageJumpBtn)
 
-    -- Pin Here (map pin icon) — left of page jump; enters pin-cursor mode for leaf click
-    frame.pinHereBtn = CreateFrame("Button", nil, frame.footer)
-    frame.pinHereBtn:SetSize(26, 26)
-    frame.pinHereBtn:SetPoint("RIGHT", frame.pageJump, "LEFT", -10, 0)
-    do
-        local ic = frame.pinHereBtn:CreateTexture(nil, "ARTWORK")
-        ic:SetAllPoints()
-        ic:SetTexture(Blackacre.UI.Theme.Textures.mapPinCursorCross
-            or Blackacre.UI.Theme.Textures.mapPinCursor)
-        frame.pinHereBtn.icon = ic
-        local hl = frame.pinHereBtn:CreateTexture(nil, "HIGHLIGHT")
-        hl:SetAllPoints()
-        hl:SetColorTexture(1, 0.9, 0.4, 0.3)
-    end
-    frame.pinHereBtn:SetScript("OnClick", function()
+    frame.addNoteBtn = CreateFrame("Button", nil, frame.footer, "UIPanelButtonTemplate")
+    frame.addNoteBtn:SetSize(80, 26)
+    frame.addNoteBtn:SetPoint("RIGHT", frame.pageJump, "LEFT", -8, 0)
+    frame.addNoteBtn:SetFrameLevel(fl)
+    frame.addNoteBtn:SetText("Add note")
+    Tip(frame.addNoteBtn, "Add note", "Click, then click a page leaf to place a scrap note.")
+    frame.addNoteBtn:SetScript("OnClick", function()
         Blackacre.UI.Theme.PlayUISound("toolClick")
         if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.BeginPinMode then
             Blackacre.Chronicle.UI.BeginPinMode()
         end
     end)
-    frame.pinHereBtn:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("Pin Here")
-        GameTooltip:AddLine("Click, then click a page leaf to place a scrap note (top-right anchor).", 0.85, 0.85, 0.85, true)
-        GameTooltip:Show()
-    end)
-    frame.pinHereBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    frame.pinHereBtn = nil
 
-    -- toolStrip kept for layout/compat (no Save/Add/Pin/Delete text buttons)
     frame.toolStrip = CreateFrame("Frame", nil, frame.footer)
     frame.toolStrip:SetPoint("LEFT", frame.journalToggle, "RIGHT", 8, 0)
-    frame.toolStrip:SetPoint("RIGHT", frame.pinHereBtn, "LEFT", -8, 0)
+    frame.toolStrip:SetPoint("RIGHT", frame.addNoteBtn, "LEFT", -8, 0)
     frame.toolStrip:SetHeight(30)
+    frame.toolStrip:SetFrameLevel((frame.footer:GetFrameLevel() or 1) + 2)
 
     -- Slim rail above footer (no IC feature tabs — reserved for page tools strip spacing)
     frame.tabBar = CreateFrame("Frame", nil, frame, "BackdropTemplate")
@@ -542,24 +519,26 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     end)
     Blackacre.UI.Theme.FitBookArtToFrame(frame.bookOpen)
 
-    -- TOC banner: hangs from top of EJ art, bleeds outside left, purple fill (PVP banner border)
-    frame.chronicleBookmark = CreateFrame("Button", nil, frame.bookOpen)
-    frame.chronicleBookmark:SetSize(36, 96)
-    frame.chronicleBookmark:SetPoint("TOPLEFT", frame.bookOpen, "TOPLEFT", -20, -8)
+    -- TOC bookmark: stock tooltip edge (no guild-bank BLP sheet)
+    frame.chronicleBookmark = CreateFrame("Button", nil, frame.bookOpen, "BackdropTemplate")
+    frame.chronicleBookmark:SetSize(28, 72)
+    frame.chronicleBookmark:SetPoint("TOPLEFT", frame.bookOpen, "TOPLEFT", -10, -40)
     frame.chronicleBookmark:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 2)
-    do
-        local fill = frame.chronicleBookmark:CreateTexture(nil, "BACKGROUND")
-        fill:SetPoint("TOPLEFT", 4, -6)
-        fill:SetPoint("BOTTOMRIGHT", -4, 6)
-        fill:SetColorTexture(0.28, 0.12, 0.38, 0.92) -- dark purplish
-        frame.chronicleBookmark.fill = fill
-        local border = frame.chronicleBookmark:CreateTexture(nil, "ARTWORK")
-        border:SetAllPoints(frame.chronicleBookmark)
-        border:SetTexture(Blackacre.UI.Theme.Textures.tocBanner
-            or "Interface\\PVPFrame\\PVP-Banner-5-Border-2")
-        border:SetVertexColor(0.85, 0.75, 1, 1)
-        frame.chronicleBookmark.border = border
-    end
+    frame.chronicleBookmark:SetBackdrop({
+        bgFile = Blackacre.UI.Theme.Textures.white,
+        edgeFile = Blackacre.UI.Theme.Textures.tooltipEdge,
+        tile = true, tileSize = 8, edgeSize = 10,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 },
+    })
+    frame.chronicleBookmark:SetBackdropColor(0.45, 0.28, 0.12, 0.98)
+    frame.chronicleBookmark:SetBackdropBorderColor(0.95, 0.80, 0.35, 1)
+    local bmLabel = frame.chronicleBookmark:CreateFontString(nil, Layer.OVERLAY, "GameFontNormalSmall")
+    bmLabel:SetPoint("CENTER", 0, 0)
+    bmLabel:SetWidth(12)
+    bmLabel:SetWordWrap(true)
+    bmLabel:SetText("TOC")
+    bmLabel:SetTextColor(1, 1, 1, 1)
+    frame.chronicleBookmark.label = bmLabel
     frame.chronicleBookmark:SetScript("OnClick", function()
         Blackacre.UI.Theme.PlayUISound("pageTurn")
         if Blackacre.TomeHub and Blackacre.TomeHub.Show then
@@ -612,8 +591,9 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.prevPageBtn = CreateFrame("Button", nil, frame.bookOpen, "UIPanelButtonTemplate")
     frame.prevPageBtn:SetSize(36, 24)
     frame.prevPageBtn:SetPoint("BOTTOMLEFT", frame.leftPage, "BOTTOMLEFT", 8, -36)
-    frame.prevPageBtn:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 6)
+    frame.prevPageBtn:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 20)
     frame.prevPageBtn:SetText("<")
+    frame.prevPageBtn:Show()
     frame.prevPageBtn:SetScript("OnClick", function()
         if Blackacre.TomeHub and Blackacre.TomeHub.TurnPage then
             Blackacre.TomeHub.TurnPage(-1)
@@ -626,20 +606,11 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
         holder:SetSize(36, 22)
         holder:SetPoint(anchorPoint, relTo, relPoint, ox, oy)
         holder:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 7)
-        local glow = holder:CreateTexture(nil, "BACKGROUND")
-        glow:SetPoint("CENTER", 0, 0)
-        glow:SetSize(48, 32)
-        glow:SetTexture(Blackacre.UI.Theme.Textures.pageNumGlow)
-        -- Bottom-right glow region of that BLP — soft under number
-        glow:SetTexCoord(0.45, 0.95, 0.45, 0.95)
-        glow:SetVertexColor(0.75, 0.85, 1, 0.35)
-        glow:SetBlendMode("ADD")
         local fs = holder:CreateFontString(nil, Layer.OVERLAY, "GameFontNormal")
         fs:SetPoint("CENTER", 0, 0)
         local ink = Blackacre.UI.Theme.Colors.ink
         fs:SetTextColor(ink[1], ink[2], ink[3], 1)
         holder.text = fs
-        holder.glow = glow
         return holder, fs
     end
 
@@ -651,8 +622,9 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.nextPageBtn = CreateFrame("Button", nil, frame.bookOpen, "UIPanelButtonTemplate")
     frame.nextPageBtn:SetSize(36, 24)
     frame.nextPageBtn:SetPoint("BOTTOMRIGHT", frame.rightPage, "BOTTOMRIGHT", -8, -36)
-    frame.nextPageBtn:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 6)
+    frame.nextPageBtn:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 20)
     frame.nextPageBtn:SetText(">")
+    frame.nextPageBtn:Show()
     frame.nextPageBtn:SetScript("OnClick", function()
         if Blackacre.TomeHub and Blackacre.TomeHub.TurnPage then
             Blackacre.TomeHub.TurnPage(1)
@@ -889,55 +861,37 @@ function Blackacre.UI.Theme.ApplyReadableBodyFont(region, extraSize)
     end
 end
 
---- Book parent shell chrome — gold tile edge + Achievement border overlay (owner polish).
+--- Book parent shell chrome — proven dialog/gold *edgeFile* only (no raw multi-piece sheet).
+--- Achievement-Borders pieces come later as TexCoord/NineSlice (E1), not full-bleed.
 function Blackacre.UI.Theme.ApplyBookShellChrome(frame)
     if not frame or not frame.SetBackdrop then return end
     local T = Blackacre.UI.Theme.Textures
+    -- Prefer classic dialog edge (known edgeFile layout). Gold tile only if it behaves as edge.
+    local edge = T.dialogEdge or T.goldEdge
     frame:SetBackdrop({
         bgFile = T.white,
-        edgeFile = T.goldBorderTile or T.goldEdge or T.dialogEdge,
+        edgeFile = edge,
         tile = true,
         tileSize = 32,
-        edgeSize = 24,
+        edgeSize = 28,
         insets = { left = 10, right = 10, top = 10, bottom = 10 },
     })
     local cover = Blackacre.UI.Theme.Colors.cover
     frame:SetBackdropColor(cover[1], cover[2], cover[3], 0.97)
     local eg = Blackacre.UI.Theme.Colors.edgeGold
     frame:SetBackdropBorderColor(eg[1], eg[2], eg[3], 1)
-
-    -- Achievement border kit as outer ornament (full-bleed overlay; TexCoords full until refined)
-    if not frame._baAchBorder and T.achievementBorders then
-        local border = frame:CreateTexture(nil, "BORDER", nil, 7)
-        border:SetTexture(T.achievementBorders)
-        border:SetPoint("TOPLEFT", -4, 4)
-        border:SetPoint("BOTTOMRIGHT", 4, -4)
-        border:SetVertexColor(1, 0.95, 0.8, 0.85)
-        frame._baAchBorder = border
+    -- Hide any leftover raw full-sheet border from earlier experiment
+    if frame._baAchBorder then
+        frame._baAchBorder:Hide()
     end
 end
 
---- Faction OOC chrome (Alliance / Horde FrameGeneral kits).
+--- Faction OOC chrome — dialog edge only (no Alliance/Horde kit BLP sheets).
 function Blackacre.UI.Theme.ApplyFactionFrameChrome(frame)
-    if not frame then return end
-    local T = Blackacre.UI.Theme.Textures
-    local faction = UnitFactionGroup and UnitFactionGroup("player") or "Alliance"
-    local path = (faction == "Horde") and T.frameHorde or T.frameAlliance
-    if not path then
-        Blackacre.UI.Theme.ApplyBookShellChrome(frame)
-        return
+    if frame and frame._baFactionBG then
+        frame._baFactionBG:Hide()
     end
-    if frame.SetBackdrop then
-        frame:SetBackdrop(nil)
-    end
-    if not frame._baFactionBG then
-        frame._baFactionBG = frame:CreateTexture(nil, "BACKGROUND", nil, -7)
-        frame._baFactionBG:SetAllPoints(frame)
-    end
-    frame._baFactionBG:SetTexture(path)
-    -- Center crop of large 1024 kits (tweakable)
-    frame._baFactionBG:SetTexCoord(0.08, 0.92, 0.05, 0.90)
-    frame._baFactionBG:SetVertexColor(1, 1, 1, 0.96)
+    Blackacre.UI.Theme.ApplyBookShellChrome(frame)
 end
 
 function Blackacre.UI.Theme.ApplyBookChromeBar(frame, which)
@@ -1020,7 +974,6 @@ function Blackacre.UI.Theme.SetIconTexture(tex, iconRef, size)
     if not tex then return end
     size = size or 25
     if not iconRef or iconRef == "" then return end
-    -- Atlas style: ui_profession_inscription
     if not iconRef:find("\\") and not iconRef:find("/") then
         if tex.SetAtlas then
             local ok = pcall(function() tex:SetAtlas(iconRef, true) end)
@@ -1030,6 +983,142 @@ function Blackacre.UI.Theme.SetIconTexture(tex, iconRef, size)
         return
     end
     tex:SetTexture(iconRef)
+end
+
+--- Apply path or atlas to a texture; returns true if something stuck.
+function Blackacre.UI.Theme.ApplyTextureOrAtlas(tex, ref)
+    if not tex or not ref then return false end
+    if type(ref) == "table" then
+        if ref.atlas and tex.SetAtlas then
+            local ok = pcall(function() tex:SetAtlas(ref.atlas, true) end)
+            if ok then return true end
+        end
+        if ref.path then
+            tex:SetTexture(ref.path)
+            if ref.coords then
+                tex:SetTexCoord(ref.coords[1], ref.coords[2], ref.coords[3], ref.coords[4])
+            end
+            return true
+        end
+        return false
+    end
+    -- bare atlas name (no backslash)
+    if not tostring(ref):find("\\") and not tostring(ref):find("/") and tex.SetAtlas then
+        local ok = pcall(function() tex:SetAtlas(ref, true) end)
+        if ok then return true end
+        tex:SetTexture("Interface\\Icons\\" .. ref)
+        return true
+    end
+    tex:SetTexture(ref)
+    return true
+end
+
+--- Icon button: Achievement IconFrame border with icon BLP nested inside (owner E0).
+--- outerSize = full button including frame; icon sits inset. opts: { noFrame=true, w=, h= }
+function Blackacre.UI.Theme.CreateIconButton(parent, outerSize, ref, tooltipTitle, tooltipBody, opts)
+    opts = opts or {}
+    local ow = opts.w or outerSize or 36
+    local oh = opts.h or outerSize or ow
+    local b = CreateFrame("Button", nil, parent)
+    b:SetSize(ow, oh)
+    b:EnableMouse(true)
+    b:RegisterForClicks("LeftButtonUp")
+
+    local useFrame = not opts.noFrame
+    local T = Blackacre.UI.Theme.Textures
+    local inset = useFrame and 6 or 0
+    local iconW = math.max(12, ow - inset * 2)
+    local iconH = math.max(12, oh - inset * 2)
+
+    -- ARTWORK: icon face (nested inside frame)
+    local normal = b:CreateTexture(nil, "ARTWORK")
+    normal:SetSize(iconW, iconH)
+    normal:SetPoint("CENTER", 0, 0)
+    Blackacre.UI.Theme.ApplyTextureOrAtlas(normal, ref)
+    if type(ref) == "string" and ref:find("Interface\\Icons\\") then
+        normal:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    end
+    b.icon = normal
+
+    -- OVERLAY: Achievement icon frame around any Interface\\Icons style face
+    if useFrame and T.iconFrame then
+        local frameTex = b:CreateTexture(nil, "OVERLAY")
+        frameTex:SetAllPoints(b)
+        frameTex:SetTexture(T.iconFrame)
+        -- IconFrame sheet often has usable ring in full UV; leave 0–1 unless XML crop needed
+        frameTex:SetTexCoord(0, 1, 0, 1)
+        b.iconFrame = frameTex
+    end
+
+    local pushed = b:CreateTexture(nil, "ARTWORK")
+    pushed:SetSize(iconW, iconH)
+    pushed:SetPoint("CENTER", 1, -1)
+    Blackacre.UI.Theme.ApplyTextureOrAtlas(pushed, ref)
+    if type(ref) == "string" and ref:find("Interface\\Icons\\") then
+        pushed:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    end
+    pushed:SetVertexColor(0.8, 0.8, 0.8, 1)
+    b:SetPushedTexture(pushed)
+    -- Keep normal as child art (SetNormalTexture can fight with custom layout)
+    b:SetScript("OnMouseDown", function()
+        normal:SetPoint("CENTER", 1, -1)
+        normal:SetVertexColor(0.85, 0.85, 0.85, 1)
+    end)
+    b:SetScript("OnMouseUp", function()
+        normal:SetPoint("CENTER", 0, 0)
+        normal:SetVertexColor(1, 1, 1, 1)
+    end)
+
+    local hi = b:CreateTexture(nil, "HIGHLIGHT")
+    hi:SetPoint("CENTER", 0, 0)
+    hi:SetSize(iconW + 2, iconH + 2)
+    hi:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+    hi:SetBlendMode("ADD")
+    b:SetHighlightTexture(hi)
+
+    if tooltipTitle then
+        b:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetText(tooltipTitle)
+            if tooltipBody then
+                GameTooltip:AddLine(tooltipBody, 0.85, 0.85, 0.85, true)
+            end
+            GameTooltip:Show()
+        end)
+        b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    end
+    return b
+end
+
+--- Minimap / map pin face for Pin Here (atlas first, path fallbacks).
+function Blackacre.UI.Theme.GetMapPinIconRef()
+    return {
+        -- try modern waypoint pin, then classic minimap-style paths
+        atlas = "Waypoint-MapPin-Tracked",
+        path = "Interface\\MINIMAP\\UI-Minimap-Pin",
+        fallbackPath = "Interface\\Cursor\\MapPinCursor",
+        fallbackIcon = "Interface\\Icons\\INV_Misc_Map_01",
+    }
+end
+
+function Blackacre.UI.Theme.ApplyMapPinIcon(tex)
+    if not tex then return end
+    local r = Blackacre.UI.Theme.GetMapPinIconRef()
+    if tex.SetAtlas and r.atlas then
+        local ok = pcall(function() tex:SetAtlas(r.atlas, true) end)
+        if ok then return end
+    end
+    for _, path in ipairs({ r.path, r.fallbackPath, r.fallbackIcon }) do
+        if path then
+            tex:SetTexture(path)
+            if path:find("Icons\\") then
+                tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+            else
+                tex:SetTexCoord(0, 1, 0, 1)
+            end
+            return
+        end
+    end
 end
 
 --- Alliance = K.C. only; Horde = ADP only (never both for the player).
@@ -1069,17 +1158,9 @@ function Blackacre.UI.Theme.Toast(message)
         toastFrame:SetSize(400, 72)
         toastFrame:SetPoint("TOP", UIParent, "TOP", 0, -100)
         toastFrame:SetFrameStrata("DIALOG")
-        local T = Blackacre.UI.Theme.Textures
-        -- Try Centaur renown toast art (cropped strip); fallback parchment panel
         toastFrame.bg = toastFrame:CreateTexture(nil, "BACKGROUND")
         toastFrame.bg:SetAllPoints(toastFrame)
-        if T.toastCentaur then
-            toastFrame.bg:SetTexture(T.toastCentaur)
-            toastFrame.bg:SetTexCoord(0.05, 0.95, 0.35, 0.65)
-            toastFrame.bg:SetVertexColor(1, 1, 1, 0.95)
-        else
-            toastFrame.bg:SetColorTexture(0.15, 0.12, 0.08, 0.95)
-        end
+        toastFrame.bg:SetColorTexture(0.15, 0.12, 0.08, 0.95)
         toastFrame.text = toastFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         toastFrame.text:SetPoint("LEFT", 28, 0)
         toastFrame.text:SetPoint("RIGHT", -28, 0)
