@@ -2,8 +2,42 @@
 
 You already watched Mayron **Creating WoW AddOns** episodes 5–10. This page is the Blackacre cheat sheet: two different “XML vs JSON” worlds, why `` ` `` did nothing, TexCoords, and where official plots live.
 
-**Look restore (done):** Tome + hub files are **`d2adfe0` as-is** (true flip-book). Skin experiments are not mixed in.  
-**WIP saved:** `git stash` named `e0-framed-icons-before-restore-to-d2adfe0`. Tag `bookmark/pre-texture-deliberate` still points at the rough-skin commit.
+**Look restore:** committed `330b885` — two-page Tome, experimental BLP chrome dropped.
+
+---
+
+## Tome region map (how we talk)
+
+In-game: `/ba tome` then `/ba skin` (toggle numbers on the window).
+
+```
+  1 outer box (whole window edge)
+  ┌─────────────────────────────────────────┐
+  │ 2 title bar                    3 close X│
+  │  ┌──── 8 TOC tab                        │
+  │  │                                      │
+  │  │  4 book picture                      │
+  │  │   5 left page  |7|  6 right page     │
+  │  │                                      │
+  │  │           12  <  1  2  >             │
+  │  └──────────────────────────────────────│
+  │  9  under-book rail                     │
+  │ 10 footer: Journal | 11 tools | Add note Go Backstory │
+  └─────────────────────────────────────────┘
+  13 Backstory window (to the right, when open)
+```
+
+Copy-paste to assign a TAV piece:
+
+```
+REGION:
+ATLAS:
+NOTE:
+```
+
+**This try:** 1 = `AllianceFrameCorner-TopLeft` (NineSlice + edge tiles) · 8 = `AlliedRaces-AllianceHordeBanner` vertical · 9 = `_AllianceFrame_ParchmentHeaderSelect-Mid`
+
+---
 
 ---
 

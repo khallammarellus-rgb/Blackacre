@@ -341,7 +341,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     local HEADER_H = 36
     local TAB_H = 32
     local FOOTER_H = 44
-    local PAD = 6
+    local PAD = 12
     local GAP = 4
 
     local frame = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
@@ -497,7 +497,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.tabBar = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     frame.tabBar:SetPoint("BOTTOMLEFT", frame.footer, "TOPLEFT", 0, GAP)
     frame.tabBar:SetPoint("BOTTOMRIGHT", frame.footer, "TOPRIGHT", 0, GAP)
-    frame.tabBar:SetHeight(math.max(8, TAB_H - 18))
+    frame.tabBar:SetHeight(28)
     frame.tabBar:SetBackdrop({
         bgFile = Blackacre.UI.Theme.Textures.white,
         edgeFile = nil,
@@ -506,6 +506,21 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     })
     frame.tabBar:SetBackdropColor(0.12, 0.09, 0.06, 0.5)
     frame.tabRail = frame.tabBar
+    -- Region 9: under-book rail (TAV: Campaign_Alliance)
+    do
+        local rail = frame.tabBar:CreateTexture(nil, "ARTWORK")
+        rail:SetAllPoints(frame.tabBar)
+        local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("_warboard-title-alliance-middle")
+        if info then
+            Blackacre.UI.Theme.TrySetAtlas(rail, "_warboard-title-alliance-middle", false)
+        elseif not Blackacre.UI.Theme.TrySetAtlas(rail, "_warboard-title-alliance-middle", false) then
+            rail:SetTexture("Interface\\QuestionFrame\\Warboard")
+        end
+        if rail.SetHorizTile then rail:SetHorizTile(true) end
+        if rail.SetVertTile then rail:SetVertTile(false) end
+        frame.tabBar:SetBackdropColor(0.12, 0.09, 0.06, 0.5)
+        frame.tabBar.atlasFill = rail
+    end
 
     -- BOOK OPEN between header and tabs (fills middle of shell)
     frame.bookOpen = CreateFrame("Frame", nil, frame, "BackdropTemplate")
@@ -518,12 +533,13 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
         Blackacre.UI.Theme.FitBookArtToFrame(self)
     end)
     Blackacre.UI.Theme.FitBookArtToFrame(frame.bookOpen)
+    frame.tabBar:SetFrameLevel((frame:GetFrameLevel() or 1) + 50)
 
-    -- TOC bookmark: stock tooltip edge (no guild-bank BLP sheet)
-    frame.chronicleBookmark = CreateFrame("Button", nil, frame.bookOpen, "BackdropTemplate")
-    frame.chronicleBookmark:SetSize(28, 72)
-    frame.chronicleBookmark:SetPoint("TOPLEFT", frame.bookOpen, "TOPLEFT", -10, -40)
-    frame.chronicleBookmark:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 2)
+    -- Region 8: TOC tab, native size, above outer shell
+    frame.chronicleBookmark = CreateFrame("Button", nil, frame, "BackdropTemplate")
+    frame.chronicleBookmark:SetSize(36, 128)
+    frame.chronicleBookmark:SetPoint("TOPLEFT", frame.bookOpen, "TOPLEFT", -4, 0)
+    frame.chronicleBookmark:SetFrameLevel((frame:GetFrameLevel() or 1) + 52)
     frame.chronicleBookmark:SetBackdrop({
         bgFile = Blackacre.UI.Theme.Textures.white,
         edgeFile = Blackacre.UI.Theme.Textures.tooltipEdge,
@@ -532,6 +548,33 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     })
     frame.chronicleBookmark:SetBackdropColor(0.45, 0.28, 0.12, 0.98)
     frame.chronicleBookmark:SetBackdropBorderColor(0.95, 0.80, 0.35, 1)
+    -- Region 8: TOC tab — Alliance (blue) half of AlliedRaces-AllianceHordeBanner; else Guild-Flag
+    do
+        local banner = frame.chronicleBookmark:CreateTexture(nil, "ARTWORK")
+        banner:SetAllPoints(frame.chronicleBookmark)
+        local used = false
+        local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("AlliedRaces-AllianceHordeBanner")
+        if info and (info.filename or info.file) then
+            banner:SetTexture(info.filename or info.file)
+            used = true
+        elseif Blackacre.UI.Theme.TrySetAtlas(banner, "AlliedRaces-AllianceHordeBanner", true) then
+            used = true
+        elseif Blackacre.UI.Theme.TrySetAtlas(banner, "UI-Achievement-Guild-Flag", true) then
+            used = true
+        end
+        if used then
+            banner:SetTexCoord(0, 0.41268, 0, 1)
+            local iw = (info and info.width) or banner:GetWidth() or 80
+            local ih = (info and info.height) or banner:GetHeight() or 128
+            frame.chronicleBookmark:SetSize(iw * 0.41268 * 0.5, ih * 0.5)
+            banner:ClearAllPoints()
+            banner:SetAllPoints(frame.chronicleBookmark)
+            frame.chronicleBookmark:SetBackdrop(nil)
+        else
+            banner:Hide()
+        end
+        frame.chronicleBookmark.banner = banner
+    end
     local bmLabel = frame.chronicleBookmark:CreateFontString(nil, Layer.OVERLAY, "GameFontNormalSmall")
     bmLabel:SetPoint("CENTER", 0, 0)
     bmLabel:SetWidth(12)
@@ -861,16 +904,81 @@ function Blackacre.UI.Theme.ApplyReadableBodyFont(region, extraSize)
     end
 end
 
---- Book parent shell chrome — proven dialog/gold *edgeFile* only (no raw multi-piece sheet).
---- Achievement-Borders pieces come later as TexCoord/NineSlice (E1), not full-bleed.
+function Blackacre.UI.Theme.TrySetAtlas(tex, atlas, useAtlasSize)
+    if not tex or not atlas or not tex.SetAtlas then return false end
+    local ok = pcall(function()
+        tex:SetAtlas(atlas, useAtlasSize and true or false)
+    end)
+    return ok
+end
+
+--- Region 1: Alliance BFA mission NineSlice, pushed out so it sits around (not under) children.
 function Blackacre.UI.Theme.ApplyBookShellChrome(frame)
     if not frame or not frame.SetBackdrop then return end
     local T = Blackacre.UI.Theme.Textures
-    -- Prefer classic dialog edge (known edgeFile layout). Gold tile only if it behaves as edge.
-    local edge = T.dialogEdge or T.goldEdge
     frame:SetBackdrop({
         bgFile = T.white,
-        edgeFile = edge,
+        edgeFile = nil,
+        tile = true,
+        tileSize = 32,
+        edgeSize = 0,
+        insets = { left = 12, right = 12, top = 12, bottom = 12 },
+    })
+    local cover = Blackacre.UI.Theme.Colors.cover
+    frame:SetBackdropColor(cover[1], cover[2], cover[3], 0.97)
+    if frame._baAchBorder then
+        frame._baAchBorder:Hide()
+    end
+
+    local host = frame._baNineSlice
+    if not host then
+        host = CreateFrame("Frame", nil, frame)
+        frame._baNineSlice = host
+    end
+    host:ClearAllPoints()
+    host:SetAllPoints(frame)
+    host:EnableMouse(false)
+    host:SetFrameLevel((frame:GetFrameLevel() or 1) + 45)
+    host.layoutTextureLayer = "OVERLAY"
+    host.layoutTextureSubLevel = 7
+
+    local layout = {
+        mirrorLayout = true,
+        TopLeftCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = -12, y = 12 },
+        TopRightCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = 12, y = 12 },
+        BottomLeftCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = -12, y = -12 },
+        BottomRightCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = 12, y = -12 },
+        TopEdge = { atlas = "_AllianceFrameTile-Top", layer = "OVERLAY", subLevel = 7 },
+        BottomEdge = { atlas = "_AllianceFrameTile-Top", layer = "OVERLAY", subLevel = 7 },
+        LeftEdge = { atlas = "!AllianceFrameTile-Left", layer = "OVERLAY", subLevel = 7 },
+        RightEdge = { atlas = "!AllianceFrameTile-Left", layer = "OVERLAY", subLevel = 7 },
+    }
+    host.layoutType = "BFAMissionAlliance"
+    if NineSliceUtil and NineSliceUtil.ApplyLayout then
+        NineSliceUtil.ApplyLayout(host, layout)
+    end
+    local names = {
+        "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
+        "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
+    }
+    for _, name in ipairs(names) do
+        local piece = host[name]
+        if piece and piece.SetDrawLayer then
+            piece:SetDrawLayer("OVERLAY", 7)
+        end
+    end
+end
+
+--- Sidecar: simple dialog edge (not the Tome Alliance NineSlice).
+function Blackacre.UI.Theme.ApplyFactionFrameChrome(frame)
+    if not frame or not frame.SetBackdrop then return end
+    if frame._baFactionBG then
+        frame._baFactionBG:Hide()
+    end
+    local T = Blackacre.UI.Theme.Textures
+    frame:SetBackdrop({
+        bgFile = T.white,
+        edgeFile = T.dialogEdge or T.goldEdge,
         tile = true,
         tileSize = 32,
         edgeSize = 28,
@@ -880,18 +988,6 @@ function Blackacre.UI.Theme.ApplyBookShellChrome(frame)
     frame:SetBackdropColor(cover[1], cover[2], cover[3], 0.97)
     local eg = Blackacre.UI.Theme.Colors.edgeGold
     frame:SetBackdropBorderColor(eg[1], eg[2], eg[3], 1)
-    -- Hide any leftover raw full-sheet border from earlier experiment
-    if frame._baAchBorder then
-        frame._baAchBorder:Hide()
-    end
-end
-
---- Faction OOC chrome — dialog edge only (no Alliance/Horde kit BLP sheets).
-function Blackacre.UI.Theme.ApplyFactionFrameChrome(frame)
-    if frame and frame._baFactionBG then
-        frame._baFactionBG:Hide()
-    end
-    Blackacre.UI.Theme.ApplyBookShellChrome(frame)
 end
 
 function Blackacre.UI.Theme.ApplyBookChromeBar(frame, which)
@@ -1173,4 +1269,62 @@ function Blackacre.UI.Theme.Toast(message)
     toastFrame:Show()
     if toastTimer then toastTimer:Cancel() end
     toastTimer = C_Timer.NewTimer(4, function() toastFrame:Hide() end)
+end
+
+--- Numbered Tome map for TAV talk: /ba skin
+function Blackacre.UI.Theme.ToggleTomeSkinGuide()
+    local hub = Blackacre.TomeHub and Blackacre.TomeHub.GetFrame and Blackacre.TomeHub.GetFrame()
+    if not hub then
+        if Blackacre.Print then Blackacre.Print("Open the Tome first: /ba tome") end
+        return
+    end
+    if not hub:IsShown() then hub:Show() end
+
+    if hub._baSkinGuide then
+        local show = not hub._baSkinGuide:IsShown()
+        hub._baSkinGuide:SetShown(show)
+        if Blackacre.Print then
+            Blackacre.Print(show and "Skin guide ON — send REGION + ATLAS." or "Skin guide OFF.")
+        end
+        return
+    end
+
+    local overlay = CreateFrame("Frame", nil, hub)
+    overlay:SetAllPoints(hub)
+    overlay:SetFrameStrata("DIALOG")
+    overlay:SetFrameLevel((hub:GetFrameLevel() or 1) + 80)
+    overlay:EnableMouse(false)
+    hub._baSkinGuide = overlay
+
+    local function Tag(anchor, label, ox, oy)
+        local fs = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+        fs:SetPoint("CENTER", anchor, "CENTER", ox or 0, oy or 0)
+        fs:SetText("|cffffcc00" .. label .. "|r")
+        fs:SetShadowColor(0, 0, 0, 1)
+        fs:SetShadowOffset(1, -1)
+        return fs
+    end
+
+    Tag(hub, "1", 0, 0)
+    if hub.header then Tag(hub.header, "2", -40, 0) end
+    if hub.closeButton then Tag(hub.closeButton, "3", 0, 0) end
+    if hub.bookOpen then Tag(hub.bookOpen, "4", 0, 40) end
+    if hub.leftPage then Tag(hub.leftPage, "5", 0, 0) end
+    if hub.rightPage then Tag(hub.rightPage, "6", 0, 0) end
+    if hub.gutter then
+        local g = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+        g:SetPoint("CENTER", hub.bookOpen, "CENTER", 0, 0)
+        g:SetText("|cffffcc007|r")
+    end
+    if hub.chronicleBookmark then Tag(hub.chronicleBookmark, "8", 0, 0) end
+    if hub.tabBar then Tag(hub.tabBar, "9", 0, 0) end
+    if hub.footer then Tag(hub.footer, "10", -80, 0) end
+    if hub.toolStrip then Tag(hub.toolStrip, "11", 0, 0) end
+    if hub.prevPageBtn then Tag(hub.prevPageBtn, "12", 20, 0) end
+    local menu = _G.BlackacreBackstoryMenu
+    if menu and menu:IsShown() then Tag(menu, "13", 0, 0) end
+
+    if Blackacre.Print then
+        Blackacre.Print("Skin guide ON. Copy: REGION:  ATLAS:  NOTE:")
+    end
 end

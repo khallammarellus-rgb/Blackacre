@@ -488,6 +488,12 @@ SlashCmdList["BLACKACRE"] = function(msg)
         Blackacre.Print(string.format("v%s core · packages: %s",
             Blackacre.VERSION,
             (#list > 0) and table.concat(list, ", ") or "(none — enable Presence/Tome/Survival)"))
+    elseif msg == "skin" then
+        if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.ToggleTomeSkinGuide then
+            Blackacre.UI.Theme.ToggleTomeSkinGuide()
+        else
+            Blackacre.Print("Theme skin guide not ready.")
+        end
     elseif msg == "bookart" then
         local path = Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.GetBookArtPath
             and Blackacre.UI.Theme.GetBookArtPath()
@@ -508,6 +514,6 @@ SlashCmdList["BLACKACRE"] = function(msg)
             Blackacre.Print("Enable |cffc9a227Blackacre Presence|r for the presence panel. /ba packages")
         end
     else
-        Blackacre.Print("Commands: /ba, /ba config, /ba setup, /ba tome, /ba survival, /ba packages (aliases: /blackacre, /ic)")
+        Blackacre.Print("Commands: /ba, /ba config, /ba setup, /ba tome, /ba skin, /ba survival, /ba packages (aliases: /blackacre, /ic)")
     end
 end
