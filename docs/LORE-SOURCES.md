@@ -30,6 +30,8 @@ Cannot ingest all **641** pages in [Category:Lore](https://warcraft.wiki.gg/wiki
 
 Those titles live in `Blackacre_Tome/Data/HeritageCapstones.lua` so the Tome can ink the page even if `C_QuestLine` is silent.
 
+**Chronology (this pass):** wiki [Timeline](https://warcraft.wiki.gg/wiki/Timeline) years in **ADP** (0 = Dark Portal = 592 K.C.), same as `YearCalendar.lua`. Spreadsheet sheet **Chronology (ADP)** + `Blackacre_Tome/Data/ChronologyBeats.lua`. Present ~42–44 ADP (TWW default 42; Midnight listed as 44 on the wiki). Auto-log stays **off** until Midnight / heritage finales.
+
 | Source | Use |
 |--------|-----|
 | In-game `C_QuestLine` | Live end quest (Capture.lua) |
