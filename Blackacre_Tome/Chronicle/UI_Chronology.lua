@@ -20,12 +20,17 @@ local TOC_TITLE_LINE_MAX = 23
 
 local KIND_LABELS = {
     QUEST = "Quest",
+    QUESTLINE = "Road",
+    META_QUEST = "Meta quest",
+    META_ACHIEVEMENT = "Meta feat",
+    FOS = "Feat of Strength",
+    REPUTATION = "Standing",
+    RENOWN = "Renown",
     ACHIEVEMENT = "Feat",
     TITLE = "Title",
     PROFESSION = "Craft",
     MANUAL = "Note",
     DEATH = "Death",
-    HC_ENCUMBRANCE = "Burden",
     AFTERLIFE = "Afterlife",
     ROADMAP = "Road",
     PVP = "Field",
@@ -79,9 +84,10 @@ local function EntryYearSection(entry)
     return tostring(adp), label, adp
 end
 
---- Kinds allowed in the chronicle (owner: no survival meters / mount / fly rites).
+--- Kinds allowed in the chronicle (no survival / encumbrance / skill spam / every-quest).
 local function IsAllowedChronicleKind(kind)
-    if kind == "SURVIVAL" or kind == "HC_MOUNT" or kind == "HC_FLY" then
+    if kind == "SURVIVAL" or kind == "HC_MOUNT" or kind == "HC_FLY"
+        or kind == "HC_ENCUMBRANCE" or kind == "PROFESSION" or kind == "QUEST" then
         return false
     end
     return true

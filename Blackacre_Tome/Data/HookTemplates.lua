@@ -4,9 +4,25 @@ Blackacre = Blackacre or {}
 Blackacre.HookTemplates = {
     QUEST = {
         "In the year {yearKC}, {name} completed a trial in {zone}: {questName}. As a {level}-seasoned {race} {class}{specClause}, they marked another step on the long road of their story.",
-        "Beneath the skies of {zone}, {name} brought an end to the matter known as \"{questName}.\" The deed spoke of a {race} {class} still learning the weight of their choices — level {level}, yet already leaving footprints in the dust of legend.",
-        "It is written that in {yearKC}, {name} faced the charge of \"{questName}\" in {zone}. Their {class} craft{specClause} served them well; the realm will remember, if only in a traveler's private journal.",
-        "When the task \"{questName}\" was finished in {zone}, {name} closed that chapter. A {race} of {level} winters' strength, they carried the lesson forward into whatever comes next.",
+    },
+    QUESTLINE = {
+        "In {yearKC}, {name} closed the road called \"{lineName}\" in {zone}. This page is a digest, not a census of every errand. {onePager}",
+        "The traveler {name}, a {race} {class}, finished \"{lineName}.\" What follows is the shape of the journey for later editing: {onePager}",
+    },
+    META_QUEST = {
+        "In {yearKC}, {name} completed a meta undertaking: \"{questName}\" in {zone}. A {race} {class} of level {level} gathered many lesser roads into one.",
+    },
+    META_ACHIEVEMENT = {
+        "In {yearKC}, {name} bound many deeds into one: \"{achievementName}.\" The meta-feat sits in the ledger as a single page.",
+    },
+    FOS = {
+        "A Feat of Strength: in {yearKC}, {name} earned \"{achievementName}.\" Such honors are rare ink.",
+    },
+    REPUTATION = {
+        "In {yearKC}, {name}'s standing with {factionName} rose to {standingName}. A {race} {class} is known now by that people's measure.",
+    },
+    RENOWN = {
+        "In {yearKC}, {name} reached the height of renown with {factionName} (rung {renownLevel}). The cause knows their name.",
     },
     ACHIEVEMENT = {
         "In {yearKC}, {name} earned recognition: {achievementName}. The feat joined the quiet ledger of a {race} {class}'s rising name.",

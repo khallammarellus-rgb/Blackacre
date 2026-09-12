@@ -510,10 +510,13 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     do
         local rail = frame.tabBar:CreateTexture(nil, "ARTWORK")
         rail:SetAllPoints(frame.tabBar)
-        local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("_warboard-title-alliance-middle")
+        local railAtlas = (Blackacre.UI.Theme.GetChromeFaction() == "Horde")
+            and "_warboard-title-horde-middle"
+            or "_warboard-title-alliance-middle"
+        local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(railAtlas)
         if info then
-            Blackacre.UI.Theme.TrySetAtlas(rail, "_warboard-title-alliance-middle", false)
-        elseif not Blackacre.UI.Theme.TrySetAtlas(rail, "_warboard-title-alliance-middle", false) then
+            Blackacre.UI.Theme.TrySetAtlas(rail, railAtlas, false)
+        elseif not Blackacre.UI.Theme.TrySetAtlas(rail, railAtlas, false) then
             rail:SetTexture("Interface\\QuestionFrame\\Warboard")
         end
         if rail.SetHorizTile then rail:SetHorizTile(true) end
@@ -563,10 +566,16 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
             used = true
         end
         if used then
-            banner:SetTexCoord(0, 0.41268, 0, 1)
+            local horde = Blackacre.UI.Theme.GetChromeFaction() == "Horde"
+            if horde then
+                banner:SetTexCoord(0.41268, 1, 0, 1)
+            else
+                banner:SetTexCoord(0, 0.41268, 0, 1)
+            end
             local iw = (info and info.width) or banner:GetWidth() or 80
             local ih = (info and info.height) or banner:GetHeight() or 128
-            frame.chronicleBookmark:SetSize(iw * 0.41268 * 0.5, ih * 0.5)
+            local frac = horde and (1 - 0.41268) or 0.41268
+            frame.chronicleBookmark:SetSize(iw * frac * 0.5, ih * 0.5)
             banner:ClearAllPoints()
             banner:SetAllPoints(frame.chronicleBookmark)
             frame.chronicleBookmark:SetBackdrop(nil)
@@ -904,6 +913,12 @@ function Blackacre.UI.Theme.ApplyReadableBodyFont(region, extraSize)
     end
 end
 
+function Blackacre.UI.Theme.GetChromeFaction()
+    local f = UnitFactionGroup and UnitFactionGroup("player")
+    if f == "Horde" then return "Horde" end
+    return "Alliance"
+end
+
 function Blackacre.UI.Theme.TrySetAtlas(tex, atlas, useAtlasSize)
     if not tex or not atlas or not tex.SetAtlas then return false end
     local ok = pcall(function()
@@ -942,18 +957,22 @@ function Blackacre.UI.Theme.ApplyBookShellChrome(frame)
     host.layoutTextureLayer = "OVERLAY"
     host.layoutTextureSubLevel = 7
 
+    local horde = Blackacre.UI.Theme.GetChromeFaction() == "Horde"
+    local corner = horde and "HordeFrame-Corner-TopLeft" or "AllianceFrameCorner-TopLeft"
+    local edgeH = horde and "_HordeFrameTile-Top" or "_AllianceFrameTile-Top"
+    local edgeV = horde and "!HordeFrameTile-Left" or "!AllianceFrameTile-Left"
     local layout = {
         mirrorLayout = true,
-        TopLeftCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = -12, y = 12 },
-        TopRightCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = 12, y = 12 },
-        BottomLeftCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = -12, y = -12 },
-        BottomRightCorner = { atlas = "AllianceFrameCorner-TopLeft", layer = "OVERLAY", subLevel = 7, x = 12, y = -12 },
-        TopEdge = { atlas = "_AllianceFrameTile-Top", layer = "OVERLAY", subLevel = 7 },
-        BottomEdge = { atlas = "_AllianceFrameTile-Top", layer = "OVERLAY", subLevel = 7 },
-        LeftEdge = { atlas = "!AllianceFrameTile-Left", layer = "OVERLAY", subLevel = 7 },
-        RightEdge = { atlas = "!AllianceFrameTile-Left", layer = "OVERLAY", subLevel = 7 },
+        TopLeftCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = -12, y = 12 },
+        TopRightCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = 12, y = 12 },
+        BottomLeftCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = -12, y = -12 },
+        BottomRightCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = 12, y = -12 },
+        TopEdge = { atlas = edgeH, layer = "OVERLAY", subLevel = 7 },
+        BottomEdge = { atlas = edgeH, layer = "OVERLAY", subLevel = 7 },
+        LeftEdge = { atlas = edgeV, layer = "OVERLAY", subLevel = 7 },
+        RightEdge = { atlas = edgeV, layer = "OVERLAY", subLevel = 7 },
     }
-    host.layoutType = "BFAMissionAlliance"
+    host.layoutType = horde and "BFAMissionHorde" or "BFAMissionAlliance"
     if NineSliceUtil and NineSliceUtil.ApplyLayout then
         NineSliceUtil.ApplyLayout(host, layout)
     end

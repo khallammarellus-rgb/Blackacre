@@ -75,6 +75,11 @@ function Blackacre.Chronicle.Hooks.Resolve(kind, facts, context)
         end)(),
         kind = kind or "NOTE",
         questName = facts.questName or facts.name or "an unnamed trial",
+        lineName = facts.lineName or facts.questName or "an unnamed road",
+        standingName = facts.standingName or "a new standing",
+        factionName = facts.factionName or facts.name or "an unnamed people",
+        renownLevel = facts.renownLevel and tostring(facts.renownLevel) or "the highest rung",
+        onePager = facts.onePager or facts.body or "",
         achievementName = facts.achievementName or facts.name or "an unnamed feat",
         titleName = facts.titleName or facts.name or "an untitled honor",
         skillName = facts.skillName or "their craft",
@@ -116,10 +121,16 @@ function Blackacre.Chronicle.Hooks.Resolve(kind, facts, context)
         body = Blackacre.Voice.MaybeApplyChronicle(body)
     end
     local title
-    if kind == "QUEST" then
-        title = facts.questName or "Quest completed"
-    elseif kind == "ACHIEVEMENT" then
-        title = facts.achievementName or "Achievement"
+    if kind == "QUEST" or kind == "META_QUEST" then
+        title = facts.questName or facts.title or "Quest completed"
+    elseif kind == "QUESTLINE" then
+        title = facts.title or facts.lineName or facts.questName or "A road completed"
+    elseif kind == "ACHIEVEMENT" or kind == "META_ACHIEVEMENT" or kind == "FOS" then
+        title = facts.achievementName or facts.title or "Achievement"
+    elseif kind == "REPUTATION" then
+        title = facts.title or ((facts.factionName or "A people") .. ": " .. (facts.standingName or "new standing"))
+    elseif kind == "RENOWN" then
+        title = facts.title or ("Renown: " .. (facts.factionName or "a cause"))
     elseif kind == "TITLE" then
         title = facts.titleName or "Title gained"
     elseif kind == "PROFESSION" then
