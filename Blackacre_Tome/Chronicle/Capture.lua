@@ -154,18 +154,23 @@ local function OnQuestTurnedIn(questID)
         return
     end
 
+    local heritage = Blackacre.HeritageCapstones and Blackacre.HeritageCapstones.Match(questID, name)
     if Blackacre.QuestLines then
         Blackacre.QuestLines.RememberBeat(questID, name, zoneName)
         local isFinale, info, lineId = Blackacre.QuestLines.IsFinale(questID)
-        if isFinale then
+        if isFinale or heritage then
             local title, body, extra = Blackacre.QuestLines.BuildOnePager(lineId, name, zoneName)
+            local lineName = extra.lineName or (info and (info.questLineName or info.name))
+            if heritage then
+                lineName = heritage.set or lineName
+            end
             MakeEntry("QUESTLINE", {
                 questId = questID,
                 questName = name,
-                lineName = extra.lineName or (info and (info.questLineName or info.name)),
+                lineName = lineName,
                 lineId = lineId,
                 zoneName = zoneName,
-                title = title,
+                title = heritage and heritage.set or title,
                 body = body,
                 onePager = body,
             })

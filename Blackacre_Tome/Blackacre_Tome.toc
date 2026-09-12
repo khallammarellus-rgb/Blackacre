@@ -17,6 +17,7 @@ Data\AfterlifePaths.lua
 Data\RoadmapZones.lua
 Data\Quests.lua
 Data\QuestLines.lua
+Data\HeritageCapstones.lua
 Data\Paths\Catalog.lua
 Data\Paths\_schema.lua
 Data\Paths\Alliance\Human.lua
