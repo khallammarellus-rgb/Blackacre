@@ -6,14 +6,18 @@ The Tome does **not** log every quest. It inks a **one-pager** at chain finale /
 
 | Sheet | What |
 |-------|------|
-| Heritage (auto-log) | Every playable-race heritage set from [Heritage armor](https://warcraft.wiki.gg/wiki/Heritage_armor). Log **finale only** (Human capstone: *Go with Honor, Friend*). Dracthyr: no set yet. |
-| Current timeline finales | Midnight zone/campaign storylines from [Zone storyline](https://warcraft.wiki.gg/wiki/Zone_storyline). |
-| Magic (IC paths) | Six cosmic forces + derived branches from [Magic](https://warcraft.wiki.gg/wiki/Magic). |
-| Existing addon path stubs | Every `id` already in `Blackacre_Tome/Data/Paths/`. |
-| Old expansion (consider) | Chromie Time campaigns — default **off** for auto-log. |
-| Source hubs | Wiki / Wowhead / Blizzard / in-game API. |
+| **Meta Achievements** | Wiki [Category:Meta-achievements](https://warcraft.wiki.gg/wiki/Category:Meta-achievements) (341 pages). Sample of Tome-worthy bundles. Addon still auto-detects any meta in-game. |
+| **Existing addon path stubs** | First Path crawled: `human_stratholme_survivor`. Others wait for the same BFS. |
+| Chronology (ADP) | Wiki Timeline order. |
+| Old expansion (consider) | Chromie Time — default off. |
+| Source hubs | Pages actually opened, not a hub list of 11. |
+| How to use | Path method. |
 
-Cannot ingest all **641** pages in [Category:Lore](https://warcraft.wiki.gg/wiki/Category:Lore). Hubs first, then one wiki article per path you mark `include=yes`.
+Heritage / Magic / Current-timeline tabs **removed** — those are not Paths.
+
+**Path method (locked):** seed race + place + event on warcraft.wiki.gg → follow wikilinks and citations → then Wowhead NPCs/quests that still exist → curate a short spine.
+
+**`human_stratholme_survivor` (this pass):** Human; Stratholme; Culling of Stratholme; Battle of Darrowshire; plus cited WC3 / Chronicle 3 / RotLK ch.12 / Dispelling Illusions (Wowhead **13149**) / A Royal Escort (**13151**). Spine is in `Paths/Alliance/Human.lua` (`status = drafting`). Next Path when you say so.
 
 **Verified finales this pass (wiki Source lists):**
 
