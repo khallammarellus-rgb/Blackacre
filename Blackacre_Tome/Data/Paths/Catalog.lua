@@ -38,6 +38,19 @@ function Blackacre.Paths.Get(id)
     return id and byId[id] or nil
 end
 
+--- Merge a curated wiki/Wowhead spine onto a registered path (does not replace blurb).
+function Blackacre.Paths.ApplySpine(id, data)
+    local p = byId[id]
+    if not p or type(data) ~= "table" then
+        return
+    end
+    if data.quests then p.quests = data.quests end
+    if data.zones then p.zones = data.zones end
+    if data.wikiGraph then p.wikiGraph = data.wikiGraph end
+    if data.status then p.status = data.status end
+    if data.tomeSeed then p.tomeSeed = data.tomeSeed end
+end
+
 function Blackacre.Paths.GetAll()
     return all
 end

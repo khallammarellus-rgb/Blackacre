@@ -43,6 +43,7 @@ Data\Paths\Horde\HighmountainTauren.lua
 Data\Paths\Horde\ZandalariTroll.lua
 Data\Paths\Horde\Undead.lua
 Data\Paths\General\General.lua
+Data\Paths\_spines.lua
 Data\VoiceLexicon.lua
 Voice\Engine.lua
 Chronicle\Store.lua
