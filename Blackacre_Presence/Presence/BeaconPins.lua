@@ -1,7 +1,8 @@
 Blackacre = Blackacre or {}
 Blackacre.BeaconPins = {}
 
-local pins = {}
+local pool = {}
+local active = {}
 
 local function ReceiveEnabled()
     local p = Blackacre.CharDB and Blackacre.CharDB.presence
@@ -9,32 +10,29 @@ local function ReceiveEnabled()
     return true
 end
 
-local function ClearPins()
-    for _, pin in pairs(pins) do
+local function ReleaseAll()
+    for id, pin in pairs(active) do
         pin:Hide()
-        pin:SetParent(nil)
+        pin.beacon = nil
+        active[id] = nil
+        pool[#pool + 1] = pin
     end
-    wipe(pins)
 end
 
-local function CreateMapPin(beacon)
-    if not WorldMapFrame or not WorldMapFrame.ScrollContainer then return nil end
-    local scrollContainer = WorldMapFrame.ScrollContainer
+local function CreatePin()
+    local scrollContainer = WorldMapFrame and WorldMapFrame.ScrollContainer
+    if not scrollContainer or not scrollContainer.Child then return nil end
     local button = CreateFrame("Button", nil, scrollContainer.Child)
     button:SetSize(22, 22)
     button:SetFrameStrata("DIALOG")
     local texture = button:CreateTexture(nil, "OVERLAY")
     texture:SetAllPoints()
     texture:SetTexture("Interface\\WorldMap\\WorldMapPartyIcon")
-    local cw = scrollContainer.Child:GetWidth()
-    local ch = scrollContainer.Child:GetHeight()
-    local x = (beacon.coords and beacon.coords.x) or 0.5
-    local y = (beacon.coords and beacon.coords.y) or 0.5
-    button:SetPoint("CENTER", scrollContainer.Child, "TOPLEFT", x * cw, -y * ch)
-    local crumb = beacon.breadcrumb or beacon.shortText or "A presence"
     button:SetScript("OnEnter", function(self)
+        local beacon = self.beacon
+        if not beacon then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(crumb, 1, 1, 1, true)
+        GameTooltip:SetText(beacon.breadcrumb or beacon.shortText or "A presence", 1, 1, 1, true)
         if beacon.charName and beacon.charName ~= "" then
             GameTooltip:AddLine(beacon.charName, 0.8, 0.7, 0.3)
         end
@@ -44,18 +42,58 @@ local function CreateMapPin(beacon)
     return button
 end
 
+local function PlacePin(button, beacon)
+    local scrollContainer = WorldMapFrame.ScrollContainer
+    local child = scrollContainer and scrollContainer.Child
+    if not child then return end
+    local cw = child:GetWidth()
+    local ch = child:GetHeight()
+    local x = (beacon.coords and beacon.coords.x) or 0.5
+    local y = (beacon.coords and beacon.coords.y) or 0.5
+    button.beacon = beacon
+    button:SetParent(child)
+    button:ClearAllPoints()
+    button:SetPoint("CENTER", child, "TOPLEFT", x * cw, -y * ch)
+    button:Show()
+end
+
+local function Acquire(beacon)
+    local button = pool[#pool]
+    if button then
+        pool[#pool] = nil
+    else
+        button = CreatePin()
+    end
+    if not button then return nil end
+    PlacePin(button, beacon)
+    return button
+end
+
 function Blackacre.BeaconPins.Refresh()
-    ClearPins()
-    if not ReceiveEnabled() then return end
-    if not WorldMapFrame or not WorldMapFrame:IsShown() then return end
+    if not ReceiveEnabled() or not WorldMapFrame or not WorldMapFrame:IsShown() or not WorldMapFrame.ScrollContainer then
+        ReleaseAll()
+        return
+    end
+    ReleaseAll()
     local mapID = WorldMapFrame:GetMapID()
+    local mapNameLower
     local now = time()
     for _, b in pairs(BlackacreDB.beacons or {}) do
-        if b.zoneId == mapID and (not b.expiresAt or b.expiresAt >= now) then
-            local pin = CreateMapPin(b)
+        local same = b.zoneId == mapID
+        if not same and b.zoneName and b.zoneName ~= "" then
+            if not mapNameLower and C_Map and C_Map.GetMapInfo then
+                local info = C_Map.GetMapInfo(mapID)
+                local mapName = info and info.name
+                mapNameLower = mapName and mapName:lower() or ""
+            end
+            if mapNameLower and mapNameLower ~= "" and mapNameLower == b.zoneName:lower() then
+                same = true
+            end
+        end
+        if same and (not b.expiresAt or b.expiresAt >= now) then
+            local pin = Acquire(b)
             if pin then
-                pins[b.id] = pin
-                pin:Show()
+                active[b.id] = pin
             end
         end
     end

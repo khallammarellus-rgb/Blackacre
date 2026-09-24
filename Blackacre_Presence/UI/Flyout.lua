@@ -70,10 +70,16 @@ function Blackacre.Flyout.Init()
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 12, -10)
     title:SetText("Presence")
+    if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.GoldTitle then
+        Blackacre.UI.Theme.GoldTitle(title)
+    end
 
     frame.subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     frame.subtitle:SetPoint("TOPLEFT", 12, -26)
-    frame.subtitle:SetText("Beacons in this zone (no chat spam)")
+    frame.subtitle:SetText("Beacons are currently active in this zone")
+    if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.InkFont then
+        Blackacre.UI.Theme.InkFont(frame.subtitle)
+    end
 
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", -2, -2)

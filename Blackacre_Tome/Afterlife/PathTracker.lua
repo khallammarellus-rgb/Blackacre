@@ -7,8 +7,25 @@ local function EnsureDB()
         active = nil,
         history = {},
         promptOnDeath = true,
+        chosenPathId = nil,
+        deityId = nil,
+        resurrectCount = 0,
     }
-    return Blackacre.CharDB.afterlife
+    local db = Blackacre.CharDB.afterlife
+    if db.promptOnDeath == nil then db.promptOnDeath = true end
+    db.history = db.history or {}
+    db.resurrectCount = db.resurrectCount or 0
+    return db
+end
+
+local function InBattleground()
+    if C_PvP and C_PvP.IsBattleground and C_PvP.IsBattleground() then
+        return true
+    end
+    if UnitInBattleground and UnitInBattleground("player") then
+        return true
+    end
+    return false
 end
 
 function Blackacre.Afterlife.GetActive()
@@ -25,10 +42,40 @@ function Blackacre.Afterlife.SetPromptOnDeath(on)
     EnsureDB().promptOnDeath = on and true or false
 end
 
-function Blackacre.Afterlife.PathTracker.Start(pathId, deathZone)
+--- Setup only: pick a realm. Does not start rite progress or write a Tome page.
+function Blackacre.Afterlife.Choose(pathId)
     local path = Blackacre.GetAfterlifePath(pathId)
     if not path then return nil end
     local db = EnsureDB()
+    if db.active then
+        return nil
+    end
+    db.chosenPathId = pathId
+    if Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.Refresh then
+        Blackacre.Afterlife.UI.Refresh()
+    end
+    return path
+end
+
+function Blackacre.Afterlife.SetDeity(deityId)
+    EnsureDB().deityId = deityId
+    if Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.Refresh then
+        Blackacre.Afterlife.UI.Refresh()
+    end
+end
+
+function Blackacre.Afterlife.GetChosenPath()
+    local id = EnsureDB().chosenPathId
+    return id and Blackacre.GetAfterlifePath(id) or nil
+end
+
+function Blackacre.Afterlife.PathTracker.Start(pathId, deathZone)
+    local db = EnsureDB()
+    pathId = pathId or db.chosenPathId
+    local path = Blackacre.GetAfterlifePath(pathId)
+    if not path then return nil end
+    if db.active then return db.active end
+    db.chosenPathId = pathId
     db.active = {
         pathId = pathId,
         pathName = path.name,
@@ -36,18 +83,11 @@ function Blackacre.Afterlife.PathTracker.Start(pathId, deathZone)
         deathZone = deathZone or (Blackacre.GetZoneContext().zoneName or ""),
         completed = {},
     }
-    Blackacre.Chronicle.Capture.AddEntry("AFTERLIFE", {
-        pathId = pathId,
-        pathName = path.name,
-        stage = "begin",
-        title = "Entered " .. path.name,
-        deathZone = db.active.deathZone,
-    }, "auto")
     if Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.Refresh then
         Blackacre.Afterlife.UI.Refresh()
     end
     if Blackacre.UI and Blackacre.UI.Theme then
-        Blackacre.UI.Theme.Toast("Your soul walks " .. path.name .. ".")
+        Blackacre.UI.Theme.Toast("Your soul will seek " .. path.name .. " to be guided back", "maw")
     end
     return db.active
 end
@@ -69,14 +109,6 @@ function Blackacre.Afterlife.PathTracker.CompleteTask(taskId)
     if active.completed[taskId] then return true end
 
     active.completed[taskId] = time()
-    Blackacre.Chronicle.Capture.AddEntry("AFTERLIFE", {
-        pathId = active.pathId,
-        pathName = path.name,
-        stage = "task",
-        taskId = taskId,
-        title = path.name .. ": " .. task.title,
-        taskBody = task.body,
-    }, "auto")
 
     local allDone = true
     for _, t in ipairs(path.tasks) do
@@ -121,9 +153,10 @@ function Blackacre.Afterlife.PathTracker.FinishReturn()
         table.remove(db.history)
     end
     db.active = nil
+    db.returnsByRite = (db.returnsByRite or 0) + 1
 
     if Blackacre.UI and Blackacre.UI.Theme then
-        Blackacre.UI.Theme.Toast("You return to the living from " .. pathName .. ".")
+        Blackacre.UI.Theme.Toast("You return to the living from " .. pathName .. ".", "maw")
     end
     if Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.Refresh then
         Blackacre.Afterlife.UI.Refresh()
@@ -133,12 +166,7 @@ end
 function Blackacre.Afterlife.PathTracker.Abandon()
     local db = EnsureDB()
     if not db.active then return end
-    local name = db.active.pathName or "the path"
     db.active = nil
-    Blackacre.Chronicle.Capture.AddEntry("AFTERLIFE", {
-        stage = "abandon",
-        title = "Abandoned the road of " .. name,
-    }, "manual")
     if Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.Refresh then
         Blackacre.Afterlife.UI.Refresh()
     end
@@ -157,15 +185,67 @@ function Blackacre.Afterlife.PathTracker.Progress()
 end
 
 function Blackacre.Afterlife.PathTracker.OnDeath()
-    if not Blackacre.Afterlife.IsPromptOnDeath() then return end
-    if EnsureDB().active then return end
+    if InBattleground() then return end
+    local db = EnsureDB()
+    if db.active then return end
     C_Timer.After(1.5, function()
-        if Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.ShowRealmPicker then
-            Blackacre.Afterlife.UI.ShowRealmPicker()
+        if InBattleground() then return end
+        if EnsureDB().active then return end
+        if Blackacre.Afterlife.IsPromptOnDeath() then
+            if db.chosenPathId then
+                Blackacre.Afterlife.PathTracker.Start(db.chosenPathId)
+            elseif Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.ShowRealmPicker then
+                Blackacre.Afterlife.UI.ShowRealmPicker()
+            end
+            return
         end
+        StaticPopupDialogs["Blackacre_START_RITE"] = StaticPopupDialogs["Blackacre_START_RITE"] or {
+            text = "Start your Rite of Return?",
+            button1 = "Begin the rite",
+            button2 = "Not this death",
+            OnAccept = function()
+                local d = EnsureDB()
+                if d.chosenPathId then
+                    Blackacre.Afterlife.PathTracker.Start(d.chosenPathId)
+                elseif Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.ShowRealmPicker then
+                    Blackacre.Afterlife.UI.ShowRealmPicker()
+                end
+            end,
+            timeout = 0,
+            whileDead = true,
+            hideOnEscape = true,
+            preferredIndex = 3,
+        }
+        StaticPopup_Show("Blackacre_START_RITE")
     end)
+end
+
+function Blackacre.Afterlife.PathTracker.OnResurrect()
+    local db = EnsureDB()
+    db.resurrectCount = (db.resurrectCount or 0) + 1
+    if Blackacre.Afterlife.UI and Blackacre.Afterlife.UI.Refresh then
+        Blackacre.Afterlife.UI.Refresh()
+    end
+end
+
+function Blackacre.Afterlife.GetCounts()
+    local db = EnsureDB()
+    local deaths = 0
+    if Blackacre.CharDB and Blackacre.CharDB.hardcore then
+        deaths = Blackacre.CharDB.hardcore.deathCount or 0
+    end
+    return {
+        deaths = deaths,
+        resurrections = db.resurrectCount or 0,
+        returns = db.returnsByRite or #db.history,
+    }
 end
 
 function Blackacre.Afterlife.PathTracker.Init()
     EnsureDB()
+    local f = CreateFrame("Frame")
+    f:RegisterEvent("PLAYER_UNGHOST")
+    f:SetScript("OnEvent", function()
+        Blackacre.Afterlife.PathTracker.OnResurrect()
+    end)
 end

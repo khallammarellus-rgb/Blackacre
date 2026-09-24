@@ -2,7 +2,7 @@
 
 The Tome does **not** log every quest. It inks a **one-pager** at chain finale / meta / FoS / rep bracket / max renown.
 
-**Working catalog (you edit):** `docs/quest-paths.xlsx`
+**Working catalog (you edit):** `docs/quest-paths-v2.xlsx` (pause bookmark is on **How to use**).
 
 | Sheet | What |
 |-------|------|
@@ -17,7 +17,20 @@ Heritage / Magic / Current-timeline tabs **removed** — those are not Paths.
 
 **Path method (locked):** seed race + place + event on warcraft.wiki.gg → follow wikilinks and citations → then Wowhead NPCs/quests that still exist → curate a short spine.
 
-**`human_stratholme_survivor` (this pass):** Human; Stratholme; Culling of Stratholme; Battle of Darrowshire; plus cited WC3 / Chronicle 3 / RotLK ch.12 / Dispelling Illusions (Wowhead **13149**) / A Royal Escort (**13151**). Spine is in `Paths/Alliance/Human.lua` (`status = drafting`). Next Path when you say so.
+**Depth this pass (Stratholme method: wiki graph → Wowhead IDs → short spine):**
+
+| Path | Live spine IDs (verified Wowhead) |
+|------|-----------------------------------|
+| `human_stratholme_survivor` | 27383, 27387, 13149, 13151, 5282. `Human.lua`. |
+| `human_7th_legion_conscript` | **12235**, **12466**, **12473**, **52654** (Alliance War Campaign — not Horde 52746), **56494** Eve of Battle. Chain end **57002** Old Soldier. |
+| `dwarf_grim_batol_evacuee` | **27784** Hammer of Twilight (Alliance; 27719 is Water of Life), **27720** Goldmine (Alliance; 28885 is Horde). |
+| `dwarf_explorers_league` | **2278**, **11448** (2964 A Future Task obsolete). Brann/Khaz Algar ID still 0. |
+| `gnome_third_war_engineer` | **27635**, **27674**, **26208**. **25393** Operation: Gnomeregan removed from live. |
+| `gnome_si7_saboteur` | **52003** Kelsey. Shaw breadcrumb still 0. |
+| `orc_blackhand_veteran` | **10120**, **56494** (Saurfang names the Path of Glory). Not AU Blackhand. |
+| `bloodelf_blood_knight` | **63490** (9.2.5). TBC 9681 / 11488 obsolete. Heritage **54096** is Third War recap, not founding. |
+
+**PAUSED.** Next Path when you unpause: `nightelf_ancient_kaldorei_druid`. Lua in `_spines.lua` is source of truth; bookmark is `docs/quest-paths-v2.xlsx` → How to use. Tome does **not** log Path middles.
 
 **Verified finales this pass (wiki Source lists):**
 

@@ -96,6 +96,9 @@ function Blackacre.Paths.List(filter)
                 ok = false
             end
         end
+        if ok and Blackacre.Compat and Blackacre.Compat.PathAllowed and not Blackacre.Compat.PathAllowed(p) then
+            ok = false
+        end
         if ok then
             out[#out + 1] = p
         end

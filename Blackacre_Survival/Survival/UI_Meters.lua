@@ -3,71 +3,205 @@ Blackacre.Survival = Blackacre.Survival or {}
 Blackacre.Survival.UI = {}
 
 local panel
-local bars = {}
+local icons = {}
+local collapsed = false
 
-local BAR_W = 140
-local BAR_H = 12
+local ICON_SIZE = 36
+local ARROW_SIZE = 22
 
-local function ColorFor(value)
-    if value <= 15 then
-        return 0.75, 0.15, 0.12
-    elseif value <= 40 then
-        return 0.85, 0.55, 0.15
-    end
-    return 0.35, 0.55, 0.28
+local ICONS = {
+    hunger = {
+        high = { "inv_tradeskill_cooking_feastofblood", "INV_Misc_Food_15" },
+        mid = { "inv_misc_food_95_grainbread", "INV_Misc_Food_95_Grainbread", "INV_Misc_Food_15" },
+        low = { "spell_holy_painsupression", "Spell_Holy_PainSupression", "Spell_Holy_PainSuppression", "Spell_Shadow_ShadowWordPain" },
+    },
+    thirst = {
+        high = { "inv_drink_waterskin_01", "INV_Drink_Waterskin_01" },
+        mid = { "inv_drink_waterskin_05", "INV_Drink_Waterskin_05", "INV_Drink_Waterskin_01" },
+        low = { "inv_drink_waterskin_10", "INV_Drink_Waterskin_10", "INV_Drink_Waterskin_01" },
+    },
+    exposure = {
+        high = { "ui_embercourt-emoji-happy", "Spell_Nature_DryadDispelMagic" },
+        mid = { "ui_embercourt-emoji-miserable", "Spell_Frost_FrostShock" },
+        low = { "ui_embercourt-emoji-uncomfortable", "Spell_Frost_IceStorm" },
+    },
+}
+
+local ARROW_ATLASES = {
+    "bag-arrow",
+    "Bag-arrow",
+    "bags-arrow",
+    "BagSlots2x-bag-arrow",
+    "bagslots2x-bag-arrow",
+}
+
+local function HasAtlas(name)
+    return name and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(name)
 end
 
-local function MakeBar(parent, label, y)
-    local row = CreateFrame("Frame", nil, parent)
-    row:SetSize(BAR_W + 70, 28)
-    row:SetPoint("TOPLEFT", 12, y)
+local function ApplyNamedIcon(tex, names)
+    if not tex or not names then return end
+    if type(names) == "string" then names = { names } end
+    for i = 1, #names do
+        local n = names[i]
+        if HasAtlas(n) then
+            tex:SetAtlas(n, false)
+            return
+        end
+    end
+    tex:SetTexture("Interface\\Icons\\" .. names[1])
+    tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+end
 
-    row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    row.name:SetPoint("LEFT", 0, 0)
-    row.name:SetWidth(62)
-    row.name:SetJustifyH("LEFT")
-    row.name:SetText(label)
-    Blackacre.UI.Theme.InkFont(row.name)
+local function BandFor(v)
+    v = math.floor((v or 0) + 0.5)
+    if v <= 10 then return "low" end
+    if v <= 50 then return "mid" end
+    return "high"
+end
 
-    row.bg = row:CreateTexture(nil, "BACKGROUND")
-    row.bg:SetPoint("LEFT", 64, 0)
-    row.bg:SetSize(BAR_W, BAR_H)
-    row.bg:SetColorTexture(0.2, 0.15, 0.1, 0.55)
+local function DebuffBorder(tex)
+    if not tex then return end
+    tex:SetTexture("Interface\\Buttons\\UI-Debuff-Border")
+    tex:Show()
+end
 
-    row.fill = row:CreateTexture(nil, "ARTWORK")
-    row.fill:SetPoint("LEFT", row.bg, "LEFT", 0, 0)
-    row.fill:SetSize(BAR_W, BAR_H)
-    row.fill:SetColorTexture(0.35, 0.55, 0.28, 0.95)
+local function FaceArrow(expanded)
+    if not panel or not panel.arrowTex then return end
+    local tex = panel.arrowTex
+    -- Native bag-arrow faces left. Flip when expanded so it points right.
+    if expanded then
+        tex:SetTexCoord(1, 0, 0, 1)
+    else
+        tex:SetTexCoord(0, 1, 0, 1)
+    end
+end
 
-    row.border = CreateFrame("Frame", nil, row, "BackdropTemplate")
-    row.border:SetPoint("TOPLEFT", row.bg, "TOPLEFT", -2, 2)
-    row.border:SetPoint("BOTTOMRIGHT", row.bg, "BOTTOMRIGHT", 2, -2)
-    row.border:SetBackdrop({
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 10,
-        insets = { left = 2, right = 2, top = 2, bottom = 2 },
-    })
-    row.border:SetBackdropBorderColor(0.45, 0.35, 0.2, 0.9)
+local function PaintArrow()
+    if not panel or not panel.arrowTex then return end
+    local tex = panel.arrowTex
+    for i = 1, #ARROW_ATLASES do
+        if HasAtlas(ARROW_ATLASES[i]) then
+            tex:SetAtlas(ARROW_ATLASES[i], false)
+            FaceArrow(not collapsed)
+            return
+        end
+    end
+    if not HasAtlas("bag-arrow") then
+        tex:SetTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+        tex:SetTexCoord(0, 1, 0, 1)
+        -- NextPage points right; flip when collapsed so it points left.
+        if collapsed then
+            tex:SetTexCoord(1, 0, 0, 1)
+        end
+        return
+    end
+    FaceArrow(not collapsed)
+end
 
-    row.value = row:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    row.value:SetPoint("LEFT", row.bg, "RIGHT", 6, 0)
+local function Layout()
+    if not panel then return end
+    local gap = 4
+    if collapsed then
+        for _, b in pairs(icons) do b:Hide() end
+        panel:SetSize(ARROW_SIZE + 4, ICON_SIZE)
+        panel.arrow:ClearAllPoints()
+        panel.arrow:SetPoint("CENTER", panel, "CENTER", 0, 0)
+    else
+        local prep = icons.prepared and icons.prepared:IsShown()
+        local count = prep and 4 or 3
+        local rowW = count * ICON_SIZE + (count - 1) * gap
+        panel:SetSize(rowW + gap + ARROW_SIZE, ICON_SIZE)
+        icons.hunger:Show()
+        icons.thirst:Show()
+        icons.exposure:Show()
+        icons.hunger:ClearAllPoints()
+        icons.thirst:ClearAllPoints()
+        icons.exposure:ClearAllPoints()
+        icons.hunger:SetPoint("LEFT", panel, "LEFT", 0, 0)
+        icons.thirst:SetPoint("LEFT", icons.hunger, "RIGHT", gap, 0)
+        icons.exposure:SetPoint("LEFT", icons.thirst, "RIGHT", gap, 0)
+        local anchor = icons.exposure
+        if prep then
+            icons.prepared:ClearAllPoints()
+            icons.prepared:SetPoint("LEFT", icons.exposure, "RIGHT", gap, 0)
+            anchor = icons.prepared
+        end
+        panel.arrow:ClearAllPoints()
+        panel.arrow:SetPoint("LEFT", anchor, "RIGHT", gap, 0)
+    end
+    PaintArrow()
+end
 
-    function row:SetValue(v)
+local function MakeAura(parent, key, label)
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetSize(ICON_SIZE, ICON_SIZE)
+    btn.key = key
+    btn.label = label
+
+    btn.icon = btn:CreateTexture(nil, "ARTWORK")
+    btn.icon:SetPoint("TOPLEFT", 2, -2)
+    btn.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    ApplyNamedIcon(btn.icon, ICONS[key].high)
+
+    btn.border = btn:CreateTexture(nil, "OVERLAY")
+    btn.border:SetAllPoints(btn)
+    btn.border:Hide()
+
+    btn.count = btn:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
+    btn.count:SetPoint("BOTTOMRIGHT", 1, 0)
+
+    function btn:SetMeter(v)
         v = math.max(0, math.min(100, v or 0))
-        local w = math.max(1, (BAR_W * v) / 100)
-        self.fill:SetWidth(w)
-        local r, g, b = ColorFor(v)
-        self.fill:SetColorTexture(r, g, b, 0.95)
-        self.value:SetText(string.format("%d", math.floor(v + 0.5)))
+        local stacks = math.floor(v + 0.5)
+        if self._stacks == stacks then return end
+        local band = BandFor(stacks)
+        local bandChanged = self._band ~= band
+        self._stacks = stacks
+        self._band = band
+        self.count:SetText(tostring(stacks))
+        if bandChanged then
+            ApplyNamedIcon(self.icon, ICONS[self.key][band])
+            self.icon:SetVertexColor(1, 1, 1)
+        end
+        if stacks <= 10 then
+            if not self._debuff then
+                DebuffBorder(self.border)
+                self._debuff = true
+            end
+        elseif self._debuff then
+            self.border:Hide()
+            self._debuff = false
+        end
     end
 
-    return row
+    btn:RegisterForDrag("LeftButton")
+    btn:SetScript("OnDragStart", function()
+        if panel then panel:StartMoving() end
+    end)
+    btn:SetScript("OnDragStop", function()
+        if panel then panel:StopMovingOrSizing() end
+    end)
+    btn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(label)
+        local state = Blackacre.Survival.GetState and Blackacre.Survival.GetState()
+        if state then
+            local n = math.floor((state[key] or 0) + 0.5)
+            GameTooltip:AddLine(n .. " stacks", 0.9, 0.9, 0.9)
+            if state.climate and state.climate.title then
+                GameTooltip:AddLine(state.climate.title .. " climate", 0.85, 0.75, 0.45)
+            end
+        end
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", GameTooltip_Hide)
+    return btn
 end
 
 local function Build()
-    panel = CreateFrame("Frame", "BlackacreSurvivalMeters", UIParent, "BackdropTemplate")
-    panel:SetSize(250, 168)
-    -- Near objective tracker region (top-right)
+    panel = CreateFrame("Frame", "BlackacreSurvivalMeters", UIParent)
+    panel:SetSize(3 * ICON_SIZE + 2 * 4 + 4 + ARROW_SIZE, ICON_SIZE)
     panel:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -40, -180)
     panel:SetFrameStrata("MEDIUM")
     panel:SetMovable(true)
@@ -76,53 +210,49 @@ local function Build()
     panel:SetScript("OnDragStart", panel.StartMoving)
     panel:SetScript("OnDragStop", panel.StopMovingOrSizing)
     panel:SetClampedToScreen(true)
-    Blackacre.UI.Theme.ApplyParchmentBackdrop(panel, 0.94)
 
-    panel.title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    panel.title:SetPoint("TOPLEFT", 12, -10)
-    panel.title:SetText("Condition")
-    Blackacre.UI.Theme.GoldTitle(panel.title)
-
-    panel.climate = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    panel.climate:SetPoint("TOPRIGHT", -12, -12)
-    panel.climate:SetText("")
-
-    bars.hunger = MakeBar(panel, "Hunger", -36)
-    bars.thirst = MakeBar(panel, "Thirst", -64)
-    bars.exposure = MakeBar(panel, "Exposure", -92)
-
-    local function ActionBtn(text, x, onClick)
-        local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-        b:SetSize(70, 20)
-        b:SetPoint("BOTTOMLEFT", x, 10)
-        b:SetText(text)
-        b:SetScript("OnClick", onClick)
-        return b
-    end
-
-    ActionBtn("Eat", 10, function()
-        Blackacre.Survival.Engine.Recover("eat", 22)
+    panel.arrow = CreateFrame("Button", nil, panel)
+    panel.arrow:SetSize(ARROW_SIZE, ARROW_SIZE)
+    panel.arrowTex = panel.arrow:CreateTexture(nil, "ARTWORK")
+    panel.arrowTex:SetAllPoints()
+    panel.arrow:RegisterForDrag("LeftButton")
+    panel.arrow:SetScript("OnDragStart", function()
+        panel:StartMoving()
     end)
-    ActionBtn("Drink", 84, function()
-        Blackacre.Survival.Engine.Recover("drink", 22)
+    panel.arrow:SetScript("OnDragStop", function()
+        panel:StopMovingOrSizing()
     end)
-    ActionBtn("Rest", 158, function()
-        if UnitAffectingCombat and UnitAffectingCombat("player") then
-            Blackacre.UI.Theme.Toast("You cannot truly rest in combat.")
-            return
-        end
-        Blackacre.Survival.Engine.Recover("rest", 18)
+    panel.arrow:SetScript("OnClick", function()
+        collapsed = not collapsed
+        Layout()
     end)
-
-    panel:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-        GameTooltip:AddLine("Blackacre — Survival")
-        GameTooltip:AddLine("Honor-system meters. Eat / Drink / Rest are IC actions.", 1, 1, 1, true)
-        GameTooltip:AddLine("Well Fed / resting in an inn slows decay.", 0.8, 0.8, 0.8, true)
-        GameTooltip:AddLine("/ic survival  ·  drag to move", 0.7, 0.7, 0.7)
+    panel.arrow:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(collapsed and "Expand" or "Collapse")
         GameTooltip:Show()
     end)
-    panel:SetScript("OnLeave", GameTooltip_Hide)
+    panel.arrow:SetScript("OnLeave", GameTooltip_Hide)
+
+    icons.hunger = MakeAura(panel, "hunger", "Hunger")
+    icons.thirst = MakeAura(panel, "thirst", "Thirst")
+    icons.exposure = MakeAura(panel, "exposure", "Exposure")
+
+    local prep = CreateFrame("Button", nil, panel)
+    prep:SetSize(ICON_SIZE, ICON_SIZE)
+    prep.icon = prep:CreateTexture(nil, "ARTWORK")
+    prep.icon:SetPoint("TOPLEFT", 2, -2)
+    prep.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    ApplyNamedIcon(prep.icon, { "inv_misc_food_15", "INV_Misc_Food_15" })
+    prep:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText("Prepared")
+        GameTooltip:AddLine("Your preparation keeps you sated.", 0.9, 0.9, 0.9, true)
+        GameTooltip:Show()
+    end)
+    prep:SetScript("OnLeave", GameTooltip_Hide)
+    prep:Hide()
+    icons.prepared = prep
+    Layout()
 end
 
 function Blackacre.Survival.UI.Init()
@@ -132,19 +262,24 @@ end
 
 function Blackacre.Survival.UI.Refresh()
     if not panel then return end
-    local state = Blackacre.Survival.GetState()
-    if not state.enabled or state.hideMeters then
+    local s = Blackacre.CharDB and Blackacre.CharDB.survival
+    if not s or s.enabled == false or s.hideMeters then
         panel:Hide()
         return
     end
+    local state = Blackacre.Survival.GetState()
     panel:Show()
-    bars.hunger:SetValue(state.hunger)
-    bars.thirst:SetValue(state.thirst)
-    bars.exposure:SetValue(state.exposure)
-    local c = state.climate
-    local flag = state.indoors and "indoors" or "outdoors"
-    if state.resting then flag = flag .. ", resting" end
-    panel.climate:SetText(string.format("%s (%s)", c.label or "temperate", flag))
+    if icons.prepared then
+        if state.hasFood or state.hasWater then
+            icons.prepared:Show()
+        else
+            icons.prepared:Hide()
+        end
+    end
+    Layout()
+    icons.hunger:SetMeter(state.hunger)
+    icons.thirst:SetMeter(state.thirst)
+    icons.exposure:SetMeter(state.exposure)
 end
 
 function Blackacre.Survival.UI.Toggle()

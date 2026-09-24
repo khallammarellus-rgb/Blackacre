@@ -19,7 +19,7 @@ local CHARS_PER_ENTRY_PAGE = 780
 local TOC_TITLE_LINE_MAX = 23
 
 local KIND_LABELS = {
-    QUEST = "Quest",
+    QUEST = "Prompt",
     QUESTLINE = "Road",
     META_QUEST = "Meta quest",
     META_ACHIEVEMENT = "Meta feat",
@@ -55,6 +55,48 @@ local function Graphite(fs)
     else
         fs:SetTextColor(0.20, 0.21, 0.23, 1)
     end
+end
+
+local function TryAtlas(tex, name, useSize)
+    if not tex or not name then return false end
+    local th = Theme()
+    if th and th.TrySetAtlas then
+        return th.TrySetAtlas(tex, name, useSize and true or false)
+    end
+    if tex.SetAtlas then
+        local ok = pcall(function() tex:SetAtlas(name, useSize and true or false) end)
+        return ok and true or false
+    end
+    return false
+end
+
+local function TitleCapAtlases()
+    local skin = Theme() and Theme().GetActiveSkin and Theme().GetActiveSkin()
+    if skin and skin.tocTitleLeft then
+        return skin.tocTitleLeft, skin.tocTitleMid, skin.tocTitleRight
+    end
+    return "AllianceFrame_Title-End-2", "_AllianceFrame_Title-Tile", "AllianceFrame_Title-End"
+end
+
+--- Set atlas by file + member UVs so a horizontal flip does not sample the whole sheet.
+local function ApplyAtlasMember(tex, name, flipH)
+    if not tex or not name then return false end
+    local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(name)
+    local file = info and (info.filename or info.file)
+    if file then
+        tex:SetTexture(file)
+        local l = info.leftTexCoord or info.left or 0
+        local r = info.rightTexCoord or info.right or 1
+        local t = info.topTexCoord or info.top or 0
+        local b = info.bottomTexCoord or info.bottom or 1
+        if flipH then
+            tex:SetTexCoord(r, l, t, b)
+        else
+            tex:SetTexCoord(l, r, t, b)
+        end
+        return true
+    end
+    return false
 end
 
 local function FormatEntryYear(entry)
@@ -451,8 +493,8 @@ local function ShowTocEntryMenu(entry)
         entry.pinned = not entry.pinned
         Blackacre.Chronicle.Store.Update(entry.id, { pinned = entry.pinned })
         if Theme() and Theme().PlayUISound then Theme().PlayUISound("pinSoft") end
-        if Theme() and Theme().Toast then
-            Theme().Toast(entry.pinned and "Page pinned in TOC." or "Page unpinned from TOC.")
+        if Blackacre.Print then
+            Blackacre.Print(entry.pinned and "Page pinned in TOC" or "Page unpinned from TOC")
         end
         m:Hide()
         Blackacre.Chronicle.UI.RenderSpread()
@@ -541,25 +583,71 @@ local function SaveStickyGeometry(card)
     note.h = card:GetHeight() or note.h or 90
 end
 
+local function SetTextureFromList(tex, atlases, files)
+    if not tex then return false end
+    if atlases then
+        for i = 1, #atlases do
+            if ApplyAtlasMember(tex, atlases[i], false) then
+                return true
+            end
+        end
+    end
+    if files then
+        for i = 1, #files do
+            tex:SetTexture(files[i])
+            if tex.GetTexture and tex:GetTexture() then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function SetResizeGripLook(grip, active)
+    if not grip then return end
+    local tex = grip.icon
+    if not tex then return end
+    tex:Show()
+    if active then
+        if not SetTextureFromList(tex, {
+            "Cursor_UI-Cursor-Size_32",
+            "Cursor_UI-Cursor-Size32",
+        }, {
+            "Interface\\Cursor\\UIResizeCursor2x",
+            "Interface\\Cursor\\UI-Cursor-Size",
+        }) then
+            tex:SetTexture("Interface\\Cursor\\UI-Cursor-Size")
+        end
+    else
+        if not SetTextureFromList(tex, {
+            "Cursor_UnableUI-Cursor_size_48",
+            "Cursor_UnableUI-Cursor-Size_48",
+            "Cursor_UnableUI-Cursor-Size48",
+        }, {
+            "Interface\\Cursor\\UIResizeCursor2x",
+            "Interface\\Cursor\\UI-Cursor-Size",
+        }) then
+            tex:SetTexture("Interface\\Cursor\\UI-Cursor-Size")
+        end
+    end
+    tex:SetAlpha(1)
+end
+
 local function StopStickyResize(card)
     if not card then return end
     card.isResizing = false
     card:SetScript("OnUpdate", nil)
+    local grip = card.resizeGrip
+    if grip and not (grip.IsMouseOver and grip:IsMouseOver()) then
+        SetResizeGripLook(grip, false)
+    end
 end
 
---- Show settings wheel OR (lock + delete) on the note itself — no pop-out menu.
+--- Right-click still toggles edit/lock. Delete is always on the note.
 local function ShowStickyActionRow(card, showActions)
     if not card then return end
-    if card.settingsBtn then
-        if showActions then card.settingsBtn:Hide() else card.settingsBtn:Show() end
-    end
-    if card.lockBtn then
-        if showActions then card.lockBtn:Show() else card.lockBtn:Hide() end
-    end
-    if card.deleteBtn then
-        if showActions then card.deleteBtn:Show() else card.deleteBtn:Hide() end
-    end
     card._baActionsOpen = showActions and true or false
+    if card.deleteBtn then card.deleteBtn:Show() end
 end
 
 local function ApplyStickyLocked(card, locked)
@@ -568,18 +656,19 @@ local function ApplyStickyLocked(card, locked)
     note.pinned = locked and true or false
     card._baEditOpen = not locked
     StopStickyResize(card)
-    -- Locked = settings wheel only; unlocked edit can still use settings → lock/delete row
+    card:SetMovable(true)
+    if card.header then
+        card.header:RegisterForDrag("LeftButton")
+        card.header:EnableMouse(true)
+    end
+    if card.resizeGrip then
+        card.resizeGrip:Show()
+        card.resizeGrip:EnableMouse(true)
+        card.resizeGrip:RegisterForDrag("LeftButton")
+        SetResizeGripLook(card.resizeGrip, false)
+    end
+    if card.deleteBtn then card.deleteBtn:Show() end
     if locked then
-        ShowStickyActionRow(card, false)
-        card:SetMovable(false)
-        if card.header then
-            card.header:RegisterForDrag("LeftButton")
-            card.header:EnableMouse(true)
-        end
-        if card.resizeGrip then
-            card.resizeGrip:Hide()
-            card.resizeGrip:EnableMouse(false)
-        end
         if card.status then card.status:SetText("") end
         if card.box then
             card.box:Disable()
@@ -587,16 +676,6 @@ local function ApplyStickyLocked(card, locked)
             card.box:SetTextColor(0.12, 0.1, 0.05, 1)
         end
     else
-        card:SetMovable(true)
-        if card.header then
-            card.header:RegisterForDrag("LeftButton")
-            card.header:EnableMouse(true)
-        end
-        if card.resizeGrip then
-            card.resizeGrip:Show()
-            card.resizeGrip:EnableMouse(true)
-            card.resizeGrip:RegisterForDrag("LeftButton")
-        end
         if card.status then card.status:SetText("") end
         if card.box then
             card.box:Enable()
@@ -655,35 +734,27 @@ local function CreateStickyCard(parent, entry, note, index)
     card:SetPoint("TOPLEFT", parent, "TOPLEFT", note.x, note.y)
     card:SetFrameLevel((parent:GetFrameLevel() or 1) + 10)
     card:SetClampedToScreen(false)
-    local T = Theme() and Theme().Textures
-    local edge = (T and T.tooltipEdge) or "Interface\\Tooltips\\UI-Tooltip-Border"
-    card:SetBackdrop({
-        bgFile = (T and T.white) or "Interface\\Buttons\\WHITE8x8",
-        edgeFile = edge,
-        tile = true,
-        tileSize = 8,
-        edgeSize = 10,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    card:SetBackdropColor(1, 0.98, 0.92, 0.97)
+    -- adventureguide-pane-small; keep default 150×90, still resizable.
+    if card.SetBackdrop then card:SetBackdrop(nil) end
+    local pane = card:CreateTexture(nil, "BACKGROUND")
+    pane:SetAllPoints(card)
+    if not TryAtlas(pane, "adventureguide-pane-small", false) then
+        pane:SetColorTexture(0.97, 0.93, 0.82, 0.95)
+    end
+    card.pane = pane
     card:EnableMouse(true)
+    card:SetMovable(true)
+    card:RegisterForDrag("LeftButton")
     card._note = note
     card._entry = entry
     card._baIsSticky = true
     card._baEditOpen = false
 
-    local header = CreateFrame("Button", nil, card)
-    header:SetPoint("TOPLEFT", 3, -3)
-    header:SetPoint("TOPRIGHT", -22, -3)
-    header:SetHeight(18)
-    header:RegisterForClicks("RightButtonUp")
-    header:RegisterForDrag("LeftButton")
-    header:SetScript("OnDragStart", function()
-        if note.pinned and not card._baEditOpen then return end
+    local function BeginCardDrag()
         HideStickyMenu()
         card:StartMoving()
-    end)
-    header:SetScript("OnDragStop", function()
+    end
+    local function EndCardDrag()
         card:StopMovingOrSizing()
         local p = card:GetParent()
         if p and p ~= GetScrap() then
@@ -698,7 +769,18 @@ local function CreateStickyCard(parent, entry, note, index)
         end
         SaveStickyGeometry(card)
         PersistStickies(entry)
-    end)
+    end
+    card:SetScript("OnDragStart", BeginCardDrag)
+    card:SetScript("OnDragStop", EndCardDrag)
+
+    local header = CreateFrame("Button", nil, card)
+    header:SetPoint("TOPLEFT", 3, -3)
+    header:SetPoint("TOPRIGHT", -32, -3)
+    header:SetHeight(22)
+    header:RegisterForClicks("RightButtonUp")
+    header:RegisterForDrag("LeftButton")
+    header:SetScript("OnDragStart", BeginCardDrag)
+    header:SetScript("OnDragStop", EndCardDrag)
     header:SetScript("OnClick", function(_, button)
         if button == "RightButton" then
             ToggleStickyRightClick(card, entry, note)
@@ -706,54 +788,42 @@ local function CreateStickyCard(parent, entry, note, index)
     end)
     card.header = header
 
-    -- Top-right: settings wheel → reveals lock + delete on the note (no pop-out)
-    local gearPath = (T and T.optionsGear) or "Interface\\Buttons\\UI-OptionsButton"
-    local lockPath = (T and T.noteLockIcon) or "Interface\\ChatFrame\\UI-ChatFrame-LockIcon"
-    local delPath = "Interface\\Buttons\\UI-GroupLoot-Pass-Up"
-
-    local settingsBtn = CreateFrame("Button", nil, card)
-    settingsBtn:SetSize(16, 16)
-    settingsBtn:SetPoint("TOPRIGHT", -3, -3)
-    settingsBtn.icon = settingsBtn:CreateTexture(nil, "ARTWORK")
-    settingsBtn.icon:SetAllPoints()
-    settingsBtn.icon:SetTexture(gearPath)
-    settingsBtn:SetScript("OnClick", function()
-        -- Unlock for edit and show lock/delete on the scrap
-        ApplyStickyLocked(card, false)
-        ShowStickyActionRow(card, true)
-        if card.box then card.box:SetFocus() end
-    end)
-    card.settingsBtn = settingsBtn
-    card.menuBtn = settingsBtn -- legacy alias
-
-    local lockBtn = CreateFrame("Button", nil, card)
-    lockBtn:SetSize(16, 16)
-    lockBtn:SetPoint("TOPRIGHT", -22, -3)
-    lockBtn.icon = lockBtn:CreateTexture(nil, "ARTWORK")
-    lockBtn.icon:SetAllPoints()
-    lockBtn.icon:SetTexture(lockPath)
-    lockBtn:Hide()
-    lockBtn:SetScript("OnClick", function()
-        if card.box then note.text = card.box:GetText() or note.text end
-        SaveStickyGeometry(card)
-        ApplyStickyLocked(card, true)
-        PersistStickies(entry)
-        ShowStickyActionRow(card, false)
-        if Theme() and Theme().PlayUISound then Theme().PlayUISound("pinSoft") end
-    end)
-    card.lockBtn = lockBtn
-
+    local actLevel = (card:GetFrameLevel() or 1) + 8
     local deleteBtn = CreateFrame("Button", nil, card)
-    deleteBtn:SetSize(16, 16)
-    deleteBtn:SetPoint("TOPRIGHT", -41, -3)
-    deleteBtn.icon = deleteBtn:CreateTexture(nil, "ARTWORK")
-    deleteBtn.icon:SetAllPoints()
-    deleteBtn.icon:SetTexture(delPath)
-    deleteBtn:Hide()
+    deleteBtn:SetSize(28, 28)
+    deleteBtn:SetPoint("TOPRIGHT", -1, -1)
+    deleteBtn:SetFrameLevel(actLevel)
+    deleteBtn:EnableMouse(true)
+    deleteBtn:RegisterForClicks("LeftButtonUp")
+    if deleteBtn.SetNormalAtlas then
+        pcall(deleteBtn.SetNormalAtlas, deleteBtn, "128-RedButton-Delete")
+        if deleteBtn.SetPushedAtlas then
+            pcall(deleteBtn.SetPushedAtlas, deleteBtn, "128-RedButton-Delete-Pressed")
+        end
+        if deleteBtn.SetHighlightAtlas then
+            pcall(deleteBtn.SetHighlightAtlas, deleteBtn, "128-RedButton-Delete-Highlight")
+        end
+    else
+        local n = deleteBtn:CreateTexture(nil, "ARTWORK")
+        n:SetAllPoints()
+        TryAtlas(n, "128-RedButton-Delete", false)
+        deleteBtn:SetNormalTexture(n)
+        local p = deleteBtn:CreateTexture(nil, "ARTWORK")
+        p:SetAllPoints()
+        TryAtlas(p, "128-RedButton-Delete-Pressed", false)
+        deleteBtn:SetPushedTexture(p)
+        local h = deleteBtn:CreateTexture(nil, "HIGHLIGHT")
+        h:SetAllPoints()
+        TryAtlas(h, "128-RedButton-Delete-Highlight", false)
+        deleteBtn:SetHighlightTexture(h)
+    end
     deleteBtn:SetScript("OnClick", function()
         DeleteStickyNote(entry, note)
     end)
     card.deleteBtn = deleteBtn
+    card.settingsBtn = nil
+    card.lockBtn = nil
+    card.menuBtn = nil
 
     local status = header:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     status:SetPoint("LEFT", 4, 0)
@@ -765,8 +835,8 @@ local function CreateStickyCard(parent, entry, note, index)
     local box = CreateFrame("EditBox", nil, card)
     box:SetMultiLine(true)
     box:SetAutoFocus(false)
-    box:SetPoint("TOPLEFT", 8, -20)
-    box:SetPoint("BOTTOMRIGHT", -14, 16)
+    box:SetPoint("TOPLEFT", 8, -30)
+    box:SetPoint("BOTTOMRIGHT", -28, 26)
     box:SetTextInsets(2, 2, 2, 2)
     local noteText = note.text or ""
     if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.SanitizeBodyText then
@@ -790,21 +860,40 @@ local function CreateStickyCard(parent, entry, note, index)
         end
     end)
     card.box = box
+    deleteBtn:SetFrameLevel(actLevel)
 
-    -- Resize grip = StatusIcon-Offline
+    -- Resize: grey unable cursor idle, gold size cursor while dragging. Always shown.
     local grip = CreateFrame("Button", nil, card)
-    grip:SetSize(16, 16)
-    grip:SetPoint("BOTTOMRIGHT", -2, 2)
+    grip:SetSize(24, 24)
+    grip:SetPoint("BOTTOMRIGHT", 0, 0)
+    grip:SetFrameLevel(actLevel)
+    grip:EnableMouse(true)
+    grip:Show()
     grip.icon = grip:CreateTexture(nil, "ARTWORK")
     grip.icon:SetAllPoints()
-    grip.icon:SetTexture((T and T.statusOffline) or "Interface\\FriendsFrame\\StatusIcon-Offline")
+    SetResizeGripLook(grip, false)
+    grip:SetScript("OnEnter", function() SetResizeGripLook(grip, true) end)
+    grip:SetScript("OnLeave", function()
+        if card.isResizing or card._baGripHeld then return end
+        SetResizeGripLook(grip, false)
+    end)
+    grip:SetScript("OnMouseDown", function()
+        card._baGripHeld = true
+        SetResizeGripLook(grip, true)
+    end)
+    grip:SetScript("OnMouseUp", function()
+        card._baGripHeld = false
+        if not (grip.IsMouseOver and grip:IsMouseOver()) then
+            SetResizeGripLook(grip, false)
+        end
+    end)
     grip:RegisterForDrag("LeftButton")
     grip:SetScript("OnDragStart", function()
-        if note.pinned then return end
         HideStickyMenu()
         card.isResizing = true
+        SetResizeGripLook(grip, true)
         card:SetScript("OnUpdate", function(self)
-            if not self.isResizing or note.pinned then
+            if not self.isResizing then
                 StopStickyResize(self)
                 return
             end
@@ -820,11 +909,13 @@ local function CreateStickyCard(parent, entry, note, index)
         end)
     end)
     grip:SetScript("OnDragStop", function()
+        card._baGripHeld = false
         StopStickyResize(card)
-        if not note.pinned then
-            SaveStickyGeometry(card)
-            PersistStickies(entry)
+        if grip.IsMouseOver and grip:IsMouseOver() then
+            SetResizeGripLook(grip, true)
         end
+        SaveStickyGeometry(card)
+        PersistStickies(entry)
     end)
     card.resizeGrip = grip
 
@@ -906,13 +997,12 @@ function Blackacre.Chronicle.UI.BeginPinMode()
         pinModeFrame:SetAllPoints(UIParent)
         pinModeFrame:SetFrameStrata("FULLSCREEN_DIALOG")
         pinModeFrame:EnableMouse(true)
+        local pinCursor = (Theme() and Theme().Textures and (Theme().Textures.mapPinCursor or Theme().Textures.mapPinCursorCross))
+            or "Interface\\Cursor\\MapPinCursor"
+        -- The client resets the cursor every frame while this overlay is shown. No pcall on that path.
         pinModeFrame:SetScript("OnUpdate", function()
-            if not pinModeActive then return end
-            local path = (Theme() and Theme().Textures and Theme().Textures.mapPinCursor)
-                or "Interface\\Cursor\\MapPinCursor"
-            if SetCursor then
-                -- Try path; if engine rejects, still clickable overlay
-                pcall(SetCursor, path)
+            if pinModeActive and SetCursor then
+                SetCursor(pinCursor)
             end
         end)
         pinModeFrame:SetScript("OnMouseUp", function(_, button)
@@ -957,9 +1047,6 @@ function Blackacre.Chronicle.UI.BeginPinMode()
         end)
     end
     pinModeFrame:Show()
-    if Theme() and Theme().Toast then
-        Theme().Toast("Click a page leaf to pin a note (Esc cancel).")
-    end
 end
 
 local function HideAddNoteMenu()
@@ -1165,31 +1252,54 @@ local function RenderTocLeaf(leaf, items, heading, leafSide)
     -- leafSide kept for callers; page # always flush to this leaf's right edge
     leaf._baLeafSide = leafSide
 
-    local titleBg = leaf:CreateTexture(nil, "ARTWORK")
-    titleBg:SetPoint("TOPLEFT", 10, -8)
-    titleBg:SetSize(math.min(w - 24, 280), 28)
-    titleBg:SetColorTexture(0.2, 0.15, 0.08, 0.5)
-    AddKid(leaf, titleBg)
-    local title = leaf:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    title:SetPoint("CENTER", titleBg, "CENTER", 0, 0)
-    title:SetText(heading or "Table of Contents")
+    -- TOC heading: one Alliance ribbon, stretched to the phrase. No tile.
+    local headingText = heading or "Table of Contents"
+    local titleBar = CreateFrame("Frame", nil, leaf)
+    -- Ribbon ends are decorative, so the bar is 25% past the old fit or the phrase sits on the points.
+    titleBar:SetHeight(45)
+    titleBar:SetPoint("TOP", leaf, "TOP", 0, -6)
+    AddKid(leaf, titleBar)
+    local title = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("CENTER", 0, 1)
+    title:SetText(headingText)
     title:SetTextColor(1, 0.92, 0.55, 1)
+    local tw = math.ceil((title.GetStringWidth and title:GetStringWidth()) or 130)
+    titleBar:SetWidth(math.max(math.ceil((tw + 48) * 1.25), 200))
+    local ribbon = titleBar:CreateTexture(nil, "ARTWORK")
+    ribbon:SetAllPoints(titleBar)
+    if ribbon.SetHorizTile then ribbon:SetHorizTile(false) end
+    if ribbon.SetVertTile then ribbon:SetVertTile(false) end
+    if not TryAtlas(ribbon, "UI-Frame-Alliance-Ribbon", false) then
+        TryAtlas(ribbon, "UI-Frame-Dragonflight-Ribbon", false)
+    end
+    title:SetDrawLayer("OVERLAY", 1)
     AddKid(leaf, title)
 
-    local y = -44
+    local y = -6 - (titleBar:GetHeight() or 45) - 8
     for _, row in ipairs(items) do
         if row.kind == "year" then
-            local yearBg = leaf:CreateTexture(nil, "ARTWORK")
-            yearBg:SetPoint("TOP", leaf, "TOP", 0, y)
-            yearBg:SetSize(math.min(w - 40, 220), 18)
-            yearBg:SetColorTexture(0.35, 0.28, 0.12, 0.55)
-            AddKid(leaf, yearBg)
-            local yearFs = leaf:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            yearFs:SetPoint("CENTER", yearBg, "CENTER", 0, 0)
+            -- Wings sit ~10px off the year text (not the leaf edge). Right wing is a H-flip of the same atlas.
+            local yearBar = CreateFrame("Frame", nil, leaf)
+            yearBar:SetPoint("TOP", leaf, "TOP", 0, y)
+            yearBar:SetHeight(20)
+            AddKid(leaf, yearBar)
+            local yearFs = yearBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            yearFs:SetPoint("CENTER", 0, 0)
             yearFs:SetText(row.label or "Undated")
             yearFs:SetTextColor(0.95, 0.88, 0.55, 1)
+            local tw = math.max(24, (yearFs.GetStringWidth and yearFs:GetStringWidth()) or 48)
+            yearFs:SetWidth(tw + 2)
+            yearBar:SetWidth(tw + 2 + 20 + 92)
+            local wingL = yearBar:CreateTexture(nil, "ARTWORK")
+            wingL:SetSize(46, 18)
+            wingL:SetPoint("RIGHT", yearFs, "LEFT", -10, 0)
+            ApplyAtlasMember(wingL, "PetJournal-PetBattleAchievementBG", false)
+            local wingR = yearBar:CreateTexture(nil, "ARTWORK")
+            wingR:SetSize(46, 18)
+            wingR:SetPoint("LEFT", yearFs, "RIGHT", 10, 0)
+            ApplyAtlasMember(wingR, "PetJournal-PetBattleAchievementBG", true)
             AddKid(leaf, yearFs)
-            y = y - 24
+            y = y - 26
         elseif row.kind == "entry" and row.entry then
             local e = row.entry
             local pageNum = e._baLeafLeft or e._baSpreadIndex or "?"
@@ -1204,8 +1314,14 @@ local function RenderTocLeaf(leaf, items, heading, leafSide)
             btn:EnableMouse(true)
             btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
             local hl = btn:CreateTexture(nil, "HIGHLIGHT")
-            hl:SetAllPoints()
-            hl:SetColorTexture(0.90, 0.78, 0.35, 0.12)
+            hl:ClearAllPoints()
+            hl:SetPoint("TOPLEFT", btn, "TOPLEFT", 0, 4)
+            hl:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 0, 4)
+            if not TryAtlas(hl, "Garr_ListButton-Selection", false) then
+                hl:SetColorTexture(0.90, 0.78, 0.35, 0.18)
+            elseif hl.SetBlendMode then
+                hl:SetBlendMode("ADD")
+            end
             btn:SetHighlightTexture(hl)
 
             local ly = 0
@@ -1232,7 +1348,7 @@ local function RenderTocLeaf(leaf, items, heading, leafSide)
     if #items == 0 then
         local empty = leaf:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         empty:SetPoint("TOPLEFT", 16, -80)
-        empty:SetText("No pages yet. Try /ba sample or Add note.")
+        empty:SetText("No pages yet, try adding a page.")
         Graphite(empty)
         AddKid(leaf, empty)
     end
@@ -1278,6 +1394,58 @@ local function StyleEditLocked(box, locked)
     end
 end
 
+-- Persist the rendered editors directly.  The old implementation only read
+-- the controls when the Journal toggle changed from On to Locked, so text
+-- could still exist only in an EditBox when the player reloaded the UI.
+local function PersistEntryFromEditors(entry, showToast)
+    if not journal or not entry or not entry.id then return nil, false end
+
+    local titleText = entry.title or ""
+    local foundTitle = false
+    for _, box in ipairs(journal._baTitleParts or {}) do
+        if box._baEntry and box._baEntry.id == entry.id and box.GetText then
+            titleText = box:GetText() or ""
+            foundTitle = true
+            break
+        end
+    end
+    if not foundTitle and journal.titleEdit and journal.titleEdit._baEntry
+        and journal.titleEdit._baEntry.id == entry.id and journal.titleEdit.GetText then
+        titleText = journal.titleEdit:GetText() or ""
+    end
+
+    local parts = {}
+    for _, box in ipairs(journal._baBodyParts or {}) do
+        if box._baEntry and box._baEntry.id == entry.id and box.GetText then
+            parts[#parts + 1] = box:GetText() or ""
+        end
+    end
+    if #parts == 0 and journal.bodyEdit and journal.bodyEdit._baEntry
+        and journal.bodyEdit._baEntry.id == entry.id and journal.bodyEdit.GetText then
+        parts[1] = journal.bodyEdit:GetText() or ""
+    end
+    local bodyText = #parts > 0 and table.concat(parts, "\n\n") or (entry.body or "")
+    if titleText == (entry.title or "") and bodyText == (entry.body or "") then
+        return entry, false
+    end
+
+    local updated = Blackacre.Chronicle.Store.Update(entry.id, {
+        title = titleText,
+        body = bodyText,
+    })
+    if updated and updated.kind == "MANUAL" then
+        updated.facts = updated.facts or {}
+        updated.facts.title = titleText
+        updated.facts.manualTitle = titleText
+        updated.facts.body = bodyText
+        updated.facts.manualBody = bodyText
+    end
+    if updated and showToast and Theme() and Theme().Toast then
+        Theme().Toast("Page saved.")
+    end
+    return updated, updated ~= nil
+end
+
 --- One physical leaf of an entry: title+meta lead body on the SAME page (or continuation body).
 local function RenderEntryLeaf(host, leafData, leafSide)
     ClearLeaf(host)
@@ -1300,6 +1468,14 @@ local function RenderEntryLeaf(host, leafData, leafSide)
         titleEdit:SetFontObject(GameFontNormalLarge)
         titleEdit:SetText(entry.title or "Untitled")
         titleEdit:SetJustifyH("LEFT")
+        titleEdit._baEntry = entry
+        titleEdit._baIsTitle = true
+        titleEdit:SetScript("OnTextChanged", function(self)
+            PersistEntryFromEditors(self._baEntry, false)
+        end)
+        titleEdit:SetScript("OnEditFocusLost", function(self)
+            PersistEntryFromEditors(self._baEntry, false)
+        end)
         if editing then
             titleEdit:SetTextColor(0.05, 0.05, 0.06, 1)
             titleEdit:Enable()
@@ -1308,6 +1484,8 @@ local function RenderEntryLeaf(host, leafData, leafSide)
             titleEdit:Disable()
         end
         AddKid(host, titleEdit)
+        journal._baTitleParts = journal._baTitleParts or {}
+        journal._baTitleParts[#journal._baTitleParts + 1] = titleEdit
         -- Prefer first title box on the open spread for Save
         if not journal.titleEdit then
             journal.titleEdit = titleEdit
@@ -1366,6 +1544,12 @@ local function RenderEntryLeaf(host, leafData, leafSide)
     bodyEdit:SetHeight(math.max(360, (host:GetHeight() or 400) - 80))
     bodyEdit._baEntry = entry
     bodyEdit._baIsContinuation = leafData.isContinuation and true or false
+    bodyEdit:SetScript("OnTextChanged", function(self)
+        PersistEntryFromEditors(self._baEntry, false)
+    end)
+    bodyEdit:SetScript("OnEditFocusLost", function(self)
+        PersistEntryFromEditors(self._baEntry, false)
+    end)
 
     -- Save uses primary body box (page 1); continuations still edit-able but Save merges carefully
     if not journal.bodyEdit or leafData.showTitle then
@@ -1442,6 +1626,7 @@ function Blackacre.Chronicle.UI.RenderSpread(skipRebuild)
     journal.titleEdit = nil
     journal.currentEntry = nil
     journal._baBodyParts = {}
+    journal._baTitleParts = {}
 
     RenderOpenLeaf(left, s.left or { kind = "blank" }, "left")
     RenderOpenLeaf(right, s.right or { kind = "blank" }, "right")
@@ -1459,23 +1644,7 @@ function Blackacre.Chronicle.UI.SaveSelected()
     end
     if journal.bodyEdit then journal.bodyEdit:ClearFocus() end
     if journal.titleEdit then journal.titleEdit:ClearFocus() end
-    local titleText = journal.titleEdit and (journal.titleEdit:GetText() or "") or (entry.title or "")
-    local parts = {}
-    for _, box in ipairs(journal._baBodyParts or {}) do
-        if box._baEntry and box._baEntry.id == entry.id and box.GetText then
-            parts[#parts + 1] = box:GetText() or ""
-        end
-    end
-    local bodyText
-    if #parts > 0 then
-        bodyText = table.concat(parts, "\n\n")
-    else
-        bodyText = journal.bodyEdit and journal.bodyEdit:GetText() or (entry.body or "")
-    end
-    local updated = Blackacre.Chronicle.Store.Update(entry.id, {
-        title = titleText,
-        body = bodyText,
-    })
+    local updated = PersistEntryFromEditors(entry, false)
     if updated then
         if Theme() and Theme().PlayUISound then Theme().PlayUISound("writeQuill") end
         if Theme() and Theme().Toast then Theme().Toast("Page saved.") end
@@ -1517,7 +1686,7 @@ local function BuildUI()
     MountToolsOnParentFooter()
 
     StaticPopupDialogs["Blackacre_DELETE_ENTRY"] = {
-        text = "Tear this page from the chronicle?",
+        text = "You cannot recover a page torn from your journal.",
         button1 = "Tear out",
         button2 = "Keep",
         OnAccept = function(_, id)

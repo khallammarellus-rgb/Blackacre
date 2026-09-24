@@ -66,7 +66,7 @@ function Blackacre.QuestLines.GetLineQuests(lineId)
     return {}
 end
 
-function Blackacre.QuestLines.RememberBeat(questID, questName, zoneName)
+function Blackacre.QuestLines.RememberBeat(questID, questName, zoneName, scene)
     local info = Blackacre.QuestLines.GetLineInfo(questID)
     if not info then
         return nil
@@ -85,6 +85,7 @@ function Blackacre.QuestLines.RememberBeat(questID, questName, zoneName)
         name = questName or QuestTitle(questID),
         zone = zoneName,
         at = time(),
+        scene = scene,
     }
     db.chains[lineId] = row
     return info, row
@@ -108,41 +109,31 @@ function Blackacre.QuestLines.IsFinale(questID)
     return true, info, lineId
 end
 
-function Blackacre.QuestLines.BuildOnePager(lineId, finaleName, zoneName)
+function Blackacre.QuestLines.BuildOnePager(lineId, finaleName, zoneName, snapshot)
     local db = EnsureDB()
     local row = lineId and db.chains[lineId]
-    local lineName = (row and row.name) or "a long road"
-    local beats = {}
+    local chain = {}
     if row then
         for i = 1, #row.quests do
             local q = row.quests[i]
-            if q.name then
-                beats[#beats + 1] = q.name
+            if q.scene and q.scene.opening then
+                chain[#chain + 1] = q.scene.opening
+                if q.scene.npc then
+                    chain[#chain + 1] = q.scene.npc
+                end
             end
         end
     end
-    if finaleName and (not beats[#beats] or beats[#beats] ~= finaleName) then
-        beats[#beats + 1] = finaleName
-    end
-    local road
-    if #beats == 0 then
-        road = finaleName or lineName
-    elseif #beats == 1 then
-        road = beats[1]
+    local title, body
+    if Blackacre.Chronicle and Blackacre.Chronicle.Prompt and Blackacre.Chronicle.Prompt.Build then
+        title, body = Blackacre.Chronicle.Prompt.Build(snapshot, { chain = chain })
     else
-        local last = table.remove(beats)
-        road = table.concat(beats, "; ") .. "; until " .. last
+        title = (row and row.name) or zoneName or "A road"
+        body = table.concat(chain, "\n")
     end
-    local title = lineName
-    local body = string.format(
-        "This page is a traveler's digest of \"%s\" in %s — not every footstep, only the road's shape. %s. Edit this ink; the chronicle will not pretend it saw every hour.",
-        lineName,
-        zoneName or "unknown lands",
-        road
-    )
     return title, body, {
         lineId = lineId,
-        lineName = lineName,
+        lineName = row and row.name,
         finaleName = finaleName,
         beatCount = row and #row.quests or 0,
     }

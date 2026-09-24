@@ -20,94 +20,145 @@ local spines = {}
 
 spines.human_7th_legion_conscript = {
     status = "drafting",
-    wikiGraph = "7th Legion; Stormwind; Varian; High Command; Wintergarde / Dragonblight Front; "
-        .. "Tol Barad; Twilight Highlands; BfA War Campaign (Alliance); Ready for War; "
-        .. "The Eve of Battle; Razor Hill with Anduin; 7th Legion Magus. NOT Elwynn starter.",
+    wikiGraph = "7th Legion (wiki); High Commander Halford Wyrmbane; Valiance Expedition; "
+        .. "Wintergarde Keep / Naxxramas siege 27 ADP (Chronicle 3); 7th Legion Front; "
+        .. "Thel'zan the Duskbringer; Skybreaker / Icecrown Gunship; Gilneas Liberation Front "
+        .. "(Cata, X-2 Pincer, non-human vanguard vs Val'kyr); 7th Fleet / Spirit of Tiffin "
+        .. "(Tides of War — Theramore); BfA: Wind's Redemption, Boralus, 7th Legion (faction), "
+        .. "Ready for War. 8.2.5 Breaking the Cycle: The Eve of Battle (Wowhead 56494) → Old Soldier "
+        .. "(57002). NOT Elwynn starter. NOT Horde 52746 The War Cache.",
     zones = {
-        { zoneId = "dragonblight", note = "Wintergarde / 7th Legion Front vs Scourge" },
-        { zoneId = "tiragarde", note = "Boralus mission table — Alliance war campaign" },
-        { zoneId = "durotar", note = "Eve of Battle: Anduin at Razor Hill" },
+        { zoneId = "dragonblight", note = "Wintergarde Keep; 7th Legion Front on the Path of the Titans" },
+        { zoneId = "tiragarde", note = "Wind's Redemption — Halford's BfA war table" },
+        { zoneId = "durotar", note = "Eve of Battle: 7th Legion Magus teleports you to Anduin at Razor Hill" },
     },
     quests = {
+        Q(12235, "Naxxramas and the Fall of Wintergarde", "dragonblight",
+            "Wyrmbane: Naxxramas over the keep, Thel'zan in the lower village. Conscript reports in."),
         Q(12466, "Chasing Icestorm: The 7th Legion Front", "dragonblight",
-            "WotLK: report to Legion Commander Tyralion. First time the 7th is a home, not a rumor."),
-        Q(12467, "Chasing Icestorm: Thel'zan's Phylactery", "dragonblight",
-            "The Front's actual fight — phylactery, not a side camp."),
-        Q(52746, "The War Campaign", "tiragarde",
-            "BfA: Shaw and the 7th on the Wind's Redemption. Verify ID live."),
-        Q(0, "The Eve of Battle", "durotar",
-            "8.2.5 finale: Shaw brief, teleport, Anduin at Razor Hill. Fill Wowhead ID."),
+            "Report to Legion Commander Tyralion. The 7th is a home, not a rumor."),
+        Q(12473, "An End And A Beginning", "dragonblight",
+            "Thel'zan dies; Wyrmbane sends you to Fordragon. Wintergarde chain cap."),
+        Q(52654, "The War Campaign", "tiragarde",
+            "Alliance: report to Halford on the Wind's Redemption. (52746 is Horde War Cache — do not use.)"),
+        Q(56494, "The Eve of Battle", "durotar",
+            "Shaw briefs; 7th Legion Magus teleports; Anduin at Razor Hill. Breaking the Cycle start. "
+            .. "Finale of that chain is Old Soldier (57002) — Tome inks the chain end, not this middle."),
+    },
+    tomeSeed = {
+        title = "Writ of the Seventh",
+        body = "The wax was still warm. Wyrmbane's name sat under the lion. Wintergarde taught you what the writ meant: Naxxramas over the roofs, ghouls in the square, a Front on a road of dragon bones. Years later the same tabard is on a ship in Boralus. Shaw talks. A magus opens a door to Razor Hill. The 7th does not ask if you were born in Elwynn. It asks if you will stand.",
     },
 }
 
 spines.dwarf_grim_batol_evacuee = {
     status = "drafting",
-    wikiGraph = "Grim Batol; War of the Three Hammers; Modgud; Wildhammer; Red Dragonflight; "
-        .. "Nekros Skullcrusher; Alexstrasza enslaved; Battle of Grim Batol; Twilight Highlands; "
-        .. "Deathwing; Twilight's Hammer occupying Grim Batol; Cho'gall.",
+    wikiGraph = "Grim Batol (wiki); War of the Three Hammers 230 BDP (Chronicle 1 pp.153–156); "
+        .. "Khardros Wildhammer founds the hold after Bronzebeards take Ironforge; Modgud's siege "
+        .. "(Xal'atath, living shadows); Khardros kills Modgud; curse leaves Grim Batol uninhabitable; "
+        .. "skardyn in the deeps (Night of the Dragon); Wildhammers to Aerie Peak / Northeron; "
+        .. "Thandol Span. Second War: Nekros + Demon Soul, Alexstrasza in Lifebinder's Cell "
+        .. "(Day of the Dragon); Battle of Grim Batol (Rhonin). Reds seal the gates; Sinestra / "
+        .. "twilight dragons (Night of the Dragon); Cata: Twilight's Hammer, Umbriss, Erudax, "
+        .. "dungeon; BfA: Vexiona, Vermillion Redoubt. NOT Dark Iron Path (that's Modgud's other side).",
     zones = {
-        { zoneId = "wetlands", note = "Road from the mountain" },
-        { zoneId = "twilight_highlands", note = "Grim Batol still stands; Twilight cult" },
+        { zoneId = "twilight_highlands", note = "The mountain you fled; Twilight's Hammer later nested in it" },
+        { zoneId = "hinterlands", note = "Aerie Peak — where most Wildhammer evacuees went" },
+        { zoneId = "wetlands", note = "Dragonmaw Gates road; reds kept the door shut for years" },
     },
     quests = {
-        Q(27590, "The Crucible of Carnage: The Twilight Terror!", "twilight_highlands",
-            "Highlands: the mountain's new masters. Verify ID."),
-        Q(27719, "Hammer of Twilight", "twilight_highlands",
-            "Cho'gall / Twilight's Hammer at the gates of Grim Batol."),
-        Q(28885, "Mr. Goldmine's Wild Ride", "twilight_highlands",
-            "Grim Batol dungeon intro (Cata). Walk the halls you fled."),
+        Q(27784, "The Hammer of Twilight", "twilight_highlands",
+            "Alliance: Cho'gall at the Altar of Twilight. Shaw's dead SI:7. The cult in the halls you left. "
+            .. "(27719 is Water of Life — wrong quest.)"),
+        Q(27720, "Mr. Goldmine's Wild Ride", "twilight_highlands",
+            "Alliance mine-cart into the mountain. Walk the guts as a guest, not a child. "
+            .. "(28885 is the Horde copy.)"),
+    },
+    tomeSeed = {
+        title = "Smoke from the mountain",
+        body = "Khardros built a city that rivalled Ironforge. Modgud made the shadows walk. The Wildhammers did not stay to argue with a curse. Aerie Peak has sky. Grim Batol has a door you still know the sound of. This Path is not to win the War of the Three Hammers — it is to stand in the highlands and write why you left.",
     },
 }
 
 spines.dwarf_explorers_league = {
     status = "drafting",
-    wikiGraph = "Explorers' League; Brann Bronzebeard; Ironforge Hall of Explorers; Uldaman; "
-        .. "Ulduar; Titan-forged; Harrison Jones; Khaz Algar later. A Future Task (Uldum tease).",
+    wikiGraph = "Explorers' League / Explorers' Guild (wiki); Magni founds it after Uldaman heritage "
+        .. "finds; Hall of Explorers, Ironforge; High Explorer Muninn Magellas; Brann Bronzebeard "
+        .. "(current leader); unofficial SI:7 code-share. Third War: Dwarven Expedition / Muradin / "
+        .. "Frostmourne / Baelgun in Azjol-Nerub. Vanilla: Uldaman vs Shadowforge, Discs of Norgannon "
+        .. "(Earthen / trogg / dwarf synthesis). Wrath: Howling Fjord, Thor Modan, Ulduar. Cata: "
+        .. "Reliquary rivalry, Harrison Jones / Uldum. DF: Dragonscale Expedition (Toddy Whiskers). "
+        .. "TWW: Algari Expedition, Brann in Dornogal. NOT Reliquary (Horde counterpart).",
     zones = {
-        { zoneId = "dun_morogh", note = "Hall of Explorers" },
-        { zoneId = "badlands", note = "Uldaman discs" },
+        { zoneId = "ironforge", note = "Hall of Explorers — charter and Magellas" },
+        { zoneId = "badlands", note = "Uldaman: the discs that started the question" },
         { zoneId = "storm_peaks", note = "Brann / Ulduar" },
+        { zoneId = "isle_of_dorn", note = "Algari Expedition — Brann still digging" },
     },
     quests = {
         Q(2278, "The Platinum Discs", "badlands",
-            "Uldaman: the League's titan question. Classic ID — verify live."),
-        Q(2964, "A Future Task", "ironforge",
-            "Magellas: Uldum beckons. The map that stayed blank for years."),
-        Q(12997, "The Earthen of Ulduar", "storm_peaks",
-            "Brann's road north. Fill if ID drifts."),
+            "Uldaman: stone watcher, Discs of Norgannon, Earthen→dwarf. The League's first honest answer."),
+        Q(11448, "The Explorers' League Outpost", "howling_fjord",
+            "Wrath: Stanwad on the bluff. The League in Northrend, not a side camp. (2964 A Future Task is obsolete.)"),
+        Q(0, "Brann in Khaz Algar (Algari Expedition)", "isle_of_dorn",
+            "TWW: Brann's current charter. Fill live ID from Wowhead when the zone campaign names the League."),
+    },
+    tomeSeed = {
+        title = "League charter",
+        body = "Magni told the forges to wait. The question was older than ore. Uldaman spoke of Earthen and flesh. Magellas kept a blank in the middle of the map on purpose. Brann never filled it; he just walked into the next hole. You signed because inquiring minds have to know — and because a dwarf who will not dig has already answered.",
     },
 }
 
 spines.gnome_third_war_engineer = {
     status = "drafting",
-    wikiGraph = "Gnomeregan; Sicco Thermaplugg; Mekkatorque; troggs; radiation; Invasion of Gnomeregan "
-        .. "(between 2nd and 3rd War); Tinker Town exile; Operation: Gnomeregan; Cata gnome intro.",
+    wikiGraph = "Invasion of Gnomeregan (wiki) 20–25 ADP; Chronicle 3 pp.56, 114; Cut Short; "
+        .. "troggs woken in Uldaman tunnel toward Gnomeregan factories; Mekkatorque withholds "
+        .. "Alliance aid so Lordaeron can fight the Scourge; four-year siege; Sicco Thermaplugg's "
+        .. "false radiation math / Kleen Wind filters fail; ~80% of gnomekind dead; leper gnomes; "
+        .. "exile to Tinker Town. Aftermath: engineer for the Alliance first, reclaim second. "
+        .. "Operation: Gnomeregan 27 ADP (Wowhead 25393 — REMOVED from live). Cata intro still "
+        .. "walks the poison. NOT Mechagon / Crapopolis (other Path).",
     zones = {
-        { zoneId = "dun_morogh", note = "New Tinkertown / Gnomeregan" },
+        { zoneId = "dun_morogh", note = "Gnomeregan undercity; New Tinkertown exile" },
+        { zoneId = "ironforge", note = "Tinker Town — the workshop after the city died" },
     },
     quests = {
         Q(27635, "Decontamination", "dun_morogh",
-            "Cata gnome: you walk the poison. Verify chain start if rolled elsewhere."),
+            "Sanitron 500. You walk the radiation Thermaplugg called a plan."),
         Q(27674, "To the Surface", "dun_morogh",
-            "Out of the city that killed your kin."),
+            "Out of the city that killed your kin. Tinker Town is not home; it is a bench."),
+        Q(26208, "The Fight Continues", "dun_morogh",
+            "Mekkatorque names Thermaplugg. The Third War's secret is finally spoken."),
         Q(25393, "Operation: Gnomeregan", "dun_morogh",
-            "Pre-Cata reclaim. Optional if the Cata intro already tells it."),
+            "Pre-Cata reclaim (27 ADP). Removed from live — keep as memory, not a turn-in."),
+    },
+    tomeSeed = {
+        title = "Irradiated oath",
+        body = "The Alliance did not know. Mekkatorque would not pull a single rifle from Lordaeron. Troggs came up through the factories. Thermaplugg brought numbers. The filters failed. Four in five of us did not walk out. Tinker Town is a courtesy the dwarves offered. The work after that was not reclaim — it was keeping the Alliance alive so reclaim would ever be possible.",
     },
 }
 
 spines.gnome_si7_saboteur = {
     status = "drafting",
-    wikiGraph = "SI:7; Mathias Shaw; Stormwind; gnomish engineering; Kelsey Steelspark (BfA 7th); "
-        .. "Crapopolis / mechagon overlap is another Path.",
+    wikiGraph = "SI:7 / Stormwind Intelligence (wiki); Mathias Shaw, Old Town barracks; "
+        .. "gnomes in the roster (Brink Spannercrank — Dark Riders / Ironforge raid with Varian; "
+        .. "Kelsey Steelspark). League unofficial code-share with Explorers' League. BfA: Kelsey "
+        .. "as 7th Legion / Uncrowned-adjacent engineer, Zuldazar foothold follower (Wowhead 52003). "
+        .. "NOT human_7th_legion_conscript (that's the mailed fist). NOT Mechagon heritage. "
+        .. "Renzik the Shiv is goblin SI:7, not this Path.",
     zones = {
-        { zoneId = "stormwind", note = "SI:7 headquarters" },
-        { zoneId = "tiragarde", note = "Kelsey with the 7th" },
+        { zoneId = "stormwind", note = "SI:7, Old Town — Shaw's roof" },
+        { zoneId = "zuldazar", note = "Kelsey's Zuldazar foothold, Wind's Redemption deck" },
     },
     quests = {
+        Q(52003, "Champion: Kelsey Steelspark", "zuldazar",
+            "BfA: gnome SI:7 on the 7th's boat. Mechanical skill, quiet results."),
         Q(0, "Mathias Shaw — current Stormwind breadcrumb", "stormwind",
-            "Fill live Shaw intro from Wowhead (IDs change by expansion)."),
-        Q(0, "Kelsey Steelspark foothold (Zuldazar)", "zuldazar",
-            "BfA: gnome SI:7 on the 7th Legion boat."),
+            "IDs move by expansion. Fill live Shaw intro from Wowhead; Path is the quiet tool, not the war table."),
+    },
+    tomeSeed = {
+        title = "Quiet tools",
+        body = "SI:7 does not stamp blueprints. Shaw stamps results. A gnome in Old Town is useful because nobody counts the small operative twice. Kelsey made that a profession. You are not the 7th's mailed fist. You are the reason the fist knew where to land.",
     },
 }
 
@@ -397,17 +448,33 @@ spines.dracthyr_blue_dragonflight_charge = {
 
 spines.orc_blackhand_veteran = {
     status = "drafting",
-    wikiGraph = "Blackhand; Old Horde; First War; Blackrock Spire; Orgrim; Rend; "
-        .. "Heritage Aka'magosh is a LATER recap (Kosh'harg), not the veteran years.",
+    wikiGraph = "Blackhand the Destroyer (wiki, main universe — NOT AU Warlords, NOT film); "
+        .. "Blackrock chieftain; first Warchief of the Old Horde; Gul'dan / Shadow Council puppet "
+        .. "(Rise of the Horde; Warcraft II manual; Chronicle 2). Draenor: Oshu'gun lie, Telmor, "
+        .. "Karabor, Throne of Kil'jaeden (Grom drinks first; Blackhand withholds Griselda); "
+        .. "children aged for war. First War: Dark Portal, Brightwood/Westfall/Redridge raids, "
+        .. "Lakeshire ambush (Lothar almost kills him; he executes the warlocks who saved him), "
+        .. "failed Stormwind siege (Kilrogg + Cho'gall). Mak'gora vs Orgrim near end of First War "
+        .. "(Tides of Darkness ch.2; Blood Ledger). Legacy: Dark Horde / Rend + Maim; Path of Glory "
+        .. "paved with draenei bones; Saurfang to Anduin in The Eve of Battle (56494). Karazhan chess "
+        .. "piece. Chronicle 2 art = tattooed hand, not WoD stone fist. NOT Mag'har AU. "
+        .. "Heritage Aka'magosh is a LATER Kosh'harg recap, not the veteran years.",
     zones = {
-        { zoneId = "burning_steppes", note = "Blackrock" },
-        { zoneId = "hellfire", note = "The Portal you came through" },
+        { zoneId = "hellfire", note = "Path of Glory; Dark Portal; the road you marched" },
+        { zoneId = "burning_steppes", note = "Blackrock / Dark Horde remainder" },
+        { zoneId = "durotar", note = "Eve of Battle: Saurfang names Blackhand's legacy" },
     },
     quests = {
-        Q(4903, "Warlord's Command", "burning_steppes",
-            "Classic Blackrock: Rend's Horde. Verify live."),
+        Q(10120, "Arrival in Outland", "hellfire",
+            "Horde Dark Portal. The bone road is still there. Veteran walks it without lying."),
+        Q(56494, "The Eve of Battle", "durotar",
+            "Saurfang to Anduin: Blackhand's Path of Glory. Optional — the veteran hears his own war named."),
         Q(0, "Aka'magosh", "durotar",
-            "Heritage of Draenor finale — recap, optional last beat."),
+            "Heritage of Draenor finale — recap, optional last beat. Not the First War."),
+    },
+    tomeSeed = {
+        title = "Under the Blackhand",
+        body = "Orders were simple. Gul'dan made sure of that. You drank or you watched Grom drink. The Portal opened. Villages in Brightwood burned before the knights understood the pattern. Orgrim took the skull. Rend kept the old banner. Years later Saurfang still says the Path of Glory is paved with the people you killed. This Path is not to praise the first Warchief. It is to walk the bone road until you can write the march without a song.",
     },
 }
 
@@ -537,19 +604,31 @@ spines.bloodelf_eldrethalas_highborne = {
 
 spines.bloodelf_blood_knight = {
     status = "drafting",
-    wikiGraph = "Blood Knight; Lady Liadrin; M'uru; Magisters' Terrace; Sunwell Plateau; "
-        .. "The Fall of the Sunwell (heritage) is a recap of the Third War, not the order's founding.",
+    wikiGraph = "Blood Knights (wiki); founded 25 ADP (Blood of the Highborne); Rommath + Astalor "
+        .. "pacify M'uru; Liadrin first Matriarch; Hall of Blood. Royal Guard / ex-priests who "
+        .. "scorned the Light after the Scourge. Farstriders opposed. M'uru feigned capture "
+        .. "(Velen's prophecy). TBC: drain the naaru; Alonsus Chapel (later softened); Kael steals "
+        .. "M'uru; Liadrin pledges to A'dal / Shattered Sun; heart of M'uru restores the Sunwell "
+        .. "(Chronicle 3 p.159). Then channel the Sunwell, not the prisoner. Legion: Silver Hand; "
+        .. "BfA: splinter, Stromgarde vs Turalyon; 9.2.5 Knights of Blood / Vorath (Wowhead 63490 "
+        .. "Blood Knight). Midnight: Vanguard of the Light, Court of Blood. TBC paladin intro "
+        .. "(9681 A Study in Power, 9684 Claiming the Light) is OBSOLETE. Heritage 54096 The Fall "
+        .. "of the Sunwell is a Third War recap, not the order's founding.",
     zones = {
-        { zoneId = "silvermoon", note = "Hall of Blood" },
-        { zoneId = "isle_quel_danas", note = "M'uru / Sunwell" },
+        { zoneId = "silvermoon", note = "Hall of Blood — the order's house" },
+        { zoneId = "isle_quel_danas", note = "M'uru taken; Sunwell restored" },
+        { zoneId = "ghostlands", note = "9.2.5: Tranquillien, Deatholme, Vorath" },
     },
     quests = {
-        Q(9681, "A Study in Power", "silvermoon",
-            "TBC Blood Knight. Paladin-only; Path still names the order."),
-        Q(11488, "Magisters' Terrace", "isle_quel_danas",
-            "Kael'thas. The stolen Light's end."),
+        Q(63490, "Blood Knight", "silvermoon",
+            "9.2.5 Knights of Blood cap: Liadrin's accolades after Vorath. Paladin-only; Path still names the order. "
+            .. "(TBC 9681 / 11488 Magisters' Terrace attune are obsolete.)"),
         Q(54096, "The Fall of the Sunwell", "isle_quel_danas",
-            "Heritage recap — optional last beat."),
+            "Heritage recap of the Third War — optional last beat, not the founding."),
+    },
+    tomeSeed = {
+        title = "Crimson oath",
+        body = "The Light did not answer the gates. Rommath had a naaru in the dark under the Hall of Blood. Liadrin did not ask permission. You took. M'uru had already chosen to be taken. When Kael stole the prisoner, the Matriarch walked to Shattrath. The Sunwell came back with a heart in it. After that the order drinks from the well, not the cage. This Path is the taking and the learning — not the heritage page about the Fall.",
     },
 }
 

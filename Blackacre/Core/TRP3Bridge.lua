@@ -2,6 +2,10 @@ Blackacre = Blackacre or {}
 Blackacre.TRP3Bridge = {}
 
 function Blackacre.TRP3Bridge.IsAvailable()
+    -- WoW Forever has no TRP3 port. Do not read TRP3_API there even if a leftover addon is present.
+    if Blackacre.Compat and Blackacre.Compat.SupportsTRP3 and not Blackacre.Compat.SupportsTRP3() then
+        return false
+    end
     return TRP3_API ~= nil and TRP3_API.profile ~= nil
 end
 

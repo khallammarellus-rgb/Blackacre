@@ -10,6 +10,9 @@ local lastBagSignature = ""
 local mountStainActive = false
 local flyStainActive = false
 local deathLock = false
+local bagWait = false
+local mountWait = false
+local mountTicker
 
 local function EnsureHardcoreDB()
     Blackacre.CharDB.hardcore = Blackacre.CharDB.hardcore or {
@@ -89,6 +92,9 @@ local function CheckBags()
 end
 
 local function IsPlayerFlying()
+    if Blackacre.Compat and Blackacre.Compat.HasPlayerFlying and not Blackacre.Compat.HasPlayerFlying() then
+        return false
+    end
     if IsFlying and IsFlying() then
         return true
     end
@@ -147,8 +153,11 @@ local function OnDeath()
     Blackacre.Chronicle.Capture.AddEntry("DEATH", {
         zoneName = zone.zoneName,
         deathIndex = hc.deathCount,
-        title = "Death #" .. tostring(hc.deathCount) .. " — " .. (zone.zoneName or "unknown"),
+        title = "Death #" .. tostring(hc.deathCount) .. " - " .. (zone.zoneName or "unknown"),
     }, "auto")
+    if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.Toast then
+        Blackacre.UI.Theme.Toast("Death #" .. tostring(hc.deathCount) .. " in " .. (zone.zoneName or "unknown"), "maw")
+    end
     if Blackacre.Hardcore.UI and Blackacre.Hardcore.UI.Refresh then
         Blackacre.Hardcore.UI.Refresh()
     end
@@ -160,28 +169,73 @@ local function OnDeath()
     end)
 end
 
+local function StopMountWatch()
+    if mountTicker then
+        mountTicker:Cancel()
+        mountTicker = nil
+    end
+end
+
+local function StartMountWatch()
+    if mountTicker then return end
+    -- Only while mounted. Takeoff can happen after the mount event; idle players are not polled.
+    -- Forever has no player flight (Compat.HasPlayerFlying); this watch is a no-op there until you mount.
+    mountTicker = C_Timer.NewTicker(3, function()
+        if not (IsMounted and IsMounted()) then
+            mountStainActive = false
+            flyStainActive = false
+            StopMountWatch()
+            return
+        end
+        CheckMount()
+    end)
+end
+
+local function ScheduleBags()
+    if bagWait then return end
+    bagWait = true
+    C_Timer.After(0.35, function()
+        bagWait = false
+        CheckBags()
+    end)
+end
+
+local function ScheduleMount()
+    if mountWait then return end
+    mountWait = true
+    C_Timer.After(0.2, function()
+        mountWait = false
+        CheckMount()
+        if IsMounted and IsMounted() then
+            StartMountWatch()
+        else
+            StopMountWatch()
+        end
+    end)
+end
+
 function Blackacre.Hardcore.Monitor.Init()
     EnsureHardcoreDB()
     local frame = CreateFrame("Frame")
     frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-    frame:RegisterEvent("BAG_UPDATE")
     frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
     frame:RegisterEvent("PLAYER_DEAD")
     frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-    frame:RegisterUnitEvent("UNIT_AURA", "player")
+    -- UNIT_AURA on the player fires all through combat and was scheduling a timer per aura.
+    -- Mount display (and the while-mounted watch) is enough for the ground/sky rite.
+    if not pcall(frame.RegisterEvent, frame, "BAG_UPDATE_DELAYED") then
+        frame:RegisterEvent("BAG_UPDATE")
+    end
     frame:SetScript("OnEvent", function(_, event)
         if event == "PLAYER_DEAD" then
             OnDeath()
-        elseif event == "BAG_UPDATE" or event == "PLAYER_EQUIPMENT_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
-            C_Timer.After(0.3, CheckBags)
+            return
         end
-        if event == "PLAYER_MOUNT_DISPLAY_CHANGED" or event == "UNIT_AURA" or event == "PLAYER_ENTERING_WORLD" then
-            C_Timer.After(0.2, CheckMount)
+        if event == "BAG_UPDATE_DELAYED" or event == "BAG_UPDATE" or event == "PLAYER_EQUIPMENT_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
+            ScheduleBags()
         end
-    end)
-    C_Timer.NewTicker(3, function()
-        if IsMounted and IsMounted() then
-            CheckMount()
+        if event == "PLAYER_MOUNT_DISPLAY_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
+            ScheduleMount()
         end
     end)
 end

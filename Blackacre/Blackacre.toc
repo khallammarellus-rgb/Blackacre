@@ -1,11 +1,13 @@
-## Interface: 120007
+## Interface: 120007, 16001
+## Interface-Camelot: 16001
 ## Title: Blackacre
-## Notes: Core — Ace3 skeleton, comms, lifecycle, theme (enable Presence, Tome, Survival). Formerly In Character.
+## Notes: Core — Ace3 skeleton, comms, lifecycle, theme (enable Presence, Tome, Survival). Formerly In Character. Retail + WoW Forever.
 ## Version: 2.0.0-dev
 ## Author: khallammarellus-rgb
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
-## SavedVariables: BlackacreDB, InCharacterDB, BlackacreAceDB
+## SavedVariables: BlackacreDB, InCharacterDB, BlackacreAceDB, BlackacreProfiles
 ## SavedVariablesPerCharacter: BlackacreCharDB, InCharacterCharDB
+## LoadSavedVariablesFirst: 1
 ## OptionalDeps: totalRP3
 ## Category-enUS: Roleplay
 ## X-Website: https://github.com/khallammarellus-rgb/Blackacre
@@ -15,6 +17,7 @@ embeds.xml
 
 Locales\enUS.lua
 
+Core\Compat.lua
 Core\Init.lua
 Data\Blocklist.lua
 Core\ProfanityFilter.lua
@@ -24,4 +27,5 @@ Core\Lifecycle.lua
 Core\Options.lua
 History\History.lua
 UI\Theme.lua
+UI\ToolBox.lua
 UI\MinimapButton.lua

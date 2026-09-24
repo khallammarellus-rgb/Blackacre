@@ -47,7 +47,7 @@ local function Build(parent)
     Blackacre.UI.Theme.InkFont(leftTitle, "header")
 
     local y = -28
-    for i, preset in ipairs(Blackacre.RoadmapPresets or {}) do
+    for i, preset in ipairs((Blackacre.ListRoadmapPresets and Blackacre.ListRoadmapPresets()) or (Blackacre.RoadmapPresets or {})) do
         local btn = CreateFrame("Button", nil, frame.left, "UIPanelButtonTemplate")
         btn:SetSize(170, 26)
         btn:SetPoint("TOPLEFT", 8, y)

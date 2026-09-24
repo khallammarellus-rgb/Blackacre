@@ -60,15 +60,53 @@ Use this checklist **after** an element’s art is accepted (Pass D).
 
 ---
 
-## How to study DBM quickly
+## How to Analyze Code Using DBM-Core as the Benchmark
 
-1. Browse DBM-Core on GitHub: how modules load, how locals are used at file top.  
-2. Note event registration patterns and short, dense functions.  
-3. Apply the **spirit** (hygiene + performance), not boss-mod specifics.
+When reviewing or writing code in Blackacre, compare your implementation against DBM-Core’s architectural discipline:
+
+### Step 1: Upvalues at the File Header
+* **DBM Pattern:** Hot globals and Lua standard functions are cached as file-level locals at the very top of each file:
+  ```lua
+  local pairs, ipairs, type, tostring = pairs, ipairs, type, tostring
+  local CreateFrame, UIParent = CreateFrame, UIParent
+  local GetTime = GetTime
+  ```
+* **Why:** In Lua 5.1 (WoW's engine), global lookups perform a table query every invocation. Local upvalues are direct register lookups, significantly reducing execution overhead in hot loops and event callbacks.
+
+### Step 2: Event-Driven vs. Polling (`OnUpdate`)
+* **DBM Pattern:** DBM-Core never uses continuous `OnUpdate` timers to poll world state. Everything is strictly reactive, registered via Blizzard events (`BAG_UPDATE_DELAYED`, `ZONE_CHANGED_NEW_AREA`, `PLAYER_REGEN_DISABLED`).
+* **Why:** Polling burns CPU cycles while the player is standing still. If an `OnUpdate` script is ever needed (e.g. smooth dragging or progress animations), it must be set only during the active operation and set to `nil` immediately upon completion.
+
+### Step 3: Zero Memory Allocation in Loops
+* **DBM Pattern:** Avoid allocating tables (`{}`) or dynamic strings inside functions that fire repeatedly.
+* **Why:** In Lua, creating `{}` forces garbage collection cycles (GC pauses) which manifest in-game as micro-stutter. Reuse persistent tables or module-level scratch tables:
+  ```lua
+  -- Anti-pattern (causes GC churn):
+  local function UpdateStatus()
+      local data = { level = UnitLevel("player"), hp = UnitHealth("player") }
+      Render(data)
+  end
+
+  -- DBM pattern (zero allocation):
+  local statusCache = {}
+  local function UpdateStatus()
+      statusCache.level = UnitLevel("player")
+      statusCache.hp = UnitHealth("player")
+      Render(statusCache)
+  end
+  ```
+
+### Step 4: Frame & Widget Pooling
+* **DBM Pattern:** Frames, FontStrings, and status bars are created once, indexed in a pool, and toggled via `:Show()` / `:Hide()`.
+* **Why:** Never destroy or recreate UI elements during window refresh. If a list has variable rows, reuse the existing rows and hide unused ones.
+
+### Step 5: Clean Modular Separation & Namespace Discipline
+* **DBM Pattern:** Modules communicate via clean registrations (`RegisterMod`, `NewHeader`). There is zero global pollution.
+* **Why:** Only `Blackacre` is allowed in the global table. All internal helpers, tables, and caches must be scoped locally or namespaced under `Blackacre.<Package>`.
 
 ---
 
-## Pass D notes — Tome UI (2026-08 polish slice)
+## Pass D Notes — Historical Baseline
 
 Applied to `UI_Chronology.lua`, `TomeHub.lua`, `Theme.lua` (body fonts / chrome menus):
 
@@ -82,4 +120,3 @@ Applied to `UI_Chronology.lua`, `TomeHub.lua`, `Theme.lua` (body fonts / chrome 
 | IC vs OOC | Backstory Menus = separate parent; journal pages stay story-only |
 | Dead code | Removed unused `White` alias path, unused right-click wire helper |
 
-**Still known debt (acceptable until next element):** sticky cards recreate each render (pool later if row count grows); full entry-list rebuild on each flip (cheap at hundreds of entries).

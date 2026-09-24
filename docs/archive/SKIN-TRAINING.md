@@ -27,6 +27,34 @@ In-game: `/ba tome` then `/ba skin` (toggle numbers on the window).
   13 Backstory window (to the right, when open)
 ```
 
+**Skin (S) vs function (F)** — `/ba skin` numbers gold **S** = art pack, white **F** = clicks/layout (same on every skin).
+
+```
+  1S outer nineslice
+  ┌─────────────────────────────────────────┐
+  │ 2F title   [+F add page]      3F close X│
+  │  ┌──── 8S TOC tab                       │
+  │  │                                      │
+  │  │  4F book picture                     │
+  │  │   5F LEFT      |7F|  6F RIGHT        │
+  │  │   (TOC title caps = S ornament)      │
+  │  │           12F  <  1  2  >            │
+  │  └──────────────────────────────────────│
+  │  9S under-book rail                     │
+  │ 10F footer / 11F tools / notes          │
+  └─────────────────────────────────────────┘
+  13S Backstory outer chrome (same skin pack)
+```
+
+| S — skin (Theme.Skins) | F — function (one skeleton) |
+|------------------------|-----------------------------|
+| 1 nineslice corners/tiles | 2 title, 3 X, add-page |
+| 8 TOC banner UV | 4 book art (shared EJ), 5/6 leaves, 7 gutter |
+| 9 rail | 10–12 Journal, tools, page turn |
+| TOC title caps, Backstory 13 chrome | stickies, delete, resize, Capture |
+
+A new skin is a new row in `Theme.Skins`, not new regions. Options: **Interface → AddOns → Blackacre → Tome skin**.
+
 Copy-paste to assign a TAV piece:
 
 ```
@@ -35,7 +63,17 @@ ATLAS:
 NOTE:
 ```
 
-**This try:** 1 = `AllianceFrameCorner-TopLeft` (NineSlice + edge tiles) · 8 = `AlliedRaces-AllianceHordeBanner` vertical · 9 = `_AllianceFrame_ParchmentHeaderSelect-Mid`
+**This try (chrome locked until you REGION/ATLAS again):**
+- **1** outer shell — NineSlice `AllianceFrameCorner-TopLeft` / `HordeFrame-Corner-TopLeft` + tiles, PAD=12, host OVERLAY +45
+- **2** title — clipped left of add-page so it never runs under the icon
+- **3** close X — 32×26, header right
+- **Add page** — `GarrMission_MissionIcon-Logistics` 22×22, in line left of X (both factions)
+- **8** TOC tab — `AlliedRaces-AllianceHordeBanner`. Same crop width `0.41268` both factions. Alliance `0–0.41268`. Horde `0.50–0.91268` (past leftover blue). Size 50% of that crop. Top aligned to bookOpen (`y = 0`).
+- **9** under-book rail — `_warboard-title-alliance-middle` / `_warboard-title-horde-middle`. FrameLevel above the nineslice. Re-approach later if the atlas is wrong.
+- **5 / 6 leaves** — TOC title: `AllianceFrame_Title-End-2` + `_AllianceFrame_Title-Tile` + `AllianceFrame_Title-End` (HordeFrame_* equivalents). Year: `PetJournal-PetBattleAchievementBG` left, same atlas flipped on the right. TOC jump hover: `Garr_ListButton-Selection`. Stickies: `adventureguide-pane-small` (150×90 default, resizable).
+- **Backstory B1** — BACKGROUND `islands-queue-background`; nineslice `Neutral-NineSlice-Corner` + `_Neutral-NineSlice-EdgeTop` / `EdgeBottom` (`Interface/FrameGeneral/UIFrameNeutral`).
+- **Backstory B2** — `UI-Frame-Neutral-TitleLeft` + `_UI-Frame-Neutral-TitleMiddle` + `UI-Frame-Neutral-TitleRight`.
+- **Backstory B5** — Spellbook tab file, icons masked with `SpellbookElementsIconMask`, hover `SpellbookElementsAutoCastMask`, nudged 5px left.
 
 ---
 
@@ -111,7 +149,7 @@ ExportInterfaceFiles code
 
 Wait until the prompt returns. Output:
 
-`World of Warcraft\_retail_\BlizzardInterfaceCode\`
+`World of Warcraft\_retail_\BlizzardInterfaceCode\` (Retail) or `World of Warcraft\_classic_beta_\BlizzardInterfaceCode\` (WoW Forever beta).
 
 Optional (large, slow):
 

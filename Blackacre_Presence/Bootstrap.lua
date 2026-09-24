@@ -17,6 +17,9 @@ local function InitPresence()
     if Blackacre.PostEditor and Blackacre.PostEditor.Init then
         Blackacre.PostEditor.Init()
     end
+    if Blackacre.InnBoard and Blackacre.InnBoard.Init then
+        Blackacre.InnBoard.Init()
+    end
 end
 
 if Blackacre.RegisterPackage then

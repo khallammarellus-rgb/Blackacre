@@ -5,12 +5,19 @@ Blackacre.Chronicle.Store = {}
 local MAX_ENTRIES = 500
 
 local function EnsureDB()
-    Blackacre.CharDB = Blackacre.CharDB or BlackacreCharDB
-    Blackacre.CharDB.chronicle = Blackacre.CharDB.chronicle or {
+    -- The active AceDB profile owns the feature data. BlackacreCharDB remains
+    -- a compatibility mirror for older installs and the profile pointer.
+    local owner = Blackacre.CharDB or BlackacreCharDB or {}
+    Blackacre.CharDB = owner
+    owner.chronicle = owner.chronicle or {
         entries = {},
         nextNotify = true,
     }
-    return Blackacre.CharDB.chronicle
+    owner.chronicle.entries = owner.chronicle.entries or {}
+    if type(BlackacreCharDB) == "table" and BlackacreCharDB ~= owner then
+        BlackacreCharDB.chronicle = owner.chronicle
+    end
+    return owner.chronicle
 end
 
 function Blackacre.Chronicle.Store.Init()

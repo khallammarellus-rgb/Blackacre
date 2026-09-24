@@ -2,7 +2,7 @@
 
 **Status:** Packages renamed to **Blackacre** (v2.0.0-dev). Phase 1 tooling in place.  
 **Repo path:** `C:\Users\kvebe\InCharacter` (disk folder may lag; addon packages are `Blackacre*`)  
-**Target client:** Retail WoW mainline (`## Interface: 120007` — verify on each patch).  
+**Target client:** Retail mainline (`## Interface: 120007`) and WoW Forever beta (`16001` / Camelot in `_classic_beta_`). Flavor helpers: `Blackacre/Core/Compat.lua`.  
 **Current suite version:** 2.0.0-dev.
 
 This document is the long-form product brief for humans and coding agents. Session-start rules for Grok CLI also live in root [`AGENTS.md`](../AGENTS.md).
@@ -72,7 +72,7 @@ See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 ## Data & external references
 
 - **Quest IDs / path roadmaps:** human supplies or researches; structure tables for easy paste.
-- **TRP3:** public `TRP3_API` (e.g. profile APIs) when loaded; graceful fallback if absent. Never write TRP3 SavedVariables.
+- **TRP3:** Retail only. Public `TRP3_API` when loaded; never write TRP3 SavedVariables. **WoW Forever: do not read TRP3** (no official port). `Blackacre.Compat.SupportsTRP3()` is the gate.
 - **Game data:** prefer modern `C_` APIs (`C_QuestLog`, `C_AchievementInfo`, etc.).
 - **Timeline / era:** simple growing mapping table; flavor and content windows > perfect historiography.
 

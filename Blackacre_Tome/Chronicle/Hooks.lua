@@ -52,8 +52,39 @@ end
 function Blackacre.Chronicle.Hooks.Resolve(kind, facts, context)
     context = context or Blackacre.Chronicle.Hooks.GetContext()
     facts = facts or {}
+    -- Manual pages are user-authored. Do not run them through the automatic
+    -- Chronicle prose templates, because an empty page otherwise becomes a
+    -- generated sentence such as "Untitled." before the editor opens.
+    if kind == "MANUAL" then
+        return facts.manualTitle or facts.title or "Journal note",
+            facts.manualBody or facts.body or ""
+    end
+    if facts.promptBody and facts.promptBody ~= "" then
+        return facts.title or facts.promptTitle or "A page", facts.promptBody
+    end
+    if kind == "AFTERLIFE" then
+        local line
+        if facts.stage == "begin" then
+            line = "And so your Rites of Return start. . ."
+        elseif facts.stage == "return" then
+            line = "You completed their Rites"
+        elseif facts.stage == "abandon" then
+            line = "You abandoned your Rites"
+        end
+        if line then
+            return facts.title or "Rites of Return", line
+        end
+    end
     local banks = Blackacre.HookTemplates or {}
-    local list = banks[kind] or banks.DEFAULT or { "In {yearKC}, {name} marked an event." }
+    local list = banks[kind]
+    if kind == "PROFESSION" and type(list) == "table" and facts.echelon and type(list[facts.echelon]) == "string" then
+        list = { list[facts.echelon] }
+    elseif kind == "PVP" and type(list) == "table" and facts.outcome and type(list[facts.outcome]) == "string" then
+        list = { list[facts.outcome] }
+    end
+    if type(list) ~= "table" or type(list[1]) ~= "string" then
+        list = banks.DEFAULT or { "It is {yearKC} {month} and {day}, and I mark this moment today. . ." }
+    end
     local template = list[math.random(1, #list)]
 
     local slots = {
@@ -62,9 +93,26 @@ function Blackacre.Chronicle.Hooks.Resolve(kind, facts, context)
         class = context.class,
         level = tostring(context.level),
         zone = facts.zoneName or context.zone,
-        yearKC = Blackacre.YearCalendar.FormatYearADP
-            and Blackacre.YearCalendar.FormatYearADP(Blackacre.YearCalendar.GetPresentADP())
-            or Blackacre.YearCalendar.FormatYear(facts.yearKC or context.yearKC),
+        yearKC = (function()
+            if Blackacre.YearCalendar and Blackacre.YearCalendar.JournalStamp then
+                return (Blackacre.YearCalendar.JournalStamp())
+            end
+            return Blackacre.YearCalendar.FormatYear(facts.yearKC or context.yearKC)
+        end)(),
+        month = (function()
+            if Blackacre.YearCalendar and Blackacre.YearCalendar.JournalStamp then
+                local _, m = Blackacre.YearCalendar.JournalStamp()
+                return m
+            end
+            return ""
+        end)(),
+        day = (function()
+            if Blackacre.YearCalendar and Blackacre.YearCalendar.JournalStamp then
+                local _, _, d = Blackacre.YearCalendar.JournalStamp()
+                return d
+            end
+            return ""
+        end)(),
         seasoning = context.seasoning,
         age = (Blackacre.Birthpath and Blackacre.Birthpath.FormatAge and Blackacre.Birthpath.FormatAge()) or "",
         birthYear = (Blackacre.YearCalendar.GetBirthADP and Blackacre.YearCalendar.GetBirthADP()
@@ -75,6 +123,13 @@ function Blackacre.Chronicle.Hooks.Resolve(kind, facts, context)
         end)(),
         kind = kind or "NOTE",
         questName = facts.questName or facts.name or "an unnamed trial",
+        questOffer = facts.questOffer or "",
+        questReward = facts.questReward or "",
+        giverName = facts.giverName or facts.questGiver or "",
+        dayDescription = facts.dayDescription or "",
+        weatherText = facts.weatherText or "",
+        achievementDetail = facts.achievementDetail or "",
+        pvpBody = facts.pvpBody or facts.promptBody or "",
         lineName = facts.lineName or facts.questName or "an unnamed road",
         standingName = facts.standingName or "a new standing",
         factionName = facts.factionName or facts.name or "an unnamed people",

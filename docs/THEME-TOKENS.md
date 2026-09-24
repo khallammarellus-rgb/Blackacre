@@ -1,5 +1,7 @@
 # Theme tokens inventory
 
+**Skins (art packs):** `Blackacre.UI.Theme.Skins` — Alliance / Horde. Options: `chromeSkin` = `auto` \| pack name. Year K.C./ADP is **not** a skin.
+
 **Source of truth (code):** `Blackacre/UI/Theme.lua`  
 **Namespace:** `Blackacre.UI.Theme`  
 **Frame/layer rules:** [`FRAME-LAYERS.md`](FRAME-LAYERS.md) — BACKGROUND → BORDER → ARTWORK → OVERLAY → HIGHLIGHT  

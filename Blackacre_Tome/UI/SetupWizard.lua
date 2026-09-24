@@ -1,6 +1,9 @@
 Blackacre = Blackacre or {}
 Blackacre.SetupWizard = {}
 
+-- Paused: first-run wizard fired, but its type/layout is not Tome page constraints yet.
+Blackacre.SetupWizard.PAUSED = true
+
 local step = 1
 local MAX_STEP = 6
 local root
@@ -16,6 +19,7 @@ end
 
 --- Soft migrate: veterans with data skip auto-wizard.
 function Blackacre.SetupWizard.ShouldAutoShow()
+    if Blackacre.SetupWizard.PAUSED then return false end
     local s = EnsureSetupDB()
     if s.completed then return false end
     local id = Blackacre.CharDB.identity
@@ -56,7 +60,7 @@ local function Finish(skipped)
         Blackacre.TomeHub.Show("chronicle")
     end
     if Blackacre.UI and Blackacre.UI.Theme then
-        Blackacre.UI.Theme.Toast(skipped and "Setup skipped — you can run /ic setup anytime."
+        Blackacre.UI.Theme.Toast(skipped and "Setup skipped"
             or "Your lineage is inscribed. Welcome to the road.")
     end
 end
@@ -68,7 +72,7 @@ local function Build(parent)
 
     local title = root:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 14, -12)
-    title:SetText("First steps on the road")
+    title:SetText("Title your first entry")
     Blackacre.UI.Theme.GoldTitle(title)
 
     widgets.progress = root:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -95,10 +99,8 @@ local function Build(parent)
     w1:SetSpacing(4)
     w1:SetText(
         "Welcome, traveler.\n\n" ..
-        "|cffc9a227Blackacre|r is a private tome and presence suite — not OOC group finder.\n\n" ..
         "• The |cffffd100Tome|r holds your chronicle, lineage, honor, and rites in |cffc9a227one book|r.\n" ..
-        "• |cffffd100Presence|r (minimap left-click) is beacons and bulletin boards.\n" ..
-        "• Complements Total RP 3; never overwrites TRP3 data.\n\n" ..
+        "• |cffffd100Presence|r (minimap left-click) is beacons and bulletin boards.\n\n" ..
         "This short guide helps you set who you are in the world."
     )
     Blackacre.UI.Theme.InkFont(w1)
@@ -108,7 +110,7 @@ local function Build(parent)
     local w2 = p2:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     w2:SetPoint("TOPLEFT", 0, 0)
     w2:SetJustifyH("LEFT")
-    w2:SetText("How others may know you (editable defaults):")
+    w2:SetText("Alias")
     Blackacre.UI.Theme.InkFont(w2)
 
     widgets.nameLabel = p2:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -117,7 +119,7 @@ local function Build(parent)
 
     local resL = p2:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     resL:SetPoint("TOPLEFT", 0, -70)
-    resL:SetText("Residence (remembered on this character)")
+    resL:SetText("Residence")
     Blackacre.UI.Theme.InkFont(resL)
 
     widgets.residence = CreateFrame("EditBox", nil, p2, "InputBoxTemplate")
@@ -136,7 +138,7 @@ local function Build(parent)
 
     local bl = p3:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     bl:SetPoint("TOPLEFT", 0, -40)
-    bl:SetText("Birth year (ADP)")
+    bl:SetText("Birth Year")
     Blackacre.UI.Theme.InkFont(bl)
 
     widgets.birth = CreateFrame("EditBox", nil, p3, "InputBoxTemplate")
@@ -146,7 +148,7 @@ local function Build(parent)
 
     local pl = p3:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     pl:SetPoint("TOPLEFT", 0, -70)
-    pl:SetText("Present year (ADP)")
+    pl:SetText("Present Year")
     Blackacre.UI.Theme.InkFont(pl)
 
     widgets.present = CreateFrame("EditBox", nil, p3, "InputBoxTemplate")
@@ -156,14 +158,14 @@ local function Build(parent)
 
     local eraTitle = p3:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     eraTitle:SetPoint("TOPLEFT", 0, -105)
-    eraTitle:SetText("Quick era (sets a mid-era birth)")
+    eraTitle:SetText("Quick era")
     Blackacre.UI.Theme.InkFont(eraTitle, "header")
 
     local eraHost = CreateFrame("Frame", nil, p3)
     eraHost:SetPoint("TOPLEFT", 0, -128)
     eraHost:SetSize(500, 120)
     local ex, ey, col = 0, 0, 0
-    for i, era in ipairs(Blackacre.TimelineEras or {}) do
+    for i, era in ipairs((Blackacre.ListEras and Blackacre.ListEras()) or Blackacre.TimelineEras or {}) do
         if i > 8 then break end
         local btn = CreateFrame("Button", nil, eraHost, "UIPanelButtonTemplate")
         btn:SetSize(150, 24)
@@ -190,54 +192,95 @@ local function Build(parent)
     local w4 = p4:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     w4:SetPoint("TOPLEFT", 0, 0)
     w4:SetJustifyH("LEFT")
-    w4:SetText("How should new chronicle ink sound? One accent only — never mixed.")
+    w4:SetText("Set your language and accent")
     Blackacre.UI.Theme.InkFont(w4)
 
-    widgets.accentDrop = CreateFrame("Frame", "BASetupVoiceAccent", p4, "UIDropDownMenuTemplate")
-    widgets.accentDrop:SetPoint("TOPLEFT", -12, -40)
-    UIDropDownMenu_SetWidth(widgets.accentDrop, 160)
-    local accents = { "auto", "none", "dwarf", "orc", "undead", "goblin", "blood_elf", "night_elf", "human", "afrikaans" }
-    UIDropDownMenu_Initialize(widgets.accentDrop, function()
-        for _, id in ipairs(accents) do
+    local function VoiceDB()
+        if Blackacre.Voice and Blackacre.Voice.GetSettings then
+            return Blackacre.Voice.GetSettings()
+        end
+        Blackacre.CharDB.voice = Blackacre.CharDB.voice or { language = "auto", accent = "auto" }
+        return Blackacre.CharDB.voice
+    end
+    local function VoiceLabel(kind, id)
+        local V = Blackacre.Voice
+        if kind == "language" and V and V.LanguageLabel then return V.LanguageLabel(id) end
+        if kind == "accent" and V and V.AccentLabel then return V.AccentLabel(id) end
+        return id
+    end
+    local function RefreshVoiceSample()
+        if not (Blackacre.Voice and Blackacre.Voice.Apply) then
+            widgets.voiceSample:SetText("Voice engine not loaded.")
+            return
+        end
+        widgets.voiceSample:SetText(
+            "Sample: " .. Blackacre.Voice.Apply("I am looking for the thing, yes?")
+            .. "\nGreeting: " .. Blackacre.Voice.Apply("Hello, I am looking for the thing, yes?")
+        )
+    end
+
+    widgets.langDrop = CreateFrame("Frame", "BASetupVoiceLanguage", p4, "UIDropDownMenuTemplate")
+    widgets.langDrop:SetPoint("TOPLEFT", -12, -36)
+    UIDropDownMenu_SetWidth(widgets.langDrop, 180)
+    UIDropDownMenu_Initialize(widgets.langDrop, function()
+        local ids = Blackacre.Voice and Blackacre.Voice.ListLanguages and Blackacre.Voice.ListLanguages() or { "auto", "none" }
+        for _, id in ipairs(ids) do
+            local captured = id
             local info = UIDropDownMenu_CreateInfo()
-            info.text = id
+            info.text = VoiceLabel("language", captured)
             info.func = function()
-                Blackacre.CharDB.voice = Blackacre.CharDB.voice or {}
-                Blackacre.CharDB.voice.accent = id
-                UIDropDownMenu_SetText(widgets.accentDrop, id)
-                if Blackacre.Voice and Blackacre.Voice.Apply then
-                    widgets.voiceSample:SetText("Sample: " .. Blackacre.Voice.Apply("I am looking for the thing, yes?"))
-                end
+                VoiceDB().language = captured
+                UIDropDownMenu_SetText(widgets.langDrop, VoiceLabel("language", captured))
+                RefreshVoiceSample()
+            end
+            UIDropDownMenu_AddButton(info)
+        end
+    end)
+
+    widgets.accentDrop = CreateFrame("Frame", "BASetupVoiceAccent", p4, "UIDropDownMenuTemplate")
+    widgets.accentDrop:SetPoint("TOPLEFT", -12, -72)
+    UIDropDownMenu_SetWidth(widgets.accentDrop, 180)
+    UIDropDownMenu_Initialize(widgets.accentDrop, function()
+        local ids = Blackacre.Voice and Blackacre.Voice.ListAccents and Blackacre.Voice.ListAccents() or { "auto", "none" }
+        for _, id in ipairs(ids) do
+            local captured = id
+            local info = UIDropDownMenu_CreateInfo()
+            info.text = VoiceLabel("accent", captured)
+            info.func = function()
+                VoiceDB().accent = captured
+                UIDropDownMenu_SetText(widgets.accentDrop, VoiceLabel("accent", captured))
+                RefreshVoiceSample()
             end
             UIDropDownMenu_AddButton(info)
         end
     end)
 
     widgets.voiceSample = p4:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    widgets.voiceSample:SetPoint("TOPLEFT", 0, -90)
-    widgets.voiceSample:SetPoint("TOPRIGHT", 0, -90)
+    widgets.voiceSample:SetPoint("TOPLEFT", 0, -118)
+    widgets.voiceSample:SetPoint("TOPRIGHT", 0, -118)
     widgets.voiceSample:SetJustifyH("LEFT")
+    widgets.voiceSample:SetSpacing(3)
     Blackacre.UI.Theme.InkFont(widgets.voiceSample)
 
     -- 5 Optional toggles
     local p5 = Panel(5)
     local w5 = p5:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     w5:SetPoint("TOPLEFT", 0, 0)
-    w5:SetText("Optional — you can change these later.")
+    w5:SetText("You can set this now and change it later or skip")
     Blackacre.UI.Theme.InkFont(w5)
 
     widgets.beaconCheck = CreateFrame("CheckButton", nil, p5, "UICheckButtonTemplate")
     widgets.beaconCheck:SetPoint("TOPLEFT", 0, -40)
     local bt = p5:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     bt:SetPoint("LEFT", widgets.beaconCheck, "RIGHT", 4, 0)
-    bt:SetText("Receive presence beacons (talking-head)")
+    bt:SetText("Seek beacons (toast, no more talking head)")
     Blackacre.UI.Theme.InkFont(bt)
 
     widgets.survCheck = CreateFrame("CheckButton", nil, p5, "UICheckButtonTemplate")
     widgets.survCheck:SetPoint("TOPLEFT", 0, -80)
     local st = p5:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     st:SetPoint("LEFT", widgets.survCheck, "RIGHT", 4, 0)
-    st:SetText("Survival meters (hunger / thirst / exposure)")
+    st:SetText("Survival status")
     Blackacre.UI.Theme.InkFont(st)
 
     -- 6 Done
@@ -251,9 +294,9 @@ local function Build(parent)
         "Your tome is ready.\n\n" ..
         "• Right-click minimap: open this book\n" ..
         "• Left-click minimap: presence (beacons & boards)\n" ..
-        "• /ic setup — run this guide again\n" ..
-        "• /ic packages — which modules are loaded\n\n" ..
-        "Turn the page when you are ready."
+        "• command: /ic setup runs the tutorial again\n" ..
+        "• command: /ic packages lets you know what elements are loaded for the add on\n\n" ..
+        "Turn the page"
     )
     Blackacre.UI.Theme.InkFont(w6)
 
@@ -317,10 +360,17 @@ local function Build(parent)
                 widgets.present:SetText(tostring(Blackacre.YearCalendar.GetPresentADP()))
                 widgets.summary:SetText(Blackacre.Birthpath and Blackacre.Birthpath.GetSummary() or "")
             elseif step == 4 then
-                local v = Blackacre.CharDB.voice or {}
-                UIDropDownMenu_SetText(widgets.accentDrop, v.accent or "auto")
-                if Blackacre.Voice and Blackacre.Voice.Apply then
-                    widgets.voiceSample:SetText("Sample: " .. Blackacre.Voice.Apply("I am looking for the thing, yes?"))
+                local v = VoiceDB()
+                local langId = v.language or "auto"
+                local accId = v.accent or "auto"
+                local V = Blackacre.Voice
+                UIDropDownMenu_SetText(widgets.langDrop, (V and V.LanguageLabel and V.LanguageLabel(langId)) or langId)
+                UIDropDownMenu_SetText(widgets.accentDrop, (V and V.AccentLabel and V.AccentLabel(accId)) or accId)
+                if V and V.Apply then
+                    widgets.voiceSample:SetText(
+                        "Sample: " .. V.Apply("I am looking for the thing, yes?")
+                        .. "\nGreeting: " .. V.Apply("Hello, I am looking for the thing, yes?")
+                    )
                 end
             elseif step == 5 then
                 local pres = Blackacre.CharDB.presence or {}
@@ -339,6 +389,20 @@ local function RefreshIdentity()
 end
 
 function Blackacre.SetupWizard.Show()
+    if Blackacre.SetupWizard.PAUSED then
+        if Blackacre.TomeHub then
+            if Blackacre.TomeHub.SetSetupMode then
+                Blackacre.TomeHub.SetSetupMode(false)
+            end
+            if Blackacre.TomeHub.Show then
+                Blackacre.TomeHub.Show("chronicle")
+            end
+        end
+        if Blackacre.Print then
+            Blackacre.Print("Setup paused")
+        end
+        return
+    end
     if not Blackacre.TomeHub then return end
     local hub = Blackacre.TomeHub.GetFrame()
     local page = Blackacre.TomeHub.GetPageHost("setup")
@@ -370,6 +434,9 @@ end
 
 function Blackacre.SetupWizard.Init()
     EnsureSetupDB()
+    if Blackacre.SetupWizard.PAUSED then
+        return
+    end
     local f = CreateFrame("Frame")
     f:RegisterEvent("PLAYER_LOGIN")
     f:SetScript("OnEvent", function()

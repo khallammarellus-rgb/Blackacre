@@ -222,28 +222,57 @@ end
 function Blackacre.Birthpath.ChartFromBirth()
     local suggestions = Blackacre.Birthpath.GetPresetSuggestions(1)
     if #suggestions == 0 then
-        Blackacre.Print("No roadmap presets available.")
         return nil
     end
     local preset = suggestions[1].preset
     Blackacre.Roadmap.Store.StartPreset(preset.id)
-    Blackacre.Print("Expedition charted from lineage: " .. preset.name)
     if Blackacre.Roadmap.UI and Blackacre.Roadmap.UI.Refresh then
         Blackacre.Roadmap.UI.Refresh()
     end
     return preset
 end
 
+function Blackacre.Birthpath.BuildFlavor(era, year)
+    local id = Identity()
+    local race = UnitRace("player") or "soul"
+    local place = id.birthPlace
+    local eraName = era and era.name or "an unnamed age"
+    local blurb = era and era.blurb or ""
+    local yearBit = year and (" in the year " .. tostring(year) .. " ADP") or ""
+    local placeBit = (place and place ~= "") and (" at " .. place) or ""
+    return string.format(
+        "I, a %s, came into the world%s%s during %s. %s",
+        race, yearBit, placeBit, eraName, blurb
+    )
+end
+
+function Blackacre.Birthpath.RefreshFlavor()
+    local id = Identity()
+    local year = Blackacre.YearCalendar.GetBirthADP()
+    local era = nil
+    if year and Blackacre.GetEraAtYear then
+        era = Blackacre.GetEraAtYear(year)
+    end
+    if not era and id.birthEraId and Blackacre.GetEraById then
+        era = Blackacre.GetEraById(id.birthEraId)
+    end
+    id.lineageFlavor = Blackacre.Birthpath.BuildFlavor(era, year)
+    return id.lineageFlavor
+end
+
+function Blackacre.Birthpath.GetFlavor()
+    local id = Identity()
+    if id.lineageFlavor and id.lineageFlavor ~= "" then
+        return id.lineageFlavor
+    end
+    if Blackacre.YearCalendar.GetBirthADP() then
+        return Blackacre.Birthpath.RefreshFlavor()
+    end
+    return nil
+end
+
 function Blackacre.Birthpath.OnBirthSet()
-    local birth = Blackacre.YearCalendar.GetBirthADP()
-    if birth == nil then return end
-    local summary = Blackacre.Birthpath.GetSummary()
-    Blackacre.Chronicle.Capture.AddEntry("MANUAL", {
-        manualTitle = "Lineage recorded",
-        manualBody = summary,
-        title = "Lineage recorded",
-        body = summary,
-    }, "manual")
+    Blackacre.Birthpath.RefreshFlavor()
 end
 
 function Blackacre.Birthpath.DebugSampleHuman()

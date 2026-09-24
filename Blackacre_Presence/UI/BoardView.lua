@@ -53,7 +53,7 @@ function Blackacre.BoardView.Init()
     frame.hint:SetPoint("TOPLEFT", 12, -28)
     frame.hint:SetWidth(310)
     frame.hint:SetJustifyH("LEFT")
-    frame.hint:SetText("Wax-sealed missives at this board")
+    frame.hint:SetText("There are missives about the inn")
 
     frame.sealLegend = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     frame.sealLegend:SetPoint("TOPLEFT", 12, -44)
@@ -106,7 +106,7 @@ function Blackacre.BoardView.Init()
     knownFrame.hint:SetPoint("TOPLEFT", 14, -36)
     knownFrame.hint:SetWidth(290)
     knownFrame.hint:SetJustifyH("LEFT")
-    knownFrame.hint:SetText("Stand near a board to post or read. Regions registered:")
+    knownFrame.hint:SetText("Find an innkeeper for the latest news")
 
     for i = 1, MAX_KNOWN do
         local row = knownFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -119,14 +119,18 @@ function Blackacre.BoardView.Init()
     local kclose = CreateFrame("Button", nil, knownFrame, "UIPanelCloseButton")
     kclose:SetPoint("TOPRIGHT", -2, -2)
 
-    local ticker = CreateFrame("Frame")
-    ticker:RegisterEvent("ZONE_CHANGED")
-    ticker:RegisterEvent("ZONE_CHANGED_INDOORS")
-    ticker:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-    ticker:SetScript("OnEvent", function()
+    local watcher = CreateFrame("Frame")
+    watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+    watcher:RegisterEvent("ZONE_CHANGED")
+    watcher:RegisterEvent("ZONE_CHANGED_INDOORS")
+    watcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+    watcher:SetScript("OnEvent", function()
         Blackacre.BoardView.CheckProximity()
     end)
-    C_Timer.NewTicker(10, Blackacre.BoardView.CheckProximity)
+    -- Walk-up detection. Standing still does not poll the map.
+    if Blackacre.OnPlayerMove then
+        Blackacre.OnPlayerMove(Blackacre.BoardView.CheckProximity)
+    end
 end
 
 function Blackacre.BoardView.ShowKnownBoards()
@@ -155,6 +159,11 @@ function Blackacre.BoardView.ShowKnownBoards()
 end
 
 function Blackacre.BoardView.CheckProximity()
+    local p = Blackacre.CharDB and Blackacre.CharDB.presence
+    if p and p.seekingEnabled == false then
+        currentBoard = nil
+        return
+    end
     local board = Blackacre.Boards.GetNearbyBoard()
     if board and board.id ~= (currentBoard and currentBoard.id) then
         currentBoard = board

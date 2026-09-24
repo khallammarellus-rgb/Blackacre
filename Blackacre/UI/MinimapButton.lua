@@ -28,18 +28,18 @@ function Blackacre.MinimapButton.Init()
                     end
                 end
             else
-                if Blackacre.Flyout and Blackacre.Flyout.Toggle then
-                    Blackacre.Flyout.Toggle()
+                if Blackacre.ToolBox and Blackacre.ToolBox.Toggle then
+                    Blackacre.ToolBox.Toggle()
                 else
-                    Blackacre.Print("Enable Blackacre Presence for the presence panel.")
+                    Blackacre.Print("Tool Box is not loaded.")
                 end
             end
         end,
         OnTooltipShow = function(tooltip)
             tooltip:AddLine("Blackacre")
-            tooltip:AddLine("Left-click: Presence (beacons & bulletins)", 1, 1, 1)
+            tooltip:AddLine("Left-click: Tool Box", 1, 1, 1)
             tooltip:AddLine("Right-click: Traveler's Chronicle", 1, 1, 1)
-            tooltip:AddLine("Shift+Right-click: emit beacon", 0.8, 0.8, 0.8)
+            tooltip:AddLine("Shift+Right-click: Emit Beacon", 0.8, 0.8, 0.8)
             if unread > 0 then
                 tooltip:AddLine(unread .. " new nearby", 0.8, 0.7, 0.2)
             end
@@ -48,12 +48,13 @@ function Blackacre.MinimapButton.Init()
 
     -- Ensure a valid LibDBIcon table (hide must be boolean false to show)
     local minimapDB
-    if Blackacre.db and Blackacre.db.profile then
-        Blackacre.db.profile.minimap = Blackacre.db.profile.minimap or { hide = false }
-        if Blackacre.db.profile.minimap.hide == nil then
-            Blackacre.db.profile.minimap.hide = false
+    local settings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+    if settings then
+        settings.minimap = settings.minimap or { hide = false }
+        if settings.minimap.hide == nil then
+            settings.minimap.hide = false
         end
-        minimapDB = Blackacre.db.profile.minimap
+        minimapDB = settings.minimap
     else
         BlackacreDB = BlackacreDB or {}
         BlackacreDB.minimap = BlackacreDB.minimap or { hide = false }
@@ -75,8 +76,8 @@ function Blackacre.MinimapButton.Init()
 end
 
 function Blackacre.MinimapButton.Refresh()
-    local minimapDB = (Blackacre.db and Blackacre.db.profile and Blackacre.db.profile.minimap)
-        or (BlackacreDB and BlackacreDB.minimap)
+    local settings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+    local minimapDB = (settings and settings.minimap) or (BlackacreDB and BlackacreDB.minimap)
     if not minimapDB then
         icon:Show("Blackacre")
         return
@@ -86,6 +87,7 @@ function Blackacre.MinimapButton.Refresh()
     else
         icon:Show("Blackacre")
     end
+    icon:Refresh("Blackacre", minimapDB)
 end
 
 function Blackacre.MinimapButton.Notify()

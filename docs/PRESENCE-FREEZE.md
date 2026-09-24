@@ -1,52 +1,30 @@
 # Presence freeze — Bulletins & Beacons
 
-**Status:** Frozen for feature and cosmetic work until **Phase 10**.  
+**Status:** Open for the **Forever viability pass** (set-then-emit beacons, inn bulletins, hidden `Blackacre` comms channel). Chrome restyle and talking-head art stay frozen until Phase 10.
+
 **Package folder:** `Blackacre_Presence/`
 
 ---
 
-## What is frozen
+## What this pass may change
 
-Do **not** change behavior, UI layout, data shapes, or message formats for:
+- Beacon / bulletin editors, lifecycle, and `Blackacre/Core/Comms.lua` (channel name `Blackacre`, addon traffic only)
+- Seeking / Emit gates, crumb delivery (rumor / lead / found)
+- Innkeeper **See Postings** and zone inn toasts
+- Tool Box Seeking toggle
+- Tome journal-from-bulletin
 
-| Area | Location (approx.) |
-|------|---------------------|
-| Presence package | `Blackacre_Presence/**` (all files) |
-| Beacon / bulletin lifecycle | `Blackacre/Core/Lifecycle.lua` |
-| Comms payloads used by Presence | `Blackacre/Core/Comms.lua` (careful: shared with future Community) |
-| History drafts for beacons/bulletins | `Blackacre/History/History.lua` |
-| Profanity / blocklist (bulletin safety) | `Core/ProfanityFilter.lua`, `Data/Blocklist.lua` |
-| Slash entry points | `/ba` (aliases `/blackacre`, `/ic`), `beacon`, `bulletin`, `beacons on\|off` |
-| Minimap left-click / shift-right beacon | `UI/MinimapButton.lua` |
-| DB keys | `BlackacreDB.beacons`, `.bulletins`, `.notices`, `.history`, `.mutes`; CharDB `presence.*`, bulletin TTL settings |
+## What stays frozen
 
----
-
-## What *is* allowed before Phase 10
-
-| Change type | Allowed? | Notes |
-|-------------|----------|--------|
-| Folder/TOC/global rename (completed → Blackacre) | Done | Re-test beacons after `/reload` |
-| SavedVariables migration In Character → Blackacre | Yes | Keep Presence keys intact (`_migratedFromIC`) |
-| Comments / docs pointing at freeze | Yes | |
-| Fixing a **crash** that blocks all of core | Ask human first | Prefer minimal fix |
-| Visual restyle of Presence | **No** | Wait for Phase 10 |
-| New beacon/bulletin features | **No** | |
-| Deleting Presence package | **No** | |
-
----
-
-## Why freeze
-
-Blackacre solo loop (Survival → Paths → Roadmap → Tome → Setup) is the product priority. Presence already works as a separate package. Changing it mid-migration risks regressions and distracts from rename/Ace3/survival work.
-
----
+| Change type | Allowed? |
+|---|---|
+| New talking-head art | **No** (talking-head is abandoned; Found uses toast) |
+| Presence chrome beyond Backstory QuestLog-frame | **No** (Phase 10) |
+| TRP3 writes | **No** |
+| Custom *chat* on the Blackacre channel | **No** — channel is comms only |
 
 ## Phase 10 (later)
 
-- Align Presence chrome fully to Theme tokens  
-- Audit raw backdrops → Theme  
-- Optional custom Media for boards/seals  
-- Only then expand features  
-
-Until the human says **“start Phase 10”**, treat this file as a stop sign.
+- Align Presence chrome fully to Theme tokens
+- Optional custom Media for boards/seals
+- Only then expand social features

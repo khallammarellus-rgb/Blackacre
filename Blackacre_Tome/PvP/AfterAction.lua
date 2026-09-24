@@ -88,8 +88,79 @@ local function OutcomeForPlayer(row)
     return "defeat", "The day was lost — but the tale remains."
 end
 
+local function ScoreRows()
+    local rows = {}
+    local num = GetNumBattlefieldScores and GetNumBattlefieldScores() or 0
+    for i = 1, num do
+        local name, killingBlows, honorableKills, deaths, _, faction, _, _, className =
+            GetBattlefieldScore(i)
+        if type(name) == "string" then
+            rows[#rows + 1] = {
+                name = name,
+                killingBlows = tonumber(killingBlows) or 0,
+                honorableKills = tonumber(honorableKills) or 0,
+                deaths = tonumber(deaths) or 0,
+                faction = faction,
+                className = type(className) == "string" and className or "adventurer",
+            }
+        end
+    end
+    return rows
+end
+
+local function SameTeam(rowFaction, playerFaction)
+    if rowFaction == nil or playerFaction == nil then return false end
+    if playerFaction == "Horde" then
+        return rowFaction == 0 or rowFaction == "Horde"
+    end
+    if playerFaction == "Alliance" then
+        return rowFaction == 1 or rowFaction == "Alliance"
+    end
+    return false
+end
+
 local function BuildFacts(row, mapName, isArena)
     local outcome, outcomeLine = OutcomeForPlayer(row)
+    local playerFaction = UnitFactionGroup and UnitFactionGroup("player") or "Alliance"
+    local teamDeaths = 0
+    local ally, enemy
+    for _, scored in ipairs(ScoreRows()) do
+        local mine = SameTeam(scored.faction, playerFaction)
+        if mine then
+            teamDeaths = teamDeaths + (scored.deaths or 0)
+            if not ally or scored.killingBlows > ally.killingBlows then
+                ally = scored
+            end
+        elseif not enemy or scored.killingBlows > enemy.killingBlows then
+            enemy = scored
+        end
+    end
+    local year, month, day = "this year", "this month", "this day"
+    if Blackacre.YearCalendar and Blackacre.YearCalendar.JournalStamp then
+        year, month, day = Blackacre.YearCalendar.JournalStamp()
+    end
+    local body
+    if outcome == "victory" then
+        body = string.format(
+            "Let glory shine on me today at %s, not only did we make it out but we pushed the encroachers back! It was a tremendous effort today on %s, %s %s. I was inspired by a compatriot today who rallied us all, a great %s that went by the name of %s.",
+            mapName or "the field",
+            year, month, day,
+            ally and ally.className or "ally",
+            ally and ally.name or "a nameless friend"
+        )
+    else
+        body = string.format(
+            "I was not only witness but party to the clash at %s, I regretfully write down the misgivings of a cruel field. Steel took in measure the casualties of %d. An emboldened %s that went by the name of %s dominated the fields of strife. I held my own but it was not enough.\nDamage done: %s\nHealing done: %s\nKilling blows: %d\nHonorable kills: %d",
+            mapName or "the field",
+            teamDeaths,
+            enemy and enemy.className or "opponent",
+            enemy and enemy.name or "a nameless foe",
+            FormatNumber(row and row.damage or 0),
+            FormatNumber(row and row.healing or 0),
+            row and row.killingBlows or 0,
+            row and row.honorableKills or 0
+        )
+    end
     return {
         outcome = outcome,
         outcomeLine = outcomeLine,
@@ -101,6 +172,8 @@ local function BuildFacts(row, mapName, isArena)
         killingBlows = row and row.killingBlows or 0,
         damageText = FormatNumber(row and row.damage or 0),
         healingText = FormatNumber(row and row.healing or 0),
+        pvpBody = body,
+        promptBody = body,
         title = string.format(
             "%s — %s",
             isArena and "Arena" or "Battleground",
@@ -131,15 +204,46 @@ function Blackacre.PvP.AfterAction.TryReport()
     pendingReport = false
 end
 
+local scoreTicker
+
+local function InPvPInstance()
+    local inInstance, instanceType = IsInInstance()
+    return inInstance and (instanceType == "pvp" or instanceType == "arena")
+end
+
+local function StopScorePoll()
+    if scoreTicker then
+        scoreTicker:Cancel()
+        scoreTicker = nil
+    end
+end
+
+local function PollScore()
+    if not InPvPInstance() then
+        StopScorePoll()
+        return
+    end
+    pendingReport = true
+    if RequestBattlefieldScoreData then
+        RequestBattlefieldScoreData()
+    end
+    local winner = GetBattlefieldWinner and GetBattlefieldWinner()
+    if winner ~= nil then
+        Blackacre.PvP.AfterAction.TryReport()
+    end
+end
+
+local function StartScorePoll()
+    if scoreTicker then return end
+    scoreTicker = C_Timer.NewTicker(5, PollScore)
+end
+
 function Blackacre.PvP.AfterAction.Init()
     EnsureDB()
     local frame = CreateFrame("Frame")
     frame:RegisterEvent("UPDATE_BATTLEFIELD_SCORE")
     frame:RegisterEvent("PLAYER_ENTERING_WORLD")
     frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-    if C_PvP and C_PvP.IsMatchComplete then
-        -- no dedicated event on all builds; score update is enough
-    end
     frame:SetScript("OnEvent", function(_, event)
         if event == "UPDATE_BATTLEFIELD_SCORE" then
             local winner = GetBattlefieldWinner and GetBattlefieldWinner()
@@ -147,32 +251,17 @@ function Blackacre.PvP.AfterAction.Init()
                 C_Timer.After(0.5, Blackacre.PvP.AfterAction.TryReport)
             end
         elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
-            -- Leaving a BG often fires this after scores were available; one more attempt
             if pendingReport then
                 C_Timer.After(1, Blackacre.PvP.AfterAction.TryReport)
             end
-            -- Detect entry into BG for request
-            local inInstance, instanceType = IsInInstance()
-            if inInstance and (instanceType == "pvp" or instanceType == "arena") then
+            if InPvPInstance() then
                 pendingReport = true
                 if RequestBattlefieldScoreData then
                     RequestBattlefieldScoreData()
                 end
-            end
-        end
-    end)
-
-    -- Poll lightly while in PvP instance for match end
-    C_Timer.NewTicker(5, function()
-        local inInstance, instanceType = IsInInstance()
-        if inInstance and (instanceType == "pvp" or instanceType == "arena") then
-            pendingReport = true
-            if RequestBattlefieldScoreData then
-                RequestBattlefieldScoreData()
-            end
-            local winner = GetBattlefieldWinner and GetBattlefieldWinner()
-            if winner ~= nil then
-                Blackacre.PvP.AfterAction.TryReport()
+                StartScorePoll()
+            else
+                StopScorePoll()
             end
         end
     end)

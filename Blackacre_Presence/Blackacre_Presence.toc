@@ -1,6 +1,7 @@
-## Interface: 120007
+## Interface: 120007, 16001
+## Interface-Camelot: 16001
 ## Title: Blackacre |cffc9a227Presence|r
-## Notes: Beacons (talking-head, anti-spam) and Bulletins at proximity boards
+## Notes: Beacons (crumbs on hidden Blackacre channel) and inn bulletins
 ## Version: 2.0.0-dev
 ## Author: khallammarellus-rgb
 ## RequiredDeps: Blackacre
@@ -14,4 +15,5 @@ UI\BoardView.lua
 UI\PostEditor.lua
 Presence\BeaconHead.lua
 Presence\BeaconPins.lua
+Presence\InnGossip.lua
 Bootstrap.lua

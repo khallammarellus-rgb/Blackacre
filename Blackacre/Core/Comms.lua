@@ -1,13 +1,15 @@
 Blackacre = Blackacre or {}
 Blackacre.Comms = {}
 
-local CTL = ChatThrottleLib
 local AceSerializer = LibStub("AceSerializer-3.0")
-local LibDeflate = LibDeflate
+-- LibDeflate registers with LibStub and returns the library from the file.
+-- The addon loader discards that return, so the global stays nil.
+local LibDeflate = LibStub("LibDeflate")
 
-local CHANNEL_NAME = Blackacre.CHANNEL_NAME
+local CHANNEL_NAME = Blackacre.CHANNEL_NAME or "Blackacre"
 local PREFIX = Blackacre.PREFIX
 local SEP = Blackacre.SEP
+local OLD_CHANNEL = "BA_Channel"
 
 local function EncodePayload(tbl)
     local serialized = AceSerializer:Serialize(tbl)
@@ -28,8 +30,80 @@ local function DecodePayload(msg)
     return nil
 end
 
+local CHANNEL_NAME_LOWER = CHANNEL_NAME:lower()
+
+local function ChannelNameMatch(name)
+    return name and name:lower() == CHANNEL_NAME_LOWER
+end
+
+local cachedChannelID
+local leftLegacyChannel = false
+local channelHidden = false
+
+local function HideChannelFromChat()
+    if channelHidden then return end
+    local touched = false
+    for i = 1, (NUM_CHAT_WINDOWS or 10) do
+        local f = _G["ChatFrame" .. i]
+        if f and ChatFrame_RemoveChannel then
+            pcall(ChatFrame_RemoveChannel, f, CHANNEL_NAME)
+            touched = true
+        end
+    end
+    if touched then
+        channelHidden = true
+    end
+end
+
+local function KnownChannelID()
+    if cachedChannelID and cachedChannelID > 0 then
+        local _, name = GetChannelName(cachedChannelID)
+        if ChannelNameMatch(name) then
+            return cachedChannelID
+        end
+        cachedChannelID = nil
+        channelHidden = false
+    end
+    local id = GetChannelName(CHANNEL_NAME)
+    if id and id > 0 then
+        cachedChannelID = id
+        return id
+    end
+    return nil
+end
+
+local function FilterBlackacreChat(_, _, msg, sender, language, _, _, _, _, _, channelName)
+    if ChannelNameMatch(channelName) then
+        return true
+    end
+end
+
+local chatFilterInstalled
+local function InstallChatFilter()
+    if chatFilterInstalled then return end
+    chatFilterInstalled = true
+    if ChatFrame_AddMessageEventFilter then
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL", FilterBlackacreChat)
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL_NOTICE", FilterBlackacreChat)
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL_JOIN", FilterBlackacreChat)
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL_LEAVE", FilterBlackacreChat)
+        ChatFrame_AddMessageEventFilter("CHAT_MSG_CHANNEL_NOTICE_USER", FilterBlackacreChat)
+    end
+end
+
 local function EnsureChannel(retries)
     retries = retries or 3
+    -- Leave the old channel name once. Doing it on every send is a server request.
+    if not leftLegacyChannel then
+        leftLegacyChannel = true
+        pcall(LeaveChannelByName, OLD_CHANNEL)
+    end
+    local existing = KnownChannelID()
+    if existing then
+        HideChannelFromChat()
+        return existing
+    end
+
     local channels = { GetChannelList() }
     local generalExists = false
     for i = 2, #channels, 3 do
@@ -43,22 +117,11 @@ local function EnsureChannel(retries)
         return nil
     end
 
-    local channelID
-    for i = 1, #channels, 3 do
-        if channels[i + 1] and channels[i + 1]:lower() == CHANNEL_NAME:lower() then
-            channelID = channels[i]
-            local _, name = GetChannelName(channelID)
-            if name == CHANNEL_NAME then
-                return channelID
-            end
-            LeaveChannelByName(CHANNEL_NAME)
-            break
-        end
-    end
-
     JoinTemporaryChannel(CHANNEL_NAME)
-    channelID = select(1, GetChannelName(CHANNEL_NAME))
+    local channelID = GetChannelName(CHANNEL_NAME)
     if channelID and channelID > 0 then
+        cachedChannelID = channelID
+        HideChannelFromChat()
         return channelID
     end
     if retries > 0 then
@@ -70,30 +133,20 @@ end
 local function SendOnChannel(message, prio)
     local channelID = EnsureChannel()
     if not channelID then return false end
+    if not Blackacre.addon then return false end
     Blackacre.addon:SendCommMessage(PREFIX, message, "CHANNEL", channelID, prio or "NORMAL")
     return true
 end
 
-local function SendWhisper(target, message, logged, prio)
-    if logged then
-        CTL:SendAddonMessageLogged(prio or "NORMAL", PREFIX, message, "WHISPER", target)
-    else
-        Blackacre.addon:SendCommMessage(PREFIX, message, "WHISPER", target, prio or "NORMAL")
-    end
-end
-
-local function ZoneMatches(zoneId, subzone)
-    local ctx = Blackacre.GetZoneContext()
-    if zoneId and zoneId ~= 0 and ctx.zoneId ~= zoneId then
-        return false
-    end
-    if subzone and subzone ~= "" and ctx.subzone ~= "" then
-        return ctx.subzone:lower() == subzone:lower()
-    end
-    return true
+local function SendWhisper(target, message, _logged, prio)
+    -- AceComm splits long payloads and sends them through ChatThrottleLib.
+    -- There is no SendAddonMessageLogged on CTL; calling it errored every full bulletin.
+    if not Blackacre.addon then return end
+    Blackacre.addon:SendCommMessage(PREFIX, message, "WHISPER", target, prio or "NORMAL")
 end
 
 local function CacheEntry(kind, entry)
+    BlackacreDB.cache = BlackacreDB.cache or {}
     BlackacreDB.cache[kind] = BlackacreDB.cache[kind] or {}
     BlackacreDB.cache[kind][entry.id] = {
         data = entry,
@@ -102,59 +155,81 @@ local function CacheEntry(kind, entry)
 end
 
 local function GetCached(kind, id)
-    local bucket = BlackacreDB.cache[kind]
+    local bucket = BlackacreDB.cache and BlackacreDB.cache[kind]
     return bucket and bucket[id] and bucket[id].data or nil
 end
 
 function Blackacre.Comms.Init(addonRef)
-    -- Prefer the AceAddon passed from OnInitialize; fall back to global.
     local ace = addonRef or Blackacre.addon
     if not ace then return end
-    -- Register a function ref (not a method name): colon-style
-    -- `function addon:OnCommReceived` fails at load when local addon is nil.
     ace:RegisterComm(PREFIX, Blackacre.Comms.OnCommReceived)
+    InstallChatFilter()
 end
 
 function Blackacre.Comms.Enable()
+    InstallChatFilter()
     local frame = CreateFrame("Frame")
     frame:RegisterEvent("CHAT_MSG_CHANNEL_NOTICE")
-    frame:SetScript("OnEvent", function(_, _, msg, channelName)
-        if msg == "YOU_JOINED" and (channelName == "General" or channelName == "Trade") then
-            C_Timer.After(1, EnsureChannel)
-            frame:UnregisterAllEvents()
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:SetScript("OnEvent", function(_, event, msg, channelName)
+        if event == "PLAYER_ENTERING_WORLD" then
+            C_Timer.After(2, function()
+                local id = EnsureChannel()
+                HideChannelFromChat()
+                if id and Blackacre.Print then
+                    Blackacre.Print("Blackacre comms joined")
+                end
+            end)
+            return
+        end
+        if msg == "YOU_JOINED" and (channelName == "General" or channelName == "Trade" or ChannelNameMatch(channelName)) then
+            C_Timer.After(1, function()
+                EnsureChannel()
+                HideChannelFromChat()
+            end)
         end
     end)
-    C_Timer.NewTicker(3600, EnsureChannel)
+    C_Timer.NewTicker(3600, function()
+        -- Chat settings can put the hidden channel back. Re-hide hourly, not per message.
+        channelHidden = false
+        EnsureChannel()
+    end)
+    C_Timer.After(3, EnsureChannel)
 end
 
 function Blackacre.Comms.SendPing()
+    local id = EnsureChannel()
+    HideChannelFromChat()
     SendOnChannel("PING")
-    Blackacre.Print("Ping sent on " .. CHANNEL_NAME .. ".")
+    if id then
+        Blackacre.Print("Comms pinged")
+    else
+        Blackacre.Print("Attempting to join")
+    end
 end
 
 function Blackacre.Comms.BroadcastBeacon(beacon)
-    -- Invisible addon CHANNEL only — never say/yell/player chat.
-    local breadcrumb = beacon.breadcrumb or beacon.shortText or ""
-    if #breadcrumb > 120 then breadcrumb = breadcrumb:sub(1, 117) .. "..." end
-    local nameField = ""
-    if beacon.showNameZone or beacon.showNameProximity then
-        nameField = beacon.charName or UnitName("player") or ""
-    end
-    local ping = table.concat({
-        "BP",
-        beacon.id,
-        tostring(beacon.zoneId or 0),
-        string.format("%.4f", (beacon.coords and beacon.coords.x) or 0),
-        string.format("%.4f", (beacon.coords and beacon.coords.y) or 0),
-        breadcrumb,
-        tostring(beacon.expiresAt or 0),
-        beacon.showNameZone and "1" or "0",
-        beacon.showNameProximity and "1" or "0",
-        nameField,
-        beacon.ownerGUID or UnitGUID("player") or "",
-    }, SEP)
-    SendOnChannel(ping)
+    local payload = EncodePayload({
+        opcode = "BC",
+        id = beacon.id,
+        ownerGUID = beacon.ownerGUID,
+        charName = beacon.charName,
+        zoneId = beacon.zoneId,
+        zoneName = beacon.zoneName,
+        subzone = beacon.subzone,
+        coords = beacon.coords,
+        locKind = beacon.locKind,
+        rumor = beacon.rumor,
+        lead = beacon.lead,
+        found = beacon.found,
+        shortText = beacon.shortText,
+        fullText = beacon.fullText,
+        expiresAt = beacon.expiresAt,
+        templateId = beacon.templateId,
+    })
+    SendOnChannel(payload)
     CacheEntry("beacon", beacon)
+    BlackacreDB.beacons = BlackacreDB.beacons or {}
     BlackacreDB.beacons[beacon.id] = beacon
 end
 
@@ -164,7 +239,7 @@ function Blackacre.Comms.BroadcastRetract(id, kind)
 end
 
 function Blackacre.Comms.BroadcastBoardQuery(boardId)
-    SendOnChannel("BQ" .. SEP .. boardId)
+    SendOnChannel("BQ" .. SEP .. (boardId or ""))
 end
 
 function Blackacre.Comms.SendBulletinFull(target, bulletin)
@@ -181,11 +256,22 @@ end
 Blackacre.Comms.RequestNoticeFull = Blackacre.Comms.RequestBulletinFull
 
 function Blackacre.Comms.AnnounceBulletin(bulletin)
-    local summary = table.concat({
-        "NS", bulletin.id, bulletin.boardId, bulletin.title, bulletin.scopeTier,
-        tostring(bulletin.expiresAt),
-    }, SEP)
-    SendOnChannel(summary)
+    local payload = EncodePayload({
+        opcode = "NSZ",
+        id = bulletin.id,
+        title = bulletin.title,
+        bodyText = bulletin.bodyText,
+        postedZones = bulletin.postedZones,
+        boardId = bulletin.boardId,
+        scopeTier = bulletin.scopeTier,
+        expiresAt = bulletin.expiresAt,
+        charName = bulletin.charName,
+        ownerGUID = bulletin.ownerGUID,
+        stationary = bulletin.stationary,
+        waxSeal = bulletin.waxSeal,
+        font = bulletin.font,
+    })
+    SendOnChannel(payload)
     CacheEntry("bulletin", bulletin)
     BlackacreDB.bulletins = BlackacreDB.bulletins or {}
     BlackacreDB.bulletins[bulletin.id] = bulletin
@@ -194,127 +280,127 @@ end
 
 Blackacre.Comms.AnnounceNotice = Blackacre.Comms.AnnounceBulletin
 
-local function ReceiveBeaconsEnabled()
+local function SeekingOn()
     local p = Blackacre.CharDB and Blackacre.CharDB.presence
+    if p and p.seekingEnabled == false then return false end
     if p and p.receiveBeacons == false then return false end
     return true
 end
 
-local function HandleBeaconPing(fields, sender)
-    if not ReceiveBeaconsEnabled() then return end
-    -- BP id zoneId x y breadcrumb expiresAt showNameZone showNameProximity name guid
-    local id = fields[2]
-    local zoneId = tonumber(fields[3])
-    local x = tonumber(fields[4])
-    local y = tonumber(fields[5])
-    local breadcrumb = fields[6] or "A presence stirs nearby."
-    local expiresAt = tonumber(fields[7])
-    local showNameZone = fields[8] == "1"
-    local showNameProximity = fields[9] == "1"
-    local nameField = fields[10] or ""
-    local guid = fields[11] or sender
-    if not id then return end
-    if expiresAt and expiresAt < time() then return end
-    -- Zone-only filter (no subzone required for lite beacons)
-    local ctx = Blackacre.GetZoneContext()
-    if zoneId and zoneId ~= 0 and ctx.zoneId ~= zoneId then return end
-    if Blackacre.IsMuted(sender) then return end
+local function ZoneNameMatch(a, b)
+    if not a or not b or a == "" or b == "" then return false end
+    return a:lower() == b:lower()
+end
 
-    local displayName = nil
-    if nameField ~= "" and (showNameZone or showNameProximity) then
-        displayName = nameField
-    end
+local function HandleBeaconPayload(data, sender)
+    if not SeekingOn() then return end
+    if not data or not data.id then return end
+    if data.expiresAt and data.expiresAt < time() then return end
+    if Blackacre.IsMuted(sender) then return end
+    local ctx = Blackacre.GetZoneContext()
+    local sameId = data.zoneId and data.zoneId ~= 0 and ctx.zoneId == data.zoneId
+    local sameName = ZoneNameMatch(data.zoneName, ctx.zoneName)
+    if not sameId and not sameName then return end
 
     local beacon = {
-        id = id,
-        ownerGUID = guid,
-        charName = displayName,
+        id = data.id,
+        ownerGUID = data.ownerGUID or sender,
+        charName = data.charName,
         senderName = sender,
-        shortText = breadcrumb,
-        breadcrumb = breadcrumb,
-        zoneId = zoneId,
-        coords = { x = x or 0, y = y or 0 },
-        expiresAt = expiresAt,
-        showNameZone = showNameZone,
-        showNameProximity = showNameProximity,
+        zoneId = data.zoneId,
+        zoneName = data.zoneName,
+        subzone = data.subzone,
+        coords = data.coords or { x = 0, y = 0 },
+        locKind = data.locKind,
+        rumor = data.rumor,
+        lead = data.lead,
+        found = data.found,
+        shortText = data.shortText,
+        fullText = data.fullText,
+        expiresAt = data.expiresAt,
         status = Blackacre.STATUS.ACTIVE,
         receivedAt = time(),
     }
-    -- Dedupe by ownerGUID: one beacon per emitter
     BlackacreDB.beacons = BlackacreDB.beacons or {}
     for bid, b in pairs(BlackacreDB.beacons) do
-        if b.ownerGUID == guid and bid ~= id then
+        if b.ownerGUID == beacon.ownerGUID and bid ~= beacon.id then
             BlackacreDB.beacons[bid] = nil
-            if BlackacreDB.cache and BlackacreDB.cache.beacon then
-                BlackacreDB.cache.beacon[bid] = nil
-            end
         end
     end
-    BlackacreDB.beacons[id] = beacon
+    BlackacreDB.beacons[beacon.id] = beacon
     CacheEntry("beacon", beacon)
     if Blackacre.Flyout and Blackacre.Flyout.OnBeaconDiscovered then
         Blackacre.Flyout.OnBeaconDiscovered(beacon)
     end
     if Blackacre.BeaconHead and Blackacre.BeaconHead.OnCacheChanged then
-        Blackacre.BeaconHead.OnCacheChanged()
+        Blackacre.BeaconHead.OnCacheChanged(beacon)
     end
     if Blackacre.BeaconPins and Blackacre.BeaconPins.Refresh then
         Blackacre.BeaconPins.Refresh()
     end
 end
 
-local function HandleBulletinSummary(fields, sender)
-    local id, boardId, title, scopeTier, expiresAt = fields[2], fields[3], fields[4], fields[5], tonumber(fields[6])
-    if not id or not boardId then return end
-    if expiresAt and expiresAt < time() then return end
+local function HandleBulletinPayload(data, sender)
+    if not SeekingOn() then return end
+    if not data or not data.id then return end
+    if data.expiresAt and data.expiresAt < time() then return end
     if Blackacre.IsMuted(sender) then return end
-
     local bulletin = {
-        id = id,
-        ownerGUID = UnitGUID(sender) or sender,
-        charName = sender,
-        title = title or "Bulletin",
-        scopeTier = scopeTier or Blackacre.SCOPE.INDIVIDUAL,
-        boardId = boardId,
-        expiresAt = expiresAt,
+        id = data.id,
+        ownerGUID = data.ownerGUID or sender,
+        charName = data.charName or sender,
+        title = data.title or "Bulletin",
+        bodyText = data.bodyText,
+        postedZones = data.postedZones,
+        boardId = data.boardId,
+        scopeTier = data.scopeTier or Blackacre.SCOPE.INDIVIDUAL,
+        expiresAt = data.expiresAt,
+        stationary = data.stationary,
+        waxSeal = data.waxSeal,
+        font = data.font,
         status = Blackacre.STATUS.ACTIVE,
         receivedAt = time(),
+        senderName = sender,
     }
     CacheEntry("bulletin", bulletin)
     CacheEntry("notice", bulletin)
     if Blackacre.BoardView and Blackacre.BoardView.OnBulletinDiscovered then
         Blackacre.BoardView.OnBulletinDiscovered(bulletin)
-    elseif Blackacre.BoardView and Blackacre.BoardView.OnNoticeDiscovered then
-        Blackacre.BoardView.OnNoticeDiscovered(bulletin)
+    end
+    if Blackacre.InnBoard and Blackacre.InnBoard.OnBulletinDiscovered then
+        Blackacre.InnBoard.OnBulletinDiscovered(bulletin)
     end
 end
 
--- AceComm function-ref callback: (prefix, message, distribution, sender) — no self.
 function Blackacre.Comms.OnCommReceived(prefix, message, distribution, sender)
     if prefix ~= PREFIX or not message then return end
     if sender == UnitName("player") then return end
-    if C_FriendList.IsIgnored(sender) then return end
+    if C_FriendList and C_FriendList.IsIgnored and C_FriendList.IsIgnored(sender) then return end
 
     if message == "PING" then
         SendWhisper(sender, "PONG", false)
-        Blackacre.Print("Comms pong from " .. sender)
         return
     end
     if message == "PONG" then
-        Blackacre.Print("Comms pong from " .. sender)
+        Blackacre.Print("Comms ping from " .. sender)
         return
     end
 
     local decoded = DecodePayload(message)
     if decoded then
-        if decoded.opcode == "NF" and (decoded.bulletin or decoded.notice) then
+        if decoded.opcode == "BC" then
+            HandleBeaconPayload(decoded, sender)
+        elseif decoded.opcode == "NSZ" then
+            HandleBulletinPayload(decoded, sender)
+        elseif decoded.opcode == "NF" and (decoded.bulletin or decoded.notice) then
             local b = decoded.bulletin or decoded.notice
             CacheEntry("bulletin", b)
             CacheEntry("notice", b)
             if Blackacre.BoardView and Blackacre.BoardView.OnBulletinFullReceived then
                 Blackacre.BoardView.OnBulletinFullReceived(b)
-            elseif Blackacre.BoardView and Blackacre.BoardView.OnNoticeFullReceived then
-                Blackacre.BoardView.OnNoticeFullReceived(b)
+            end
+            if Blackacre.InnBoard and Blackacre.InnBoard.OnBulletinFullReceived then
+                Blackacre.InnBoard.OnBulletinFullReceived(b)
             end
         elseif decoded.opcode == "IC_SUM" then
             if Blackacre.Share and Blackacre.Share.OnPeerSummary then
@@ -326,26 +412,17 @@ function Blackacre.Comms.OnCommReceived(prefix, message, distribution, sender)
 
     local fields = { strsplit(SEP, message) }
     local opcode = fields[1]
-
-    if opcode == "BP" then
-        HandleBeaconPing(fields, sender)
-    elseif opcode == "RT" then
+    if opcode == "RT" then
         local kind, id = fields[2], fields[3]
         if kind == "notice" then kind = "bulletin" end
         if kind and id then
             Blackacre.Lifecycle.HandleRemoteRetract(kind, id)
         end
     elseif opcode == "BQ" then
-        local boardId = fields[2]
-        Blackacre.Comms.RespondToBoardQuery(sender, boardId)
-    elseif opcode == "BR" then
-        HandleBulletinSummary(fields, sender)
-    elseif opcode == "NS" then
-        HandleBulletinSummary(fields, sender)
+        Blackacre.Comms.RespondToBoardQuery(sender, fields[2])
     elseif opcode == "FN" then
         local bulletinId = fields[2]
         local bulletin = (BlackacreDB.bulletins and BlackacreDB.bulletins[bulletinId])
-            or (BlackacreDB.notices and BlackacreDB.notices[bulletinId])
             or GetCached("bulletin", bulletinId)
             or GetCached("notice", bulletinId)
         if bulletin then
@@ -377,28 +454,16 @@ function Blackacre.Comms.RespondToBoardQuery(requester, boardId)
     if not boardId then return end
     local store = BlackacreDB.bulletins or BlackacreDB.notices or {}
     for _, bulletin in pairs(store) do
-        if bulletin.boardId == boardId and bulletin.status == Blackacre.STATUS.ACTIVE then
-            if not bulletin.expiresAt or bulletin.expiresAt >= time() then
-                local summary = table.concat({
-                    "BR", bulletin.id, bulletin.boardId, bulletin.title, bulletin.scopeTier,
-                    tostring(bulletin.expiresAt or 0),
-                }, SEP)
-                SendWhisper(requester, summary, false)
+        local zones = bulletin.postedZones
+        local match = bulletin.boardId == boardId
+        if not match and type(zones) == "table" then
+            for i = 1, #zones do
+                if zones[i] == boardId then match = true break end
             end
         end
-    end
-    local cache = (BlackacreDB.cache and (BlackacreDB.cache.bulletin or BlackacreDB.cache.notice))
-    if cache then
-        for _, wrapped in pairs(cache) do
-            local bulletin = wrapped.data
-            if bulletin.boardId == boardId and bulletin.status == Blackacre.STATUS.ACTIVE then
-                if not bulletin.expiresAt or bulletin.expiresAt >= time() then
-                    local summary = table.concat({
-                        "BR", bulletin.id, bulletin.boardId, bulletin.title, bulletin.scopeTier,
-                        tostring(bulletin.expiresAt or 0), tostring(wrapped.lastConfirmedAt or time()),
-                    }, SEP)
-                    SendWhisper(requester, summary, false)
-                end
+        if match and bulletin.status == Blackacre.STATUS.ACTIVE then
+            if not bulletin.expiresAt or bulletin.expiresAt >= time() then
+                Blackacre.Comms.SendBulletinFull(requester, bulletin)
             end
         end
     end

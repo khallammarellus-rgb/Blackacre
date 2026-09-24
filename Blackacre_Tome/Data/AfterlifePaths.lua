@@ -177,3 +177,15 @@ function Blackacre.GetAfterlifePath(pathId)
     end
     return nil
 end
+
+function Blackacre.ListAfterlifePaths()
+    local src = Blackacre.AfterlifePaths or {}
+    local out = {}
+    for i = 1, #src do
+        local path = src[i]
+        if not Blackacre.Compat or not Blackacre.Compat.AfterlifePathAllowed or Blackacre.Compat.AfterlifePathAllowed(path) then
+            out[#out + 1] = path
+        end
+    end
+    return out
+end

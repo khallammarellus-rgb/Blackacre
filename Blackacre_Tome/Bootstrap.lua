@@ -3,11 +3,25 @@ Blackacre = Blackacre or {}
 
 local function InitTome()
     Blackacre.CharDB = Blackacre.CharDB or {}
-    Blackacre.CharDB.voice = Blackacre.CharDB.voice or {
-        accent = "auto",
-        applyToChronicle = true,
-        applyToBulletins = false,
-    }
+    local profileSettings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+    if profileSettings then
+        profileSettings.voice = profileSettings.voice or {
+            language = "auto",
+            accent = "auto",
+            applyToChronicle = true,
+            applyToBulletins = false,
+        }
+    end
+    -- Voice belongs to the active AceDB profile.  Older fallback code may
+    -- still look under CharDB, but the normal path never creates that copy.
+    if not profileSettings then
+        Blackacre.CharDB.voice = Blackacre.CharDB.voice or {
+            language = "auto",
+            accent = "auto",
+            applyToChronicle = true,
+            applyToBulletins = false,
+        }
+    end
     Blackacre.CharDB.setup = Blackacre.CharDB.setup or {
         completed = false,
         version = 1,
@@ -62,6 +76,9 @@ local function InitTome()
     end
     if Blackacre.LineageUI and Blackacre.LineageUI.Init then
         Blackacre.LineageUI.Init()
+    end
+    if Blackacre.PathUI and Blackacre.PathUI.Init then
+        Blackacre.PathUI.Init()
     end
     if Blackacre.SetupWizard and Blackacre.SetupWizard.Init then
         Blackacre.SetupWizard.Init()

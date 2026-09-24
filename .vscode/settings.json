@@ -1,0 +1,48 @@
+{
+    "Lua.runtime.version": "Lua 5.1",
+    "Lua.runtime.builtin": {
+        "basic": "disable",
+        "debug": "disable",
+        "io": "disable",
+        "math": "disable",
+        "os": "disable",
+        "package": "disable",
+        "string": "disable",
+        "table": "disable",
+        "utf8": "disable"
+    },
+    "Lua.workspace.library": [
+        "~\\.vscode\\extensions\\ketho.wow-api-0.22.3\\Annotations\\Core"
+    ],
+    "Lua.diagnostics.globals": [
+        "NUM_TOTAL_EQUIPPED_BAG_SLOTS",
+        "NUM_BAG_SLOTS",
+        "GameTooltip_Hide",
+        "GameTooltip",
+        "StaticPopupDialogs",
+        "StaticPopup_Show",
+        "QuestInfoDescriptionText",
+        "AchievementUtil",
+        "CALENDAR_FULLDATE_MONTH_NAMES",
+        "ChatFrame_AddMessageEventFilter",
+        "NUM_CHAT_WINDOWS",
+        "ChatFrame_RemoveChannel",
+        "GameFontNormalHuge",
+        "MailTextFontNormal",
+        "QuestFontNormalLarge",
+        "QuestFont",
+        "NineSliceUtil",
+        "SOUNDKIT",
+        "GameFontHighlightLarge",
+        "DEFAULT_CHAT_FRAME",
+        "Minimap",
+        "WorldMapFrame",
+        "GossipFrame",
+        "ChatFrame_SendTell",
+        "UIDropDownMenu_SetSelectedID",
+        "SAVE",
+        "CANCEL",
+        "ChatFontNormal",
+        "UIDropDownMenu_GetSelectedID"
+    ]
+}

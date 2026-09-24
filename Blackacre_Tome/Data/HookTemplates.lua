@@ -3,77 +3,55 @@ Blackacre = Blackacre or {}
 -- Template banks by chronicle kind. {slots} filled by Chronicle.Hooks.
 Blackacre.HookTemplates = {
     QUEST = {
-        "In the year {yearKC}, {name} completed a trial in {zone}: {questName}. As a {level}-seasoned {race} {class}{specClause}, they marked another step on the long road of their story.",
+        "It was {yearKC} {month}, and {day} and I just marked another milestone in my personal histories. . .({questName}). {questOffer} {questReward}",
     },
     QUESTLINE = {
-        "In {yearKC}, {name} closed the road called \"{lineName}\" in {zone}. This page is a digest, not a census of every errand. {onePager}",
-        "The traveler {name}, a {race} {class}, finished \"{lineName}.\" What follows is the shape of the journey for later editing: {onePager}",
+        "It was {yearKC} {month}, and {day} in the {dayDescription} and it was {weatherText}. {giverName} just sent me on an errand. . . {questOffer}",
+        "I finished {giverName}'s. . .({questReward})",
     },
     META_QUEST = {
-        "In {yearKC}, {name} completed a meta undertaking: \"{questName}\" in {zone}. A {race} {class} of level {level} gathered many lesser roads into one.",
+        "It was {yearKC} {month}, and {day}",
     },
     META_ACHIEVEMENT = {
-        "In {yearKC}, {name} bound many deeds into one: \"{achievementName}.\" The meta-feat sits in the ledger as a single page.",
+        "{yearKC} {month}, and {day} my long journey came to an end after an exhausting tour. . .",
     },
     FOS = {
-        "A Feat of Strength: in {yearKC}, {name} earned \"{achievementName}.\" Such honors are rare ink.",
+        "Today I impressed myself well enough by achieving {achievementName} and I feel more esteemed. . .",
     },
     REPUTATION = {
-        "In {yearKC}, {name}'s standing with {factionName} rose to {standingName}. A {race} {class} is known now by that people's measure.",
+        "{yearKC} {month}, and {day}, my standing with the {factionName} rose. I am earning their trust. . .I must not squander it. . .",
     },
     RENOWN = {
-        "In {yearKC}, {name} reached the height of renown with {factionName} (rung {renownLevel}). The cause knows their name.",
+        "{yearKC} {month}, and {day}, my standing with the {factionName} rose. I am earning their trust. . .I must not squander it. . .",
     },
     ACHIEVEMENT = {
-        "In {yearKC}, {name} earned recognition: {achievementName}. The feat joined the quiet ledger of a {race} {class}'s rising name.",
-        "Word spreads of {name}'s deed — \"{achievementName}\" — claimed while they yet walked as a level {level} {class}. Let the journal hold what glory the world forgets.",
+        "{yearKC} {month}, and {day}. Huzzah! I made a personal achievement today! {achievementName} {achievementDetail}",
+        "My deeds aggregate more and more! {yearKC} {month}, and {day} is the day I made a mark in the annals of history. {achievementName} {achievementDetail}",
     },
     TITLE = {
-        "From this day in {yearKC}, {name} may be known as {titleName}. A new name for a {race} {class} whose path has not yet found its end.",
-        "The title \"{titleName}\" settled upon {name} like a mantle. Whether honor or burden, the journal records it true.",
+        "This day on {yearKC} {month} {day} I was bestowed the title of {titleName}. . .",
     },
     PROFESSION = {
-        "By torchlight and practice, {name} advanced in {skillName} ({skillRank}). The hands of a {class} learn more than war alone.",
-        "In {yearKC}, {name}'s craft in {skillName} reached {skillRank}. Trade and toil write their own kind of epic.",
+        apprentice = "It was {yearKC} {month}, and {day} and I have completed my apprenticeship in {skillName}.",
+        journeyman = "It was {yearKC} {month}, and {day} and I stand as a journeyman of {skillName}.",
+        expert = "It was {yearKC} {month}, and {day} and my {skillName} is called expert work.",
+        artisan = "It was {yearKC} {month}, and {day} and I have reached artisan in {skillName}.",
     },
     MANUAL = {
-        "In {yearKC}, {name} set down a personal note: {manualTitle}. {manualBody}",
-        "Journal entry of {name}, {race} {class}, level {level} — {manualTitle}. {manualBody}",
+        "{manualTitle}. {manualBody}",
     },
     DEATH = {
-        "In {yearKC}, {name} fell in {zone}. The {race} {class} tasted the border of mortality — a hard page in any traveler's ledger.",
-        "Death found {name} beneath the skies of {zone}. Whether spirit-roads or darker realms await, the journal records the fall at level {level}.",
-    },
-    HC_ENCUMBRANCE = {
-        "Honor strained: {name} bore packs beyond the six-slot burden ({bagDetail}). The road grows heavier when the pack grows greedy.",
-        "In {yearKC}, {name}'s baggage exceeded the old compact — {bagDetail}. Encumbrance is a choice; the chronicle will not pretend otherwise.",
-    },
-    HC_MOUNT = {
-        "Without completing the ground-mount rite, {name} took saddle in {zone}. Speed without sanction leaves a mark on hardcore honor.",
-        "Hooves and harness before the gatekeeper's leave — {name} rode unsworn. The journal notes the shortcut.",
-    },
-    HC_FLY = {
-        "Wings before blessing: {name} took to the air in {zone} without the flying rite. Sky-roads, too, have their oaths.",
-        "In {yearKC}, {name} flew unlicensed over {zone}. The hardcore ledger records the ascent.",
-    },
-    SURVIVAL = {
-        "In {zone}, {name}'s body reminded them they are mortal — {meterName} failed them ({meterValue}). The road asks a price in more than blood.",
-        "A hard page: {name}, level {level}, found {meterName} at its end in {zone}. Survival is a story the bones tell first.",
+        "It was {yearKC} {month}, and {day} and I felt the cold grasp me. . .my Rites before me await.",
     },
     AFTERLIFE = {
-        "In {yearKC}, {name}'s spirit walked {pathName}. {afterlifeDetail} So the ledger of death and return is written.",
-        "Beyond the living maps, {name} tread {pathName}. {afterlifeDetail} When flesh called again, the {race} {class} answered.",
-    },
-    ROADMAP = {
-        "In {yearKC}, {name} set their boots to the expedition \"{roadmapName}\". {roadmapDetail}",
-        "The chart turns: {name}, a {race} {class} of level {level}, marks \"{roadmapName}\" — {roadmapDetail}",
+        "I write this down to remember the solemnity of the Rites of Return I endures to walk the path back and continue the journey this day of {yearKC} {month} {day}",
     },
     PVP = {
-        "After the clash at {mapName}, {name} set down a field report. {outcomeLine} Steel told its measure in wounds dealt ({damageText}) and mended ({healingText}); deaths borne: {deaths}. A {race} {class} does not leave the field without a story.",
-        "In {yearKC}, {name} walked from {mapName}. {outcomeLine} The ledger of war lists {damageText} force spent, {healingText} grace given, {killingBlows} finishing blows. Let glory and grit both be inked.",
+        defeat = "{pvpBody}",
+        victory = "{pvpBody}",
     },
     DEFAULT = {
-        "In the year {yearKC}, {name} marked a moment in their tale ({kind}). The {race} {class} continues onward from {zone}.",
+        "It is {yearKC} {month} and {day}, and I mark this moment today. . .",
     },
 }
 

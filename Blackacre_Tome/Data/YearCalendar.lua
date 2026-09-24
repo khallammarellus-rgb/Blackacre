@@ -5,7 +5,7 @@ Blackacre.YearCalendar = {}
 -- Year 0 ADP = Dark Portal opens = 592 K.C. (Timeline, warcraft.wiki.gg)
 
 Blackacre.YearCalendar.PORTAL_YEAR_KC = 592
-Blackacre.YearCalendar.DEFAULT_PRESENT_ADP = 42
+Blackacre.YearCalendar.DEFAULT_PRESENT_ADP = (Blackacre.Compat and Blackacre.Compat.DefaultPresentADP and Blackacre.Compat.DefaultPresentADP()) or 42
 
 function Blackacre.YearCalendar.EnsureIdentity()
     Blackacre.CharDB = Blackacre.CharDB or BlackacreCharDB
@@ -102,6 +102,30 @@ function Blackacre.YearCalendar.FormatYearADP(yearADP, displayMode)
 end
 
 -- Back-compat for chronicle hooks that still call GetYearKC / FormatYear
+--- Faction year plus the calendar month and day, for journal sentences.
+function Blackacre.YearCalendar.JournalStamp()
+    local year = "?"
+    if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.FormatFactionYear then
+        year = Blackacre.UI.Theme.FormatFactionYear(Blackacre.YearCalendar.GetPresentADP())
+    else
+        year = Blackacre.YearCalendar.FormatYearADP(Blackacre.YearCalendar.GetPresentADP(), "ADP")
+    end
+    local month, day = "this month", "this day"
+    if C_DateAndTime and C_DateAndTime.GetCurrentCalendarTime then
+        local t = C_DateAndTime.GetCurrentCalendarTime()
+        if t and t.month then
+            local names = CALENDAR_FULLDATE_MONTH_NAMES
+            month = (names and names[t.month]) or tostring(t.month)
+            day = tostring(t.monthDay or t.day or "")
+        end
+    end
+    if month == "this month" then
+        month = date("%B")
+        day = tostring(tonumber(date("%d")) or "")
+    end
+    return year, month, day
+end
+
 function Blackacre.YearCalendar.GetYearKC()
     return Blackacre.YearCalendar.ToKC(Blackacre.YearCalendar.GetPresentADP())
 end

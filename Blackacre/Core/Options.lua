@@ -1,10 +1,9 @@
--- Blackacre options (AceConfig + AceDB profile for UI prefs only).
--- Feature data stays in BlackacreDB / BlackacreCharDB until a later migration.
+-- Blackacre options (AceConfig + AceDB profile).
+-- The active AceDB profile contains both UI preferences and character data.
 
 local addonName, _ = ...
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local AceDBOptions = LibStub("AceDBOptions-3.0")
 
 Blackacre = Blackacre or {}
 Blackacre.Options = Blackacre.Options or {}
@@ -15,6 +14,10 @@ local function L(key)
         return locale[key]
     end
     return key
+end
+
+local function GetProfileSettings()
+    return Blackacre.GetProfileSettings and Blackacre.GetProfileSettings() or nil
 end
 
 local function BuildOptions()
@@ -40,11 +43,14 @@ local function BuildOptions()
                         desc = L("OPT_MINIMAP_DESC"),
                         order = 1,
                         get = function()
-                            return not (Blackacre.db and Blackacre.db.profile.minimap.hide)
+                            local p = GetProfileSettings()
+                            return not (p and p.minimap and p.minimap.hide)
                         end,
                         set = function(_, v)
-                            if not Blackacre.db then return end
-                            Blackacre.db.profile.minimap.hide = not v
+                            local p = GetProfileSettings()
+                            if not p then return end
+                            p.minimap = p.minimap or {}
+                            p.minimap.hide = not v
                             if Blackacre.MinimapButton and Blackacre.MinimapButton.Refresh then
                                 Blackacre.MinimapButton.Refresh()
                             end
@@ -56,20 +62,63 @@ local function BuildOptions()
                         desc = L("OPT_QUIET_DESC"),
                         order = 2,
                         get = function()
-                            return Blackacre.db and Blackacre.db.profile.quietNotifications
+                            local p = GetProfileSettings()
+                            return p and p.quietNotifications
                         end,
                         set = function(_, v)
-                            if not Blackacre.db then return end
-                            Blackacre.db.profile.quietNotifications = v and true or false
+                            local p = GetProfileSettings()
+                            if not p then return end
+                            p.quietNotifications = v and true or false
                             if Blackacre.CharDB and Blackacre.CharDB.settings then
                                 Blackacre.CharDB.settings.quietNotifications = v and true or false
+                            end
+                        end,
+                    },
+                    chromeSkin = {
+                        type = "select",
+                        name = "Tome skin",
+                        desc = "Art only (outer shell, TOC tab, rail, Backstory chrome, TOC title caps). Does not change buttons, pages, or journal behavior. Auto follows your faction.",
+                        order = 4,
+                        values = {
+                            auto = "Auto (character faction)",
+                            Alliance = "Alliance",
+                            Horde = "Horde",
+                            Dragonflight = "Dragonflight",
+                            Metal = "Metal",
+                            Kyrian = "Kyrian",
+                            Seafarer = "Seafarer",
+                            Workshop = "Workshop",
+                            Scholomance = "Scholomance",
+                            Tavern = "Tavern",
+                            Skyborne = "Skyborne",
+                            Slate = "Slate",
+                            Ornate = "Ornate",
+                            Ironforge = "Ironforge",
+                            Forsaken = "Forsaken",
+                            Void = "Void",
+                        },
+                        sorting = {
+                            "auto", "Alliance", "Horde", "Dragonflight", "Metal",
+                            "Kyrian", "Seafarer", "Workshop", "Scholomance", "Tavern",
+                            "Skyborne", "Slate", "Ornate", "Ironforge", "Forsaken",
+                            "Void",
+                        },
+                        get = function()
+                            local p = GetProfileSettings()
+                            return (p and p.chromeSkin) or "auto"
+                        end,
+                        set = function(_, key)
+                            if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.SetActiveSkin then
+                                Blackacre.UI.Theme.SetActiveSkin(key)
+                            elseif GetProfileSettings() then
+                                GetProfileSettings().chromeSkin = key
                             end
                         end,
                     },
                     survival = {
                         type = "toggle",
                         name = "Survival tracking",
-                        desc = "When off, hunger/thirst/exposure stop decaying and no longer update the journal.",
+                        desc = "When unchecked, survival stats will run but no longer be tracked for a simpler experience.",
                         order = 3,
                         get = function()
                             local s = Blackacre.CharDB and Blackacre.CharDB.survival
@@ -93,14 +142,14 @@ local function BuildOptions()
             },
             journal = {
                 type = "group",
-                name = "Chronicle",
+                name = "Journal Settings",
                 order = 3,
                 inline = true,
                 args = {
                     bodyFont = {
                         type = "select",
-                        name = "Journal body font",
-                        desc = "Font for chronicle page body text and sticky notes only. Does not change titles, headers, or Backstory menus.",
+                        name = "Journal Fonts",
+                        desc = "Only affects editable text and main headers",
                         order = 1,
                         values = function()
                             local t = {}
@@ -116,8 +165,9 @@ local function BuildOptions()
                             return t
                         end,
                         get = function()
-                            if Blackacre.db and Blackacre.db.profile and Blackacre.db.profile.bodyFontKey then
-                                return Blackacre.db.profile.bodyFontKey
+                            local p = GetProfileSettings()
+                            if p and p.bodyFontKey then
+                                return p.bodyFontKey
                             end
                             if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.Fonts then
                                 return Blackacre.UI.Theme.Fonts.activeKey or "default"
@@ -127,8 +177,8 @@ local function BuildOptions()
                         set = function(_, key)
                             if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.SetBodyFontKey then
                                 Blackacre.UI.Theme.SetBodyFontKey(key, false)
-                            elseif Blackacre.db and Blackacre.db.profile then
-                                Blackacre.db.profile.bodyFontKey = key
+                            elseif GetProfileSettings() then
+                                GetProfileSettings().bodyFontKey = key
                             end
                         end,
                     },
@@ -140,14 +190,84 @@ local function BuildOptions()
                             .. "Hobbiton & Middle Earth are decorative; symbols like | are rewritten as plain text (WoW cannot mix two fonts in one line).",
                         fontSize = "medium",
                     },
+                    promptEveryQuest = {
+                        type = "toggle",
+                        name = "Active Journaling",
+                        desc = "Journals every quest turn in.",
+                        order = 3,
+                        get = function()
+                            local s = Blackacre.CharDB and Blackacre.CharDB.settings
+                            if s and s.promptEveryQuest ~= nil then
+                                return s.promptEveryQuest and true or false
+                            end
+                            return Blackacre.Compat and Blackacre.Compat.IsForever and Blackacre.Compat.IsForever()
+                        end,
+                        set = function(_, v)
+                            Blackacre.CharDB = Blackacre.CharDB or {}
+                            Blackacre.CharDB.settings = Blackacre.CharDB.settings or {}
+                            Blackacre.CharDB.settings.promptEveryQuest = v and true or false
+                        end,
+                    },
                 },
             },
             profiles = {
                 type = "group",
                 name = L("OPT_PROFILES"),
                 order = 90,
-                childGroups = "tab",
-                args = {}, -- filled after AceDB exists
+                args = {
+                    note = {
+                        type = "description", order = 1,
+                        name = "A profile holds the full Blackacre character record and settings. Switching is live: characters assigned to the same profile share its tome. Creating a profile makes a separate copy of the current one. No merge, reset, or delete controls are provided here.\n",
+                        fontSize = "medium",
+                    },
+                    active = {
+                        type = "select", name = "Active profile", order = 2,
+                        values = function()
+                            local values = {}
+                            if Blackacre.db then
+                                for _, profile in ipairs(Blackacre.GetProfiles()) do
+                                    values[profile.id] = profile.name
+                                end
+                            end
+                            return values
+                        end,
+                        get = function()
+                            return Blackacre.db and Blackacre.db:GetCurrentProfile() or Blackacre.ActiveProfileID
+                        end,
+                        set = function(_, id)
+                            if not Blackacre.SetActiveProfile(id) then
+                                Blackacre.Print("That profile could not be opened; your current profile is unchanged.")
+                            end
+                        end,
+                    },
+                    newName = {
+                        type = "input", name = "New profile name", order = 3,
+                        get = function() return Blackacre._newProfileName or "" end,
+                        set = function(_, value) Blackacre._newProfileName = strtrim(value or "") end,
+                    },
+                    create = {
+                        type = "execute", name = "Create copy of current profile", order = 4,
+                        func = function()
+                            local name = strtrim(Blackacre._newProfileName or "")
+                            if name == "" then Blackacre.Print("Enter a profile name first."); return end
+                            if #name > 48 then Blackacre.Print("Profile names must be 48 characters or fewer."); return end
+                            local profile = Blackacre.CreateProfile(name)
+                            if not profile then Blackacre.Print("That profile name is invalid or already in use; nothing was changed."); return end
+                            Blackacre._newProfileName = ""
+                            Blackacre.Print("Created a separate copy named " .. name .. ".")
+                        end,
+                    },
+                    export = {
+                        type = "execute", name = "Export full profile backup", order = 5,
+                        func = function()
+                            if Blackacre.Share and Blackacre.Share.Export then
+                                Blackacre.Share.Export.CopyFullProfile()
+                            else
+                                Blackacre.Print("Enable Blackacre Tome to export a profile backup.")
+                            end
+                        end,
+                    },
+                },
             },
         },
     }
@@ -157,9 +277,6 @@ function Blackacre.Options.Init(addon)
     if not addon or not Blackacre.db then return end
 
     local options = BuildOptions()
-    options.args.profiles = AceDBOptions:GetOptionsTable(Blackacre.db)
-    options.args.profiles.order = 90
-
     AceConfig:RegisterOptionsTable("Blackacre", options)
     AceConfigDialog:AddToBlizOptions("Blackacre", L("OPTIONS_TITLE"))
 

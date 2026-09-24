@@ -128,6 +128,18 @@ function Blackacre.GetRoadmapPreset(presetId)
     return nil
 end
 
+function Blackacre.ListRoadmapPresets()
+    local src = Blackacre.RoadmapPresets or {}
+    local out = {}
+    for i = 1, #src do
+        local p = src[i]
+        if not Blackacre.Compat or not Blackacre.Compat.RoadmapPresetAllowed or Blackacre.Compat.RoadmapPresetAllowed(p) then
+            out[#out + 1] = p
+        end
+    end
+    return out
+end
+
 function Blackacre.BuildRoadmapSteps(zoneIdList)
     local steps = {}
     for i, zid in ipairs(zoneIdList or {}) do

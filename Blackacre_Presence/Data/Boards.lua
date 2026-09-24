@@ -137,6 +137,17 @@ local boards = {
     },
 }
 
+local boardsByZone = {}
+for i = 1, #boards do
+    local board = boards[i]
+    local list = boardsByZone[board.zoneId]
+    if not list then
+        list = {}
+        boardsByZone[board.zoneId] = list
+    end
+    list[#list + 1] = board
+end
+
 function Blackacre.Boards.GetAll()
     return boards
 end
@@ -176,20 +187,21 @@ end
 
 function Blackacre.Boards.GetNearbyBoard()
     local zone = Blackacre.GetZoneContext()
-    if not zone.zoneId or zone.zoneId == 0 then
+    local list = zone.zoneId and boardsByZone[zone.zoneId]
+    if not list then
         return nil
     end
+    local px = zone.coords.x or 0
+    local py = zone.coords.y or 0
     local best, bestDist
-    for _, board in ipairs(boards) do
-        if board.zoneId == zone.zoneId then
-            local dx = (zone.coords.x or 0) - board.coords.x
-            local dy = (zone.coords.y or 0) - board.coords.y
-            local dist = math.sqrt(dx * dx + dy * dy)
-            if dist <= (board.proximityRadius or 0.04) then
-                if not bestDist or dist < bestDist then
-                    best, bestDist = board, dist
-                end
-            end
+    for i = 1, #list do
+        local board = list[i]
+        local dx = px - board.coords.x
+        local dy = py - board.coords.y
+        local r = board.proximityRadius or 0.04
+        local dist2 = dx * dx + dy * dy
+        if dist2 <= r * r and (not bestDist or dist2 < bestDist) then
+            best, bestDist = board, dist2
         end
     end
     return best
@@ -205,3 +217,93 @@ function Blackacre.Boards.GetBoardsInZone(zoneId)
     end
     return list
 end
+
+-- Major overworld zones + capitals for bulletin Posted Location.
+local MAJOR_ZONES = {
+    { id = "elwynn", name = "Elwynn Forest" },
+    { id = "westfall", name = "Westfall" },
+    { id = "redridge", name = "Redridge Mountains" },
+    { id = "duskwood", name = "Duskwood" },
+    { id = "stranglethorn", name = "Stranglethorn Vale" },
+    { id = "dun_morogh", name = "Dun Morogh" },
+    { id = "loch_modan", name = "Loch Modan" },
+    { id = "wetlands", name = "Wetlands" },
+    { id = "teldrassil", name = "Teldrassil" },
+    { id = "darkshore", name = "Darkshore" },
+    { id = "ashenvale", name = "Ashenvale" },
+    { id = "durotar", name = "Durotar" },
+    { id = "barrens", name = "The Barrens" },
+    { id = "mulgore", name = "Mulgore" },
+    { id = "stonetalon", name = "Stonetalon Mountains" },
+    { id = "desolace", name = "Desolace" },
+    { id = "feralas", name = "Feralas" },
+    { id = "dustwallow", name = "Dustwallow Marsh" },
+    { id = "thousand_needles", name = "Thousand Needles" },
+    { id = "tanaris", name = "Tanaris" },
+    { id = "ungoro", name = "Un'goro Crater" },
+    { id = "felwood", name = "Felwood" },
+    { id = "winterspring", name = "Winterspring" },
+    { id = "azshara", name = "Azshara" },
+    { id = "tirisfal", name = "Tirisfal Glades" },
+    { id = "silverpine", name = "Silverpine Forest" },
+    { id = "hillsbrad", name = "Hillsbrad Foothills" },
+    { id = "alterac", name = "Alterac Mountains" },
+    { id = "arathi", name = "Arathi Highlands" },
+    { id = "hinterlands", name = "The Hinterlands" },
+    { id = "badlands", name = "Badlands" },
+    { id = "searing_gorge", name = "Searing Gorge" },
+    { id = "burning_steppes", name = "Burning Steppes" },
+    { id = "swamp_of_sorrows", name = "Swamp of Sorrows" },
+    { id = "blasted_lands", name = "Blasted Lands" },
+    { id = "deadwind", name = "Deadwind Pass" },
+    { id = "wpl", name = "Western Plaguelands" },
+    { id = "epl", name = "Eastern Plaguelands" },
+    { id = "silithus", name = "Silithus" },
+    { id = "stormwind", name = "Stormwind City", capital = true },
+    { id = "ironforge", name = "Ironforge", capital = true },
+    { id = "darnassus", name = "Darnassus", capital = true },
+    { id = "orgrimmar", name = "Orgrimmar", capital = true },
+    { id = "thunder_bluff", name = "Thunder Bluff", capital = true },
+    { id = "undercity", name = "Undercity", capital = true },
+}
+
+for i = 1, #MAJOR_ZONES do
+    MAJOR_ZONES[i].nameLower = MAJOR_ZONES[i].name:lower()
+end
+
+function Blackacre.Boards.GetMajorZones()
+    return MAJOR_ZONES
+end
+
+function Blackacre.Boards.CurrentZoneKey()
+    local ctx = Blackacre.GetZoneContext()
+    local name = (ctx.zoneName or ""):lower()
+    for i = 1, #MAJOR_ZONES do
+        if name:find(MAJOR_ZONES[i].nameLower, 1, true) then
+            return MAJOR_ZONES[i].id, MAJOR_ZONES[i].name
+        end
+    end
+    if name ~= "" then
+        return name:gsub("%s+", "_"), ctx.zoneName
+    end
+    return "unknown", ctx.zoneName or "Unknown"
+end
+
+function Blackacre.Boards.BulletinMatchesZone(bulletin, zoneKey, zoneName)
+    if not bulletin then return false end
+    local zones = bulletin.postedZones
+    if type(zones) ~= "table" then
+        return bulletin.boardId == zoneKey or bulletin.boardId == ("inn:" .. (zoneKey or ""))
+    end
+    for i = 1, #zones do
+        local z = zones[i]
+        if z == zoneKey or z == zoneName or z == ("inn:" .. (zoneKey or "")) then
+            return true
+        end
+        if zoneName and type(z) == "string" and z:lower() == zoneName:lower() then
+            return true
+        end
+    end
+    return false
+end
+

@@ -6,17 +6,13 @@ local frame
 
 local function StatusLine()
     local s = Blackacre.Hardcore.GetStatus()
-    local honor = s.clean and "|cff2d8a2dUnstained|r" or "|cff8a2d2dStained|r"
     return string.format(
-        "Honor: %s\nDeaths recorded: %d\nEncumbrance active: %s (events: %d)\nMount stains: %d · Sky stains: %d\nGround rite: %s · Flying rite: %s",
-        honor,
+        "Deaths recorded: %d\nEncumbrance active: %s (events: %d)\nMount Violations: %d\nGround Rite: %s",
         s.deathCount,
         s.encumbranceActive and "yes" or "no",
         s.encumbranceViolations,
         s.mountViolations,
-        s.flyViolations,
-        s.groundGate and "complete" or "unsworn",
-        s.flyingGate and "complete" or "unsworn"
+        s.groundGate and "Completed" or "Incomplete"
     )
 end
 
@@ -37,51 +33,73 @@ local function Build(parent)
     end
     if frame.SetClipsChildren then frame:SetClipsChildren(true) end
 
-    frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    frame.title:SetPoint("TOPLEFT", 14, -12)
-    frame.title:SetText("Hardcore Compact")
-    Blackacre.UI.Theme.GoldTitle(frame.title)
+    local function TryAtlas(tex, name)
+        if Blackacre.UI and Blackacre.UI.Theme and Blackacre.UI.Theme.TrySetAtlas then
+            return Blackacre.UI.Theme.TrySetAtlas(tex, name, true)
+        end
+        return false
+    end
 
-    frame.sub = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    frame.sub:SetPoint("TOPLEFT", 14, -36)
-    frame.sub:SetPoint("TOPRIGHT", -14, -36)
-    frame.sub:SetJustifyH("LEFT")
-    frame.sub:SetText("An honor ledger — the game will not force these rules. The journal will remember.")
-    Blackacre.UI.Theme.InkFont(frame.sub)
+    local function Category(parent, title, y, height)
+        local box = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+        box:SetPoint("TOPLEFT", 12, y)
+        box:SetPoint("TOPRIGHT", -12, y)
+        box:SetHeight(height)
+        local header = box:CreateTexture(nil, "BACKGROUND")
+        header:SetPoint("TOPLEFT", 0, 0)
+        header:SetPoint("TOPRIGHT", 0, 0)
+        header:SetHeight(24)
+        if not TryAtlas(header, "UI-Character-Info-Title") then
+            header:SetColorTexture(0.12, 0.10, 0.08, 0.85)
+        end
+        local fill = box:CreateTexture(nil, "BACKGROUND")
+        fill:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, 0)
+        fill:SetPoint("BOTTOMRIGHT", 0, 0)
+        fill:SetTexture("Interface\\PaperDollInfoFrame\\UI-Character-StatBackground")
+        fill:SetAlpha(0.55)
+        local label = box:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        label:SetPoint("LEFT", header, "LEFT", 12, 0)
+        label:SetText(title)
+        Blackacre.UI.Theme.InkFont(label, "header")
+        return box
+    end
 
-    frame.status = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    frame.status:SetPoint("TOPLEFT", 16, -70)
-    frame.status:SetPoint("TOPRIGHT", -16, -70)
+    local general = Category(frame, "General", -8, 88)
+    frame.status = general:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    frame.status:SetPoint("TOPLEFT", 14, -30)
+    frame.status:SetPoint("TOPRIGHT", -14, -30)
     frame.status:SetJustifyH("LEFT")
-    frame.status:SetSpacing(4)
+    frame.status:SetSpacing(3)
     Blackacre.UI.Theme.InkFont(frame.status)
 
-    local function MakeCheck(label, y, get, set)
-        local cb = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
-        cb:SetPoint("TOPLEFT", 14, y)
+    local attrib = Category(frame, "Primary attributes", -104, 72)
+    frame.attrText = attrib:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    frame.attrText:SetPoint("TOPLEFT", 14, -30)
+    frame.attrText:SetPoint("TOPRIGHT", -14, -30)
+    frame.attrText:SetJustifyH("LEFT")
+    Blackacre.UI.Theme.InkFont(frame.attrText)
+
+    local weapon = Category(frame, "Weapon stats", -184, 90)
+    local function MakeCheck(label, parent, y, get, set)
+        local cb = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
+        cb:SetPoint("TOPLEFT", 8, y)
         cb:SetChecked(get())
-        local text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        local text = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         text:SetPoint("LEFT", cb, "RIGHT", 4, 0)
         text:SetText(label)
         Blackacre.UI.Theme.InkFont(text)
         cb:SetScript("OnClick", function(self)
             set(self:GetChecked())
             frame.status:SetText(StatusLine())
-            Blackacre.UI.Theme.Toast(self:GetChecked() and "Rite marked complete." or "Rite marked unsworn.")
+            Blackacre.UI.Theme.Toast(self:GetChecked() and "Rite Complete" or "Rite Incomplete", "maw")
         end)
         return cb
     end
 
-    frame.groundCheck = MakeCheck("Ground mount rite complete (IC gatekeeper)", -200, function()
+    frame.groundCheck = MakeCheck("Ground Rite: Completed/Incomplete", weapon, -28, function()
         return Blackacre.CharDB.gate.ground
     end, function(v)
         Blackacre.Hardcore.SetGroundGate(v)
-    end)
-
-    frame.flyCheck = MakeCheck("Flying mount rite complete (IC gatekeeper)", -236, function()
-        return Blackacre.CharDB.gate.flying
-    end, function(v)
-        Blackacre.Hardcore.SetFlyingGate(v)
     end)
 
     local openJournal = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
@@ -102,7 +120,7 @@ local function Build(parent)
 
     frame.footer = frame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     frame.footer:SetPoint("BOTTOM", 0, 42)
-    frame.footer:SetText("Allowed worn bags: 6 slots each · Reagent bag ignored · Backpack unrestricted")
+    frame.footer:SetText("Max bag size, 6 slots.")
 end
 
 function Blackacre.Hardcore.UI.Mount(parent)
@@ -118,6 +136,21 @@ end
 function Blackacre.Hardcore.UI.Refresh()
     if not frame then return end
     frame.status:SetText(StatusLine())
+    if frame.attrText then
+        local line = "Survival meters off"
+        if Blackacre.Survival and Blackacre.Survival.GetState then
+            local sv = Blackacre.Survival.GetState()
+            if sv and sv.enabled ~= false then
+                line = string.format(
+                    "Hunger %d   Thirst %d   Exposure %d",
+                    math.floor(sv.hunger or 0),
+                    math.floor(sv.thirst or 0),
+                    math.floor(sv.exposure or 0)
+                )
+            end
+        end
+        frame.attrText:SetText(line)
+    end
     if frame.groundCheck then
         frame.groundCheck:SetChecked(Blackacre.CharDB.gate.ground)
     end

@@ -1,4 +1,5 @@
-## Interface: 120007
+## Interface: 120007, 16001
+## Interface-Camelot: 16001
 ## Title: Blackacre |cffc9a227Tome|r
 ## Notes: Traveler’s Chronicle, hardcore, afterlife, roadmap, PvP, lineage, share
 ## Version: 2.0.0-dev
@@ -14,6 +15,7 @@ Data\TimelineEras.lua
 Data\AgeBands.lua
 Data\HookTemplates.lua
 Data\AfterlifePaths.lua
+Data\Deities.lua
 Data\RoadmapZones.lua
 Data\Quests.lua
 Data\QuestLines.lua
@@ -48,6 +50,7 @@ Data\VoiceLexicon.lua
 Voice\Engine.lua
 Chronicle\Store.lua
 Chronicle\Hooks.lua
+Chronicle\Prompt.lua
 Chronicle\Capture.lua
 Chronicle\UI_Chronology.lua
 Hardcore\Monitor.lua
@@ -62,5 +65,6 @@ Share\Export.lua
 Share\PeerCard.lua
 Lore\Birthpath.lua
 Lore\UI_Lineage.lua
+Lore\UI_Path.lua
 Bootstrap.lua
 

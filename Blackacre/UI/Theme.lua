@@ -105,8 +105,234 @@ Blackacre.UI.Theme.Textures = {
     -- Faction mission frame polish (OOC menu flair later)
     allianceMissionFrame = "Interface\\Garrison\\AllianceBfAMissionFrame",
     hordeMissionFrame = "Interface\\Garrison\\HordeBfAMissionFrame",
+    -- Backstory sidecar (not faction; both skins)
+    backstoryFrame = "Interface\\Glues\\AccountUpgrade\\ClassTrialThanksFrame",
+    backstoryFrameAtlas = "ClassTrial-End-Frame",
+    backstoryFillAtlas = "islands-queue-background",
+    backstoryFillFile = "Interface\\Scenarios\\IslandsQueueBackground",
+    backstoryNeutralFile = "Interface\\FrameGeneral\\UIFrameNeutral",
+    backstoryTab = "Interface\\Spellbook\\UIFrameTabsSpellbook",
+    backstoryIconMask = "Interface\\Spellbook\\SpellbookElementsIconMask",
+    backstoryTabHover = "Interface\\Spellbook\\SpellbookElementsAutoCastMask",
+    -- B1 trial shell. "neutral" / "questlog" kept for regress.
+    backstoryB1Mode = "questlog",
+    backstoryQuestLogAtlas = "QuestLog-frame",
+    backstoryQuestLogFile = "Interface\\QuestFrame\\UI-QuestLog-Empty-Top",
     spellbookPage = "Interface\\Spellbook\\Spellbook-Page-1",
     spellbookPage2 = "Interface\\Spellbook\\Spellbook-Page-2",
+}
+
+if Blackacre.Compat and Blackacre.Compat.ApplyTextureRemaps then
+    Blackacre.Compat.ApplyTextureRemaps(Blackacre.UI.Theme.Textures)
+end
+
+--- Art tokens only. Function (buttons, sizes, clicks) never lives here.
+--- Shared ornaments (add-page, delete, glow, stickies) stay on Theme.Textures, not per skin.
+local function FrameGeneralSkin(kit, extra)
+    extra = extra or {}
+    -- Bookmark (region 8) = evergreen ribbon. Title header (region 9) = kit Ribbon.
+    -- Unique NineSlice corners are tried first; mirrored Corner is fallback.
+    return {
+        kit = kit,
+        ninesliceCornerTL = extra.tl,
+        ninesliceCornerTR = extra.tr,
+        ninesliceCornerBL = extra.bl,
+        ninesliceCornerBR = extra.br,
+        ninesliceCorner = extra.corner or ("UI-Frame-" .. kit .. "-Corner"),
+        ninesliceCornerAlt = kit .. "-NineSlice-Corner",
+        ninesliceTileH = extra.edgeTop or ("_UI-Frame-" .. kit .. "-EdgeTop"),
+        ninesliceTileHBottom = extra.edgeBottom or ("_UI-Frame-" .. kit .. "-EdgeBottom"),
+        ninesliceTileV = extra.edgeLeft or ("!UI-Frame-" .. kit .. "-EdgeLeft"),
+        ninesliceTileVRight = extra.edgeRight or ("!UI-Frame-" .. kit .. "-EdgeRight"),
+        ninesliceTileHAlt = extra.edgeTopAlt or ("_" .. kit .. "-NineSlice-EdgeTop"),
+        ninesliceTileVAlt = extra.edgeLeftAlt or ("!" .. kit .. "-NineSlice-EdgeLeft"),
+        ninesliceTileHBottomAlt = extra.edgeBottomAlt or ("_" .. kit .. "-NineSlice-EdgeBottom"),
+        ninesliceTileVRightAlt = extra.edgeRightAlt or ("!" .. kit .. "-NineSlice-EdgeRight"),
+        tocBanner = extra.toc or "spellbook-background-evergreen-ribbon",
+        tocUvStart = extra.tocUvStart or 0,
+        tocUvWidth = extra.tocUvWidth or 1,
+        rail = extra.rail or ("UI-Frame-" .. kit .. "-Ribbon"),
+        tocTitleLeft = extra.titleLeft or ("UI-Frame-" .. kit .. "-TitleLeft"),
+        tocTitleMid = extra.titleMid or ("UI-Frame-" .. kit .. "-Ribbon"),
+        tocTitleRight = extra.titleRight or ("UI-Frame-" .. kit .. "-TitleRight"),
+        ninesliceLayout = extra.layout,
+        uniqueCorners = extra.uniqueCorners and true or false,
+        thick = extra.thick ~= false,
+    }
+end
+
+Blackacre.UI.Theme.Skins = {
+    Alliance = {
+        ninesliceCorner = "AllianceFrameCorner-TopLeft",
+        ninesliceTileH = "_AllianceFrameTile-Top",
+        ninesliceTileV = "!AllianceFrameTile-Left",
+        ninesliceLayout = "BFAMissionAlliance",
+        tocBanner = "AlliedRaces-AllianceHordeBanner",
+        tocUvStart = 0,
+        tocUvWidth = 0.41268,
+        rail = "_AllianceFrame_ParchmentHeader-Mid",
+        tocTitleLeft = nil,
+        tocTitleMid = "_AllianceFrame_ParchmentHeader-Mid",
+        tocTitleRight = nil,
+    },
+    Horde = {
+        ninesliceCorner = "HordeFrame-Corner-TopLeft",
+        ninesliceTileH = "_HordeFrameTile-Top",
+        ninesliceTileV = "!HordeFrameTile-Left",
+        ninesliceLayout = "BFAMissionHorde",
+        tocBanner = "AlliedRaces-AllianceHordeBanner",
+        tocUvStart = 0.50,
+        tocUvWidth = 0.41268,
+        rail = "_HordeFrame_ParchmentHeader-Mid",
+        tocTitleLeft = nil,
+        tocTitleMid = "_HordeFrame_ParchmentHeader-Mid",
+        tocTitleRight = nil,
+    },
+    Dragonflight = FrameGeneralSkin("Dragonflight", {
+        uniqueCorners = true,
+        tl = "Dragonflight-NineSlice-CornerTopLeft",
+        tr = "Dragonflight-NineSlice-CornerTopRight",
+        bl = "Dragonflight-NineSlice-CornerBottomLeft",
+        br = "Dragonflight-NineSlice-CornerBottomRight",
+        edgeTop = "_Dragonflight-Nineslice-EdgeTop",
+        edgeBottom = "_Dragonflight-Nineslice-EdgeBottom",
+        edgeLeft = "!Dragonflight-NineSlice-EdgeLeft",
+        edgeRight = "!Dragonflight-NineSlice-EdgeRight",
+        toc = "spellbook-background-evergreen-ribbon",
+        tocUvWidth = 1,
+        titleLeft = "UI-Frame-Dragonflight-TitleLeft",
+        titleRight = "UI-Frame-Dragonflight-TitleRight",
+        titleMid = "_UI-Frame-Dragonflight-TitleMiddle",
+        rail = "_UI-Frame-Dragonflight-TitleMiddle",
+        ninesliceTopNudge = -6,
+        chromePad = 14,
+        titleOffsetX = 48,
+        closeButtonOffsetX = -30,
+    }),
+    Metal = FrameGeneralSkin("GenericMetal", {
+        corner = "UI-Frame-GenericMetal-Corner",
+        edgeTop = "_UI-Frame-GenericMetal-EdgeTop",
+        edgeBottom = "_UI-Frame-GenericMetal-EdgeBottom",
+        edgeLeft = "!UI-Frame-GenericMetal-EdgeLeft",
+        edgeRight = "!UI-Frame-GenericMetal-EdgeRight",
+        toc = "spellbook-background-evergreen-ribbon",
+        tocUvWidth = 1,
+        rail = "_UI-Frame-GenericMetal-EdgeTop",
+        titleMid = "_UI-Frame-GenericMetal-EdgeTop",
+        titleLeft = nil,
+        titleRight = nil,
+    }),
+    Kyrian = FrameGeneralSkin("Kyrian", {
+        titleLeft = "UI-Frame-Kyrian-TitleLeft",
+        titleMid = "_UI-Frame-Kyrian-TitleMiddle",
+        titleRight = "UI-Frame-Kyrian-TitleRight",
+        rail = "_UI-Frame-Kyrian-TitleMiddle",
+    }),
+    Seafarer = FrameGeneralSkin("Marine", {
+        titleLeft = "UI-Frame-Marine-TitleLeft",
+        titleMid = "_UI-Frame-Marine-TitleMiddle",
+        titleRight = "UI-Frame-Marine-TitleRight",
+        rail = "_UI-Frame-Marine-TitleMiddle",
+    }),
+    Workshop = FrameGeneralSkin("Mechagon", {
+        titleLeft = "UI-Frame-Mechagon-TitleLeft",
+        titleMid = "_UI-Frame-Mechagon-TitleMiddle",
+        titleRight = "UI-Frame-Mechagon-TitleRight",
+        rail = "_UI-Frame-Mechagon-TitleMiddle",
+    }),
+    Scholomance = FrameGeneralSkin("Necrolord", {
+        titleLeft = "UI-Frame-Necrolord-TitleLeft",
+        titleMid = "_UI-Frame-Necrolord-TitleMiddle",
+        titleRight = "UI-Frame-Necrolord-TitleRight",
+        rail = "_UI-Frame-Necrolord-TitleMiddle",
+    }),
+    Tavern = FrameGeneralSkin("Neutral", {
+        corner = "Neutral-NineSlice-Corner",
+        edgeTop = "_Neutral-NineSlice-EdgeTop",
+        edgeBottom = "_Neutral-NineSlice-EdgeBottom",
+        edgeLeft = "!Neutral-NineSlice-EdgeLeft",
+        edgeRight = "!Neutral-NineSlice-EdgeRight",
+        edgeTopAlt = "_Neutral-NineSlice-EdgeTop",
+        edgeLeftAlt = "!Neutral-NineSlice-EdgeLeft",
+        titleLeft = "UI-Frame-Neutral-TitleLeft",
+        titleMid = "_UI-Frame-Neutral-TitleMiddle",
+        titleRight = "UI-Frame-Neutral-TitleRight",
+        rail = "_UI-Frame-Neutral-TitleMiddle",
+    }),
+    Skyborne = FrameGeneralSkin("NightFae", {
+        titleLeft = "UI-Frame-NightFae-TitleLeft",
+        titleMid = "_UI-Frame-NightFae-TitleMiddle",
+        titleRight = "UI-Frame-NightFae-TitleRight",
+        rail = "_UI-Frame-NightFae-TitleMiddle",
+    }),
+    Slate = FrameGeneralSkin("Oribos", {
+        titleLeft = "UI-Frame-Oribos-TitleLeft",
+        titleMid = "_UI-Frame-Oribos-TitleMiddle",
+        titleRight = "UI-Frame-Oribos-TitleRight",
+        rail = "_UI-Frame-Oribos-TitleMiddle",
+    }),
+    Ornate = FrameGeneralSkin("Plunderstorm", {
+        titleLeft = "plunderstorm-wavesright",
+        titleMid = "_plunderstorm-nineslice-edgebottom",
+        titleRight = "plunderstorm-wavesleft",
+        rail = "_plunderstorm-nineslice-edgebottom",
+        railHeight = 16,
+    }),
+    Ironforge = {
+        kit = "TheWarWithin",
+        shellAtlas = "ui-frame-thewarwithin-border",
+        shellScale = 1.02,
+        tocBanner = "spellbook-background-evergreen-ribbon",
+        tocUvStart = 0,
+        tocUvWidth = 1,
+        titleLeft = "ui-frame-thewarwithin-titleleft",
+        titleMid = "_ui-frame-thewarwithin-titlemiddle",
+        titleRight = "ui-frame-thewarwithin-titleright",
+        tocTitleLeft = "ui-frame-thewarwithin-titleleft",
+        tocTitleMid = "_ui-frame-thewarwithin-titlemiddle",
+        tocTitleRight = "ui-frame-thewarwithin-titleright",
+        rail = "_ui-frame-thewarwithin-titlemiddle",
+        chromePad = 14,
+        titleOffsetX = 61,
+        closeButtonOffsetX = -69,
+        journalToggleOffsetX = 36,
+        footerRightOffsetX = -34,
+    },
+    Forsaken = FrameGeneralSkin("Venthyr", {
+        uniqueCorners = true,
+        tl = "Venthyr-NineSlice-CornerTopLeft",
+        tr = "Venthyr-NineSlice-CornerTopRight",
+        bl = "Venthyr-NineSlice-CornerBottomLeft",
+        br = "Venthyr-NineSlice-CornerBottomRight",
+        edgeTop = "_Venthyr-NineSlice-EdgeTop",
+        edgeBottom = "_Venthyr-NineSlice-EdgeBottom",
+        edgeLeft = "!Venthyr-NineSlice-EdgeLeft",
+        edgeRight = "!Venthyr-NineSlice-EdgeRight",
+        titleLeft = "UI-Frame-Venthyr-TitleLeft",
+        titleMid = "_UI-Frame-Venthyr-TitleMiddle",
+        titleRight = "UI-Frame-Venthyr-TitleRight",
+        rail = "_UI-Frame-Venthyr-TitleMiddle",
+    }),
+    Void = {
+        kit = "Midnight",
+        shellAtlas = "ui-frame-midnight-border",
+        shellScale = 1.02,
+        tocBanner = "spellbook-background-evergreen-ribbon",
+        tocUvStart = 0,
+        tocUvWidth = 1,
+        titleLeft = "ui-frame-midnight-titleleft",
+        titleMid = "_ui-frame-midnight-titlemiddle",
+        titleRight = "ui-frame-midnight-titleright",
+        tocTitleLeft = "ui-frame-midnight-titleleft",
+        tocTitleMid = "_ui-frame-midnight-titlemiddle",
+        tocTitleRight = "ui-frame-midnight-titleright",
+        rail = "_ui-frame-midnight-titlemiddle",
+        chromePad = 14,
+        titleOffsetX = 61,
+        closeButtonOffsetX = -69,
+        journalToggleOffsetX = 36,
+        footerRightOffsetX = -34,
+    },
 }
 
 --- Piece crops (UV 0–1). Prefer Blizzard XML when found; tweak after /reload.
@@ -144,17 +370,46 @@ local WOW_SKURRI = "Fonts\\skurri.ttf"
 
 Blackacre.UI.Theme.Fonts = {
     catalog = {
-        -- Complete / game fonts
-        { key = "default",      path = nil,              name = "Default (WoW mail)", full = true },
-        { key = "frizGame",     path = WOW_FRIZ,         name = "Friz (game)", full = true },
-        { key = "frizCyr",      path = WOW_FRIZ_CYR,     name = "Friz Cyrillic (game)", full = true },
-        { key = "friz",         path = FONT .. "friz-quadrata-tt.ttf", name = "Friz Quadrata (addon)", full = true },
-        { key = "morpheusGame", path = WOW_MORPHEUS,     name = "Morpheus (game)", full = true },
-        { key = "morpheus",     path = FONT .. "MORPHEUS.TTF", name = "Morpheus (addon)", full = true },
-        { key = "skurri",       path = WOW_SKURRI,       name = "Skurri (game)", full = true },
-        -- Decorative (may still miss some glyphs; symbols are sanitized)
-        { key = "hobbiton",     path = FONT .. "HobbitonBrushhandhobbitonBrush-WygA.ttf", name = "Hobbiton Brush", full = false },
-        { key = "middleEarth",  path = FONT .. "Middleearth-ao6m.ttf", name = "Middle Earth", full = false },
+        { key = "default", path = nil, name = "Default (WoW mail)", full = true },
+        { key = "frizGame", path = WOW_FRIZ, name = "Friz (game)", full = true },
+        { key = "frizCyr", path = WOW_FRIZ_CYR, name = "Friz Cyrillic (game)", full = true },
+        { key = "morpheusGame", path = WOW_MORPHEUS, name = "Morpheus (game)", full = true },
+        { key = "skurri", path = WOW_SKURRI, name = "Skurri (game)", full = true },
+        { key = "friz", path = FONT .. "friz-quadrata-tt.ttf", name = "Friz Quadrata", full = true },
+        { key = "morpheus", path = FONT .. "MORPHEUS.TTF", name = "Morpheus", full = true },
+        { key = "bilbo", path = FONT .. "bilboregular.ttf", name = "Bilbo", full = false },
+        { key = "bilboBold", path = FONT .. "bilbobold.ttf", name = "Bilbo Bold", full = false },
+        { key = "bilboFine", path = FONT .. "bilbofine.ttf", name = "Bilbo Fine", full = false },
+        { key = "hobbiton", path = FONT .. "HobbitonBrushhandhobbitonBrush-WygA.ttf", name = "Hobbiton Brush", full = false },
+        { key = "middleEarth", path = FONT .. "Middleearth-ao6m.ttf", name = "Middle Earth", full = false },
+        { key = "elvenCommon", path = FONT .. "Elvencommonspeak-0WXz.ttf", name = "Elven Common", full = false },
+        { key = "partyBusiness", path = FONT .. "PartyBusiness-4B0K.ttf", name = "Party Business", full = false },
+        { key = "angerthas", path = FONT .. "AngerthasMoria-lgLAD.ttf", name = "Angerthas Moria", full = false },
+        { key = "caslon", path = FONT .. "caslon-antique.regular.ttf", name = "Caslon Antique", full = false },
+        { key = "cupAndTalon", path = FONT .. "Cup_and_Talon.ttf", name = "Cup and Talon", full = false },
+        { key = "damned", path = FONT .. "DAMNED.TTF", name = "Damned", full = false },
+        { key = "darkBlack", path = FONT .. "Dark_Black_D.otf", name = "Dark Black", full = false },
+        { key = "dwarven", path = FONT .. "DWARVESC.TTF", name = "Dwarven SC", full = false },
+        { key = "freebooter", path = FONT .. "FREEBOOTERUPDATED.TTF", name = "Freebooter", full = false },
+        { key = "ironclad", path = FONT .. "IRONCLADBOLTED.TTF", name = "Ironclad Bolted", full = false },
+        { key = "blackadder", path = FONT .. "ITCBLKAD.TTF", name = "Blackadder", full = false },
+        { key = "lifecraft", path = FONT .. "LifeCraft_Font.ttf", name = "LifeCraft", full = false },
+        { key = "magicSchool", path = FONT .. "MagicSchoolOne-ovYz.ttf", name = "Magic School", full = false },
+        { key = "monarch", path = FONT .. "MONARCHI.TTF", name = "Monarch", full = false },
+        { key = "mord", path = FONT .. "MORD.TTF", name = "Mord", full = false },
+        { key = "ravenscroft", path = FONT .. "Ravenscroft.ttf", name = "Ravenscroft", full = false },
+        { key = "ringbearer", path = FONT .. "RINGM_.TTF", name = "Ringbearer", full = false },
+        { key = "roland", path = FONT .. "ROLAND_.TTF", name = "Roland", full = false },
+        { key = "silvus", path = FONT .. "silvus.ttf", name = "Silvus", full = false },
+        { key = "plexus", path = FONT .. "WoW-plexus.ttf", name = "WoW Plexus", full = false },
+        { key = "anotherDanger", path = FONT .. "Another_Danger_-_Demo.otf", name = "Another Danger", full = false },
+        { key = "thalassian", path = FONT .. "Thalassian_Font.ttf", name = "Thalassian", full = false },
+        { key = "darnassian", path = FONT .. "DarnassianRunes-Regular_2.ttf", name = "Darnassian Runes", full = false },
+        { key = "moonRunes", path = FONT .. "MoonRunes-9Ymej.ttf", name = "Moon Runes", full = false },
+        { key = "shalassian", path = FONT .. "ShalassianFont-Regular.ttf", name = "Shalassian", full = false },
+        { key = "wrath", path = FONT .. "b_wrath.ttf", name = "Wrath", full = false },
+        { key = "ww2black", path = FONT .. "WW2BLACKLTRALT.TTF", name = "WW2 Black Letter", full = false },
+        { key = "nightmarePills", path = FONT .. "NIGHTMARE_PILLS_-_DEMO.TTF", name = "Nightmare Pills", full = false },
     },
     activeKey = "default",
     activeBody = nil,
@@ -178,6 +433,72 @@ function Blackacre.UI.Theme.GetBodyFontPath()
     return nil
 end
 
+local fontProbe
+
+local function TrySetFont(region, path, size)
+    if not region or not path or path == "" or not region.SetFont then
+        return false
+    end
+    size = size or 14
+    local ok = pcall(function() region:SetFont(path, size, "") end)
+    if ok then
+        return true
+    end
+    ok = pcall(function() region:SetFont(path, size) end)
+    if ok then
+        return true
+    end
+    local bare = path:gsub("%.[tT][tT][fF]$", ""):gsub("%.[oO][tT][fF]$", "")
+    if bare ~= path then
+        ok = pcall(function() region:SetFont(bare, size, "") end)
+        if ok then
+            return true
+        end
+        ok = pcall(function() region:SetFont(bare, size) end)
+        if ok then
+            return true
+        end
+    end
+    return false
+end
+
+local function FontFileBase(path)
+    path = (path or ""):gsub("/", "\\"):lower()
+    local name = path:match("([^\\]+)$") or path
+    return name:gsub("%.ttf$", ""):gsub("%.otf$", "")
+end
+
+--- True when the client actually bound this file (silent fallback is a failed load).
+function Blackacre.UI.Theme.ProbeBodyFont(path)
+    if not path or path == "" then
+        return true
+    end
+    if not fontProbe then
+        local host = CreateFrame("Frame", nil, UIParent)
+        host:Hide()
+        fontProbe = host:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    end
+    return TrySetFont(fontProbe, path, 14)
+end
+
+local function FontLabel(key)
+    for _, row in ipairs(Blackacre.UI.Theme.Fonts.catalog or {}) do
+        if row.key == key then
+            return row.name
+        end
+    end
+    return key or "Default (WoW mail)"
+end
+
+local function RefreshOpenTome()
+    if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.Refresh then
+        pcall(Blackacre.Chronicle.UI.Refresh)
+    end
+    if Blackacre.TomeHub and Blackacre.TomeHub.Refresh then
+        pcall(Blackacre.TomeHub.Refresh)
+    end
+end
+
 --- Apply body font key (tome body + sticky notes only). Persists to AceDB when available.
 function Blackacre.UI.Theme.SetBodyFontKey(key, silent)
     local fonts = Blackacre.UI.Theme.Fonts
@@ -191,32 +512,39 @@ function Blackacre.UI.Theme.SetBodyFontKey(key, silent)
             break
         end
     end
-    if not found then key = "default" path = nil end
+    if not found then
+        key = "default"
+        path = nil
+    end
+    local label = FontLabel(key)
+    if path and not Blackacre.UI.Theme.ProbeBodyFont(path) then
+        fonts.activeKey = "default"
+        fonts.activeBody = nil
+        local settings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+        if settings then settings.bodyFontKey = "default" end
+        if Blackacre.Print then
+            Blackacre.Print("Tome Font failed to load: " .. tostring(label) .. " — kept Default")
+        end
+        RefreshOpenTome()
+        return false
+    end
     fonts.activeKey = key
     fonts.activeBody = path
-    if Blackacre.db and Blackacre.db.profile then
-        Blackacre.db.profile.bodyFontKey = key
-    end
+    local settings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+    if settings then settings.bodyFontKey = key end
     if not silent and Blackacre.Print then
-        local label = key
-        for _, row in ipairs(fonts.catalog or {}) do
-            if row.key == key then label = row.name break end
-        end
-        Blackacre.Print("Chronicle body font: " .. tostring(label)
-            .. (path and (" (" .. path .. ")") or " (default)"))
+        Blackacre.Print("Tome Font Enabled: " .. tostring(label))
     end
-    -- Refresh open journal so body/notes pick it up (titles stay gold/default)
-    if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.Refresh then
-        pcall(Blackacre.Chronicle.UI.Refresh)
-    end
+    RefreshOpenTome()
+    return true
 end
 
-function Blackacre.UI.Theme.LoadBodyFontFromDB()
+function Blackacre.UI.Theme.LoadBodyFontFromDB(silent)
     local key = "default"
-    if Blackacre.db and Blackacre.db.profile and Blackacre.db.profile.bodyFontKey then
-        key = Blackacre.db.profile.bodyFontKey
-    end
-    Blackacre.UI.Theme.SetBodyFontKey(key, true)
+    local settings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+    if settings and settings.bodyFontKey then key = settings.bodyFontKey end
+    -- Announce after /reload when a non-default face is saved.
+    Blackacre.UI.Theme.SetBodyFontKey(key, silent or key == "default")
 end
 
 --- Solid filled panel (no stretched quest art gaps).
@@ -337,10 +665,11 @@ end
 function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     local Layer = Blackacre.UI.Theme.Layer
 
-    local WIDTH, HEIGHT = 980, 660
-    local HEADER_H = 36
-    local TAB_H = 32
-    local FOOTER_H = 44
+    -- Taller shell so region 4 (book art) is not cropped by header/rail/footer.
+    local WIDTH, HEIGHT = 980, 720
+    local HEADER_H = 34
+    local TAB_H = 22
+    local FOOTER_H = 36
     local PAD = 12
     local GAP = 4
 
@@ -375,6 +704,8 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
 
     frame.title = Blackacre.UI.Theme.CreateLayeredFontString(frame.header, Layer.OVERLAY, "GameFontNormalHuge")
     frame.title:SetPoint("LEFT", 14, 0)
+    frame.title:SetJustifyH("LEFT")
+    if frame.title.SetWordWrap then frame.title:SetWordWrap(false) end
     frame.title:SetText(titleText or "Traveler's Chronicle")
     Blackacre.UI.Theme.GoldTitle(frame.title)
 
@@ -387,6 +718,43 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     close:SetScript("OnClick", function() frame:Hide() end)
     frame.closeButton = close
     close:Show()
+
+    -- Add blank chronicle page. Same header row as X; smaller than the close button.
+    local addPage = CreateFrame("Button", nil, frame.header)
+    addPage:SetSize(22, 22)
+    addPage:SetPoint("RIGHT", close, "LEFT", -6, 0)
+    addPage:SetFrameLevel((frame.header:GetFrameLevel() or 1) + 5)
+    local addTex = addPage:CreateTexture(nil, "ARTWORK")
+    addTex:SetAllPoints(addPage)
+    if not Blackacre.UI.Theme.TrySetAtlas(addTex, "GarrMission_MissionIcon-Logistics", false) then
+        addTex:SetTexture("Interface\\Garrison\\GarrisonMissionTypeIcons")
+    end
+    addPage.icon = addTex
+    local addHi = addPage:CreateTexture(nil, "HIGHLIGHT")
+    addHi:SetAllPoints(addPage)
+    if Blackacre.UI.Theme.TrySetAtlas(addHi, "GarrMission_MissionIcon-Logistics", false) then
+        addHi:SetAlpha(0.35)
+    else
+        addHi:SetColorTexture(1, 1, 1, 0.2)
+    end
+    addPage:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+        GameTooltip:SetText("Add page")
+        GameTooltip:Show()
+    end)
+    addPage:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    addPage:SetScript("OnClick", function()
+        Blackacre.UI.Theme.PlayUISound("toolClick")
+        if Blackacre.Chronicle and Blackacre.Chronicle.Capture and Blackacre.Chronicle.Capture.AddManual then
+            Blackacre.Chronicle.Capture.AddManual("Untitled", "")
+        end
+        if frame.journalToggle and not frame.journalToggle._baOn then
+            frame.journalToggle:Click()
+        end
+    end)
+    frame.addPageBtn = addPage
+    addPage:Show()
+    frame.title:SetPoint("RIGHT", addPage, "LEFT", -8, 0)
 
     -- FOOTER — raised above book art so tools never disappear
     frame.footer = CreateFrame("Frame", nil, frame, "BackdropTemplate")
@@ -409,16 +777,17 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     end
 
     frame.journalToggle = CreateFrame("Button", nil, frame.footer, "UIPanelButtonTemplate")
-    frame.journalToggle:SetSize(110, 26)
+    -- "Journaling: Locked" is wider than the old "Journal: Off" label.
+    frame.journalToggle:SetSize(200, 26)
     frame.journalToggle:SetPoint("LEFT", 12, 0)
     frame.journalToggle:SetFrameLevel(fl)
-    frame.journalToggle:SetText("Journal: Off")
+    frame.journalToggle:SetText("Journaling: Locked")
     frame.journalToggle._baOn = false
-    Tip(frame.journalToggle, "Edit Journal", "Toggle edit mode. Turning off also saves the open page.")
+    Tip(frame.journalToggle, "Edit Journal", "Edits save automatically as you type")
     frame.journalToggle:SetScript("OnClick", function(self)
         local wasOn = self._baOn
         self._baOn = not self._baOn
-        self:SetText(self._baOn and "Journal: On" or "Journal: Off")
+        self:SetText(self._baOn and "Journaling: On" or "Journaling: Locked")
         if wasOn and not self._baOn then
             if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.SaveSelected then
                 Blackacre.Chronicle.UI.SaveSelected()
@@ -435,7 +804,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.backstoryBtn:SetPoint("RIGHT", -10, 0)
     frame.backstoryBtn:SetFrameLevel(fl)
     frame.backstoryBtn:SetText("Backstory")
-    Tip(frame.backstoryBtn, "Backstory Menus", "Lineage, Survival, Paths, Afterlife, Voice, Share — OOC tools.")
+    Tip(frame.backstoryBtn, "Backstory Menus")
     frame.backstoryBtn:SetScript("OnClick", function()
         Blackacre.UI.Theme.PlayUISound("toolClick")
         if Blackacre.TomeHub and Blackacre.TomeHub.ToggleBackstoryMenu then
@@ -464,7 +833,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.pageJumpBtn:SetPoint("LEFT", frame.pageJump, "RIGHT", 2, 0)
     frame.pageJumpBtn:SetFrameLevel(fl)
     frame.pageJumpBtn:SetText("Go")
-    Tip(frame.pageJumpBtn, "Jump to page", "Type a leaf number, then click or press Enter.")
+    Tip(frame.pageJumpBtn, "Jump to page")
     frame.pageJumpBtn:SetScript("OnClick", function()
         Blackacre.UI.Theme.PlayUISound("toolClick")
         local n = tonumber(frame.pageJump:GetText())
@@ -478,7 +847,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.addNoteBtn:SetPoint("RIGHT", frame.pageJump, "LEFT", -8, 0)
     frame.addNoteBtn:SetFrameLevel(fl)
     frame.addNoteBtn:SetText("Add note")
-    Tip(frame.addNoteBtn, "Add note", "Click, then click a page leaf to place a scrap note.")
+    Tip(frame.addNoteBtn, "Add note", "Click and place a scrap note")
     frame.addNoteBtn:SetScript("OnClick", function()
         Blackacre.UI.Theme.PlayUISound("toolClick")
         if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.BeginPinMode then
@@ -497,7 +866,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.tabBar = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     frame.tabBar:SetPoint("BOTTOMLEFT", frame.footer, "TOPLEFT", 0, GAP)
     frame.tabBar:SetPoint("BOTTOMRIGHT", frame.footer, "TOPRIGHT", 0, GAP)
-    frame.tabBar:SetHeight(28)
+    frame.tabBar:SetHeight(TAB_H)
     frame.tabBar:SetBackdrop({
         bgFile = Blackacre.UI.Theme.Textures.white,
         edgeFile = nil,
@@ -506,23 +875,16 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     })
     frame.tabBar:SetBackdropColor(0.12, 0.09, 0.06, 0.5)
     frame.tabRail = frame.tabBar
-    -- Region 9: under-book rail (TAV: Campaign_Alliance)
+    -- Region 9: under-book rail (skin pack)
     do
         local rail = frame.tabBar:CreateTexture(nil, "ARTWORK")
         rail:SetAllPoints(frame.tabBar)
-        local railAtlas = (Blackacre.UI.Theme.GetChromeFaction() == "Horde")
-            and "_warboard-title-horde-middle"
-            or "_warboard-title-alliance-middle"
-        local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(railAtlas)
-        if info then
-            Blackacre.UI.Theme.TrySetAtlas(rail, railAtlas, false)
-        elseif not Blackacre.UI.Theme.TrySetAtlas(rail, railAtlas, false) then
-            rail:SetTexture("Interface\\QuestionFrame\\Warboard")
-        end
         if rail.SetHorizTile then rail:SetHorizTile(true) end
         if rail.SetVertTile then rail:SetVertTile(false) end
+        if rail.SetDrawLayer then rail:SetDrawLayer("ARTWORK", 0) end
         frame.tabBar:SetBackdropColor(0.12, 0.09, 0.06, 0.5)
         frame.tabBar.atlasFill = rail
+        Blackacre.UI.Theme.ApplyRail(frame)
     end
 
     -- BOOK OPEN between header and tabs (fills middle of shell)
@@ -536,13 +898,14 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
         Blackacre.UI.Theme.FitBookArtToFrame(self)
     end)
     Blackacre.UI.Theme.FitBookArtToFrame(frame.bookOpen)
-    frame.tabBar:SetFrameLevel((frame:GetFrameLevel() or 1) + 50)
+    -- Region 9 sits above the book art and behind the NineSlice border.
+    frame.tabBar:SetFrameLevel((frame:GetFrameLevel() or 1) + 40)
 
-    -- Region 8: TOC tab, native size, above outer shell
+    -- Region 8: TOC tab. Size locked (50% of Alliance crop). Top aligned to bookOpen.
     frame.chronicleBookmark = CreateFrame("Button", nil, frame, "BackdropTemplate")
     frame.chronicleBookmark:SetSize(36, 128)
     frame.chronicleBookmark:SetPoint("TOPLEFT", frame.bookOpen, "TOPLEFT", -4, 0)
-    frame.chronicleBookmark:SetFrameLevel((frame:GetFrameLevel() or 1) + 52)
+    frame.chronicleBookmark:SetFrameLevel((frame:GetFrameLevel() or 1) + 62)
     frame.chronicleBookmark:SetBackdrop({
         bgFile = Blackacre.UI.Theme.Textures.white,
         edgeFile = Blackacre.UI.Theme.Textures.tooltipEdge,
@@ -551,44 +914,20 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     })
     frame.chronicleBookmark:SetBackdropColor(0.45, 0.28, 0.12, 0.98)
     frame.chronicleBookmark:SetBackdropBorderColor(0.95, 0.80, 0.35, 1)
-    -- Region 8: TOC tab — Alliance (blue) half of AlliedRaces-AllianceHordeBanner; else Guild-Flag
+    -- Region 8: TOC tab (skin pack UV crop)
     do
         local banner = frame.chronicleBookmark:CreateTexture(nil, "ARTWORK")
         banner:SetAllPoints(frame.chronicleBookmark)
-        local used = false
-        local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("AlliedRaces-AllianceHordeBanner")
-        if info and (info.filename or info.file) then
-            banner:SetTexture(info.filename or info.file)
-            used = true
-        elseif Blackacre.UI.Theme.TrySetAtlas(banner, "AlliedRaces-AllianceHordeBanner", true) then
-            used = true
-        elseif Blackacre.UI.Theme.TrySetAtlas(banner, "UI-Achievement-Guild-Flag", true) then
-            used = true
-        end
-        if used then
-            local horde = Blackacre.UI.Theme.GetChromeFaction() == "Horde"
-            if horde then
-                banner:SetTexCoord(0.41268, 1, 0, 1)
-            else
-                banner:SetTexCoord(0, 0.41268, 0, 1)
-            end
-            local iw = (info and info.width) or banner:GetWidth() or 80
-            local ih = (info and info.height) or banner:GetHeight() or 128
-            local frac = horde and (1 - 0.41268) or 0.41268
-            frame.chronicleBookmark:SetSize(iw * frac * 0.5, ih * 0.5)
-            banner:ClearAllPoints()
-            banner:SetAllPoints(frame.chronicleBookmark)
-            frame.chronicleBookmark:SetBackdrop(nil)
-        else
-            banner:Hide()
-        end
+        banner:SetAlpha(1)
+        if banner.SetVertexColor then banner:SetVertexColor(1, 1, 1, 1) end
         frame.chronicleBookmark.banner = banner
+        Blackacre.UI.Theme.ApplyTocBookmark(frame)
     end
     local bmLabel = frame.chronicleBookmark:CreateFontString(nil, Layer.OVERLAY, "GameFontNormalSmall")
     bmLabel:SetPoint("CENTER", 0, 0)
     bmLabel:SetWidth(12)
     bmLabel:SetWordWrap(true)
-    bmLabel:SetText("TOC")
+    bmLabel:SetText("")
     bmLabel:SetTextColor(1, 1, 1, 1)
     frame.chronicleBookmark.label = bmLabel
     frame.chronicleBookmark:SetScript("OnClick", function()
@@ -602,7 +941,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     end)
     frame.chronicleBookmark:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Jump to Table of Contents")
+        GameTooltip:SetText("Table of Contents")
         GameTooltip:Show()
     end)
     frame.chronicleBookmark:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -613,14 +952,14 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     -- Two equal leaves — above bookmark chrome so TOC rows receive clicks
     frame.leftPage = CreateFrame("Frame", nil, frame.bookOpen)
     frame.leftPage:SetPoint("TOPLEFT", frame.bookOpen, "TOPLEFT", 28, -20)
-    frame.leftPage:SetPoint("BOTTOMRIGHT", frame.bookOpen, "BOTTOM", -GUTTER_PAD, 48)
+    frame.leftPage:SetPoint("BOTTOMRIGHT", frame.bookOpen, "BOTTOM", -GUTTER_PAD, 36)
     if frame.leftPage.SetClipsChildren then frame.leftPage:SetClipsChildren(true) end
     frame.leftPage:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 10)
     frame.leftPage:EnableMouse(false)
 
     frame.rightPage = CreateFrame("Frame", nil, frame.bookOpen)
     frame.rightPage:SetPoint("TOPLEFT", frame.bookOpen, "TOP", GUTTER_PAD, -20)
-    frame.rightPage:SetPoint("BOTTOMRIGHT", frame.bookOpen, "BOTTOMRIGHT", -28, 48)
+    frame.rightPage:SetPoint("BOTTOMRIGHT", frame.bookOpen, "BOTTOMRIGHT", -28, 36)
     if frame.rightPage.SetClipsChildren then frame.rightPage:SetClipsChildren(true) end
     frame.rightPage:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 10)
     frame.rightPage:EnableMouse(false)
@@ -630,11 +969,11 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     frame.gutter:SetColorTexture(0.05, 0.04, 0.03, 0.35)
     frame.gutter:SetWidth(6)
     frame.gutter:SetPoint("TOP", frame.bookOpen, "TOP", 0, -24)
-    frame.gutter:SetPoint("BOTTOM", frame.bookOpen, "BOTTOM", 0, 52)
+    frame.gutter:SetPoint("BOTTOM", frame.bookOpen, "BOTTOM", 0, 40)
 
     frame.pageHost = CreateFrame("Frame", nil, frame.bookOpen)
     frame.pageHost:SetPoint("TOPLEFT", 28, -20)
-    frame.pageHost:SetPoint("BOTTOMRIGHT", -28, 48)
+    frame.pageHost:SetPoint("BOTTOMRIGHT", -28, 36)
     if frame.pageHost.SetClipsChildren then frame.pageHost:SetClipsChildren(true) end
     frame.pageHost:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 3)
     frame.pageHost:Hide()
@@ -642,7 +981,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
     -- Nav: < leftNum ..... rightNum >
     frame.prevPageBtn = CreateFrame("Button", nil, frame.bookOpen, "UIPanelButtonTemplate")
     frame.prevPageBtn:SetSize(36, 24)
-    frame.prevPageBtn:SetPoint("BOTTOMLEFT", frame.leftPage, "BOTTOMLEFT", 8, -36)
+    frame.prevPageBtn:SetPoint("BOTTOMLEFT", frame.leftPage, "BOTTOMLEFT", 8, -28)
     frame.prevPageBtn:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 20)
     frame.prevPageBtn:SetText("<")
     frame.prevPageBtn:Show()
@@ -673,7 +1012,7 @@ function Blackacre.UI.Theme.CreateBookShell(name, titleText)
 
     frame.nextPageBtn = CreateFrame("Button", nil, frame.bookOpen, "UIPanelButtonTemplate")
     frame.nextPageBtn:SetSize(36, 24)
-    frame.nextPageBtn:SetPoint("BOTTOMRIGHT", frame.rightPage, "BOTTOMRIGHT", -8, -36)
+    frame.nextPageBtn:SetPoint("BOTTOMRIGHT", frame.rightPage, "BOTTOMRIGHT", -8, -28)
     frame.nextPageBtn:SetFrameLevel((frame.bookOpen:GetFrameLevel() or 1) + 20)
     frame.nextPageBtn:SetText(">")
     frame.nextPageBtn:Show()
@@ -875,18 +1214,6 @@ function Blackacre.UI.Theme.SanitizeBodyText(text)
     return text
 end
 
-local function TrySetFont(region, path, size)
-    if not region or not path or path == "" or not region.SetFont then return false end
-    local ok = pcall(function() region:SetFont(path, size, "") end)
-    if ok then return true end
-    -- Retry without extension
-    local bare = path:gsub("%.[tT][tT][fF]$", ""):gsub("%.[oO][tT][fF]$", "")
-    if bare ~= path then
-        ok = pcall(function() region:SetFont(bare, size, "") end)
-    end
-    return ok and true or false
-end
-
 function Blackacre.UI.Theme.ApplyReadableBodyFont(region, extraSize)
     if not region then return end
     extraSize = extraSize or 1
@@ -919,12 +1246,238 @@ function Blackacre.UI.Theme.GetChromeFaction()
     return "Alliance"
 end
 
+--- Saved options id: "auto" | "Alliance" | "Horde" | future pack names.
+function Blackacre.UI.Theme.GetActiveSkinId()
+    local settings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+    local saved = settings and settings.chromeSkin
+    if saved and saved ~= "auto" and Blackacre.UI.Theme.Skins[saved] then
+        return saved
+    end
+    return Blackacre.UI.Theme.GetChromeFaction()
+end
+
+function Blackacre.UI.Theme.GetActiveSkin()
+    local id = Blackacre.UI.Theme.GetActiveSkinId()
+    return Blackacre.UI.Theme.Skins[id] or Blackacre.UI.Theme.Skins.Alliance
+end
+
+function Blackacre.UI.Theme.SetActiveSkin(id)
+    local settings = Blackacre.GetProfileSettings and Blackacre.GetProfileSettings()
+    if not settings then return end
+    if id ~= "auto" and not Blackacre.UI.Theme.Skins[id] then return end
+    settings.chromeSkin = id or "auto"
+    if Blackacre.UI.Theme.RefreshChrome then
+        Blackacre.UI.Theme.RefreshChrome()
+    end
+end
+
+function Blackacre.UI.Theme.ApplyRail(frame)
+    if not frame or not frame.tabBar then return end
+    local rail = frame.tabBar.atlasFill
+    if not rail then return end
+    local skin = Blackacre.UI.Theme.GetActiveSkin()
+    local bar = frame.tabBar
+    local h = skin.railHeight or 22
+    bar:SetHeight(h)
+
+    local railAtlas = Blackacre.UI.Theme.PickAtlas({
+        skin.tocTitleMid, skin.rail, "_Neutral-NineSlice-EdgeBottom",
+    })
+    local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(railAtlas)
+    if info then
+        Blackacre.UI.Theme.TrySetAtlas(rail, railAtlas, false)
+    elseif not Blackacre.UI.Theme.TrySetAtlas(rail, railAtlas, false) then
+        rail:SetTexture("Interface\\QuestionFrame\\Warboard")
+    end
+    -- Atlas names beginning with '_' are defined as horizontal tiles. ApplyRail
+    -- sizes the strip to the exact 9S field; tiling preserves the middle art
+    -- instead of stretching it across the full window width.
+    if rail.SetHorizTile then rail:SetHorizTile(true) end
+    if rail.SetVertTile then rail:SetVertTile(false) end
+
+    local factionSkin = skin.ninesliceLayout == "BFAMissionAlliance" or skin.ninesliceLayout == "BFAMissionHorde"
+    local hasCaps = (not factionSkin) and (skin.tocTitleLeft or skin.titleLeft or skin.tocTitleRight or skin.titleRight)
+
+    if hasCaps then
+        bar.titleLeft = bar.titleLeft or bar:CreateTexture(nil, "OVERLAY")
+        bar.titleRight = bar.titleRight or bar:CreateTexture(nil, "OVERLAY")
+
+        local leftAtlas = Blackacre.UI.Theme.PickAtlas({ skin.tocTitleLeft, skin.titleLeft, skin.ninesliceCornerTL, skin.ninesliceCorner })
+        local rightAtlas = Blackacre.UI.Theme.PickAtlas({ skin.tocTitleRight, skin.titleRight, skin.ninesliceCornerTR, skin.ninesliceCorner })
+
+        local leftInfo = leftAtlas and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(leftAtlas)
+        local rightInfo = rightAtlas and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(rightAtlas)
+
+        local capW = math.max(32, math.floor(h * 1.5))
+        if leftInfo and leftInfo.width and leftInfo.height and leftInfo.height > 0 then
+            capW = math.floor(h * (leftInfo.width / leftInfo.height))
+        end
+
+        bar.titleLeft:ClearAllPoints()
+        bar.titleLeft:SetPoint("LEFT", bar, "LEFT", 0, 0)
+        bar.titleLeft:SetSize(capW, h)
+
+        bar.titleRight:ClearAllPoints()
+        bar.titleRight:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
+        bar.titleRight:SetSize(capW, h)
+
+        if leftAtlas then Blackacre.UI.Theme.TrySetAtlas(bar.titleLeft, leftAtlas, false) end
+        if rightAtlas then Blackacre.UI.Theme.TrySetAtlas(bar.titleRight, rightAtlas, false) end
+
+        bar.titleLeft:Show()
+        bar.titleRight:Show()
+
+        -- Center rail matches exact width between caps flush
+        rail:ClearAllPoints()
+        rail:SetPoint("LEFT", bar.titleLeft, "RIGHT", 0, 0)
+        rail:SetPoint("RIGHT", bar.titleRight, "LEFT", 0, 0)
+        rail:SetHeight(h)
+    else
+        if bar.titleLeft then bar.titleLeft:Hide() end
+        if bar.titleRight then bar.titleRight:Hide() end
+
+        -- Spans entire width of 9S field
+        rail:ClearAllPoints()
+        rail:SetAllPoints(bar)
+    end
+end
+
+function Blackacre.UI.Theme.ApplyTocBookmark(frame)
+    if not frame or not frame.chronicleBookmark then return end
+    local banner = frame.chronicleBookmark.banner
+    if not banner then return end
+    local skin = Blackacre.UI.Theme.GetActiveSkin()
+    local atlasName = Blackacre.UI.Theme.PickAtlas({
+        skin.tocBanner, "spellbook-background-evergreen-ribbon", "AlliedRaces-AllianceHordeBanner",
+    }) or "AlliedRaces-AllianceHordeBanner"
+    local info = C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlasName)
+    local file = info and (info.filename or info.file)
+    if file then
+        banner:SetTexture(file)
+    elseif not Blackacre.UI.Theme.TrySetAtlas(banner, atlasName, false) then
+        return
+    end
+    local cropW = skin.tocUvWidth or 0.41268
+    local startFrac = skin.tocUvStart or 0
+    local l = (info and (info.leftTexCoord or info.left)) or 0
+    local r = (info and (info.rightTexCoord or info.right)) or 1
+    local t = (info and (info.topTexCoord or info.top)) or 0
+    local b = (info and (info.bottomTexCoord or info.bottom)) or 1
+    local span = r - l
+    local s = l + span * startFrac
+    local e = math.min(r, s + span * cropW)
+    banner:SetTexCoord(s, e, t, b)
+    local iw = (info and info.width) or 80
+    local ih = (info and info.height) or 128
+    local bw = math.max(28, math.min(48, (iw or 80) * (cropW or 1) * 0.5))
+    local bh = math.max(80, math.min(140, (ih or 128) * 0.5))
+    frame.chronicleBookmark:SetSize(bw, bh)
+    banner:SetAlpha(1)
+    banner:ClearAllPoints()
+    banner:SetAllPoints(frame.chronicleBookmark)
+    if frame.chronicleBookmark.SetBackdrop then
+        frame.chronicleBookmark:SetBackdrop(nil)
+    end
+    banner:Show()
+end
+
+function Blackacre.UI.Theme.RefreshChrome()
+    local hub = Blackacre.TomeHub and Blackacre.TomeHub.GetFrame and Blackacre.TomeHub.GetFrame()
+    if hub then
+        Blackacre.UI.Theme.ApplyBookShellChrome(hub)
+        Blackacre.UI.Theme.ApplyRail(hub)
+        Blackacre.UI.Theme.ApplyTocBookmark(hub)
+        if hub.header then Blackacre.UI.Theme.ApplyBookChromeBar(hub.header, "header") end
+        if hub.footer then Blackacre.UI.Theme.ApplyBookChromeBar(hub.footer, "footer") end
+    end
+    local menu = _G.BlackacreBackstoryMenu
+    if menu then
+        Blackacre.UI.Theme.ApplyFactionFrameChrome(menu)
+        if menu.header then Blackacre.UI.Theme.ApplyNeutralTitleBar(menu.header) end
+    end
+    if Blackacre.Chronicle and Blackacre.Chronicle.UI and Blackacre.Chronicle.UI.RenderSpread then
+        Blackacre.Chronicle.UI.RenderSpread()
+    end
+end
+
+function Blackacre.UI.Theme.ApplyChromeInset(frame, pad)
+    pad = pad or 12
+    if not frame or not frame.header then return end
+    local skin = Blackacre.UI.Theme.GetActiveSkin()
+    frame._baChromePad = pad
+    frame.header:ClearAllPoints()
+    frame.header:SetPoint("TOPLEFT", pad, -pad)
+    frame.header:SetPoint("TOPRIGHT", -pad, -pad)
+    if frame.footer then
+        frame.footer:ClearAllPoints()
+        frame.footer:SetPoint("BOTTOMLEFT", pad, pad)
+        frame.footer:SetPoint("BOTTOMRIGHT", -pad, pad)
+    end
+    local closeOffX = skin.closeButtonOffsetX or -8
+    if frame.closeButton then
+        frame.closeButton:ClearAllPoints()
+        frame.closeButton:SetPoint("RIGHT", closeOffX, 0)
+    end
+    if frame.addPageBtn and frame.closeButton then
+        frame.addPageBtn:ClearAllPoints()
+        frame.addPageBtn:SetPoint("RIGHT", frame.closeButton, "LEFT", -6, 0)
+    end
+    local titleOffX = (skin.titleOffsetX or 0) + 14
+    if frame.title and frame.addPageBtn then
+        frame.title:ClearAllPoints()
+        frame.title:SetPoint("LEFT", titleOffX, 0)
+        frame.title:SetPoint("RIGHT", frame.addPageBtn, "LEFT", -8, 0)
+    end
+    if frame.journalToggle then
+        frame.journalToggle:ClearAllPoints()
+        frame.journalToggle:SetPoint("LEFT", skin.journalToggleOffsetX or 12, 0)
+    end
+    if frame.backstoryBtn then
+        frame.backstoryBtn:ClearAllPoints()
+        frame.backstoryBtn:SetPoint("RIGHT", skin.footerRightOffsetX or -10, 0)
+    end
+    if frame.pageJump and frame.backstoryBtn then
+        frame.pageJump:ClearAllPoints()
+        frame.pageJump:SetPoint("RIGHT", frame.backstoryBtn, "LEFT", -44, 0)
+    end
+    if frame.pageJumpBtn and frame.pageJump then
+        frame.pageJumpBtn:ClearAllPoints()
+        frame.pageJumpBtn:SetPoint("LEFT", frame.pageJump, "RIGHT", 2, 0)
+    end
+    if frame.addNoteBtn and frame.pageJump then
+        frame.addNoteBtn:ClearAllPoints()
+        frame.addNoteBtn:SetPoint("RIGHT", frame.pageJump, "LEFT", -8, 0)
+    end
+    -- Title (2F) and footer (11F) stay behind the outer NineSlice so the shell overlaps them.
+    local base = frame:GetFrameLevel() or 1
+    if frame.header then frame.header:SetFrameLevel(base + 30) end
+    if frame.footer then frame.footer:SetFrameLevel(base + 30) end
+    if frame.tabBar then frame.tabBar:SetFrameLevel(base + 40) end
+    if frame.chronicleBookmark then
+        frame.chronicleBookmark:SetFrameLevel(base + 75)
+    end
+end
+
 function Blackacre.UI.Theme.TrySetAtlas(tex, atlas, useAtlasSize)
     if not tex or not atlas or not tex.SetAtlas then return false end
     local ok = pcall(function()
         tex:SetAtlas(atlas, useAtlasSize and true or false)
     end)
     return ok
+end
+
+function Blackacre.UI.Theme.PickAtlas(names)
+    if type(names) == "string" then
+        names = { names }
+    end
+    if not names then return nil end
+    for i = 1, #names do
+        local n = names[i]
+        if n and n ~= "" and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(n) then
+            return n
+        end
+    end
+    return names[1]
 end
 
 --- Region 1: Alliance BFA mission NineSlice, pushed out so it sits around (not under) children.
@@ -951,29 +1504,126 @@ function Blackacre.UI.Theme.ApplyBookShellChrome(frame)
         frame._baNineSlice = host
     end
     host:ClearAllPoints()
-    host:SetAllPoints(frame)
     host:EnableMouse(false)
-    host:SetFrameLevel((frame:GetFrameLevel() or 1) + 45)
+    host:SetFrameLevel((frame:GetFrameLevel() or 1) + 70)
     host.layoutTextureLayer = "OVERLAY"
     host.layoutTextureSubLevel = 7
 
-    local horde = Blackacre.UI.Theme.GetChromeFaction() == "Horde"
-    local corner = horde and "HordeFrame-Corner-TopLeft" or "AllianceFrameCorner-TopLeft"
-    local edgeH = horde and "_HordeFrameTile-Top" or "_AllianceFrameTile-Top"
-    local edgeV = horde and "!HordeFrameTile-Left" or "!AllianceFrameTile-Left"
-    local layout = {
-        mirrorLayout = true,
-        TopLeftCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = -12, y = 12 },
-        TopRightCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = 12, y = 12 },
-        BottomLeftCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = -12, y = -12 },
-        BottomRightCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = 12, y = -12 },
-        TopEdge = { atlas = edgeH, layer = "OVERLAY", subLevel = 7 },
-        BottomEdge = { atlas = edgeH, layer = "OVERLAY", subLevel = 7 },
-        LeftEdge = { atlas = edgeV, layer = "OVERLAY", subLevel = 7 },
-        RightEdge = { atlas = edgeV, layer = "OVERLAY", subLevel = 7 },
-    }
-    host.layoutType = horde and "BFAMissionHorde" or "BFAMissionAlliance"
-    if NineSliceUtil and NineSliceUtil.ApplyLayout then
+    local skin = Blackacre.UI.Theme.GetActiveSkin()
+    local pick = Blackacre.UI.Theme.PickAtlas
+    local kit = skin.kit or ""
+    local factionSkin = (not kit or kit == "") and (skin.ninesliceLayout == "BFAMissionAlliance" or skin.ninesliceLayout == "BFAMissionHorde")
+    local function exists(name)
+        return name and name ~= "" and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(name)
+    end
+    local layout
+    local shellTexture = host._baShellAtlas
+    if skin.shellAtlas then
+        if not shellTexture then
+            shellTexture = host:CreateTexture(nil, "OVERLAY", nil, 7)
+            host._baShellAtlas = shellTexture
+        end
+        host:SetAllPoints(frame)
+        shellTexture:ClearAllPoints()
+        shellTexture:SetPoint("CENTER", host, "CENTER")
+        local shellScale = skin.shellScale or 1
+        shellTexture:SetSize(
+            (frame:GetWidth() or 0) * shellScale,
+            (frame:GetHeight() or 0) * shellScale
+        )
+        frame._baShellTexture = shellTexture
+        if not frame._baShellScaleHooked then
+            frame:HookScript("OnSizeChanged", function(self)
+                local tex = self._baShellTexture
+                if not tex then return end
+                local activeSkin = Blackacre.UI.Theme.GetActiveSkin()
+                local scale = activeSkin.shellScale or 1
+                tex:SetSize(
+                    (self:GetWidth() or 0) * scale,
+                    (self:GetHeight() or 0) * scale
+                )
+            end)
+            frame._baShellScaleHooked = true
+        end
+        if not Blackacre.UI.Theme.TrySetAtlas(shellTexture, skin.shellAtlas, false) then
+            shellTexture:Hide()
+        else
+            shellTexture:Show()
+        end
+        host.layoutType = "SingleShellAtlasLayout"
+    elseif factionSkin then
+        if shellTexture then shellTexture:Hide() end
+        -- Original Alliance / Horde chrome: one mirrored corner, matching edge tiles.
+        local corner = skin.ninesliceCorner
+        local edgeH = skin.ninesliceTileH
+        local edgeV = skin.ninesliceTileV
+        layout = {
+            mirrorLayout = true,
+            TopLeftCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = -12, y = 12 },
+            TopRightCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = 12, y = 12 },
+            BottomLeftCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = -12, y = -12 },
+            BottomRightCorner = { atlas = corner, layer = "OVERLAY", subLevel = 7, x = 12, y = -12 },
+            TopEdge = { atlas = edgeH, layer = "OVERLAY", subLevel = 7 },
+            BottomEdge = { atlas = edgeH, layer = "OVERLAY", subLevel = 7 },
+            LeftEdge = { atlas = edgeV, layer = "OVERLAY", subLevel = 7 },
+            RightEdge = { atlas = edgeV, layer = "OVERLAY", subLevel = 7 },
+        }
+        host.layoutType = skin.ninesliceLayout or "BFAMissionAlliance"
+        host:SetAllPoints(frame)
+    else
+        if shellTexture then shellTexture:Hide() end
+        local tlU = pick({
+            skin.ninesliceCornerTL,
+            kit ~= "" and (kit .. "-NineSlice-CornerTopLeft") or nil,
+            kit ~= "" and ("UI-Frame-" .. kit .. "-CornerTopLeft") or nil,
+        })
+        local trU = pick({
+            skin.ninesliceCornerTR,
+            kit ~= "" and (kit .. "-NineSlice-CornerTopRight") or nil,
+            kit ~= "" and ("UI-Frame-" .. kit .. "-CornerTopRight") or nil,
+        })
+        local blU = pick({
+            skin.ninesliceCornerBL,
+            kit ~= "" and (kit .. "-NineSlice-CornerBottomLeft") or nil,
+            kit ~= "" and ("UI-Frame-" .. kit .. "-CornerBottomLeft") or nil,
+        })
+        local brU = pick({
+            skin.ninesliceCornerBR,
+            kit ~= "" and (kit .. "-NineSlice-CornerBottomRight") or nil,
+            kit ~= "" and ("UI-Frame-" .. kit .. "-CornerBottomRight") or nil,
+        })
+        local hasUnique = exists(tlU) and exists(trU) and exists(blU) and exists(brU)
+            and tlU ~= trU and tlU ~= blU and tlU ~= brU
+        local shared = pick({ skin.ninesliceCorner, skin.ninesliceCornerAlt, "Neutral-NineSlice-Corner" })
+        local tl = hasUnique and tlU or shared
+        local tr = hasUnique and trU or shared
+        local bl = hasUnique and blU or shared
+        local br = hasUnique and brU or shared
+        local edgeH = pick({ skin.ninesliceTileH, skin.ninesliceTileHAlt, "_Neutral-NineSlice-EdgeTop" })
+        local edgeHB = pick({ skin.ninesliceTileHBottom, skin.ninesliceTileHBottomAlt, hasUnique and skin.ninesliceTileH or nil, "_Neutral-NineSlice-EdgeBottom" })
+        local edgeV = pick({ skin.ninesliceTileV, skin.ninesliceTileVAlt, "!Neutral-NineSlice-EdgeLeft" })
+        local edgeVR = pick({ skin.ninesliceTileVRight, skin.ninesliceTileVRightAlt, hasUnique and skin.ninesliceTileV or nil, "!Neutral-NineSlice-EdgeRight" })
+        if not hasUnique then
+            edgeHB = edgeH
+            edgeVR = edgeV
+        end
+        layout = {
+            mirrorLayout = not hasUnique,
+            TopLeftCorner = { atlas = tl, layer = "OVERLAY", subLevel = 7, x = -12, y = 12 },
+            TopRightCorner = { atlas = tr, layer = "OVERLAY", subLevel = 7, x = 12, y = 12 },
+            BottomLeftCorner = { atlas = bl, layer = "OVERLAY", subLevel = 7, x = -12, y = -12 },
+            BottomRightCorner = { atlas = br, layer = "OVERLAY", subLevel = 7, x = 12, y = -12 },
+            TopEdge = { atlas = edgeH, layer = "OVERLAY", subLevel = 7 },
+            BottomEdge = { atlas = edgeHB, layer = "OVERLAY", subLevel = 7 },
+            LeftEdge = { atlas = edgeV, layer = "OVERLAY", subLevel = 7 },
+            RightEdge = { atlas = edgeVR, layer = "OVERLAY", subLevel = 7 },
+        }
+        host.layoutType = hasUnique and "UniqueCornersLayout" or (skin.ninesliceLayout or "BFAMissionAlliance")
+        local topNudge = skin.ninesliceTopNudge or 0
+        host:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, topNudge)
+        host:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    end
+    if layout and NineSliceUtil and NineSliceUtil.ApplyLayout then
         NineSliceUtil.ApplyLayout(host, layout)
     end
     local names = {
@@ -984,29 +1634,435 @@ function Blackacre.UI.Theme.ApplyBookShellChrome(frame)
         local piece = host[name]
         if piece and piece.SetDrawLayer then
             piece:SetDrawLayer("OVERLAY", 7)
+            if skin.shellAtlas then piece:Hide() end
         end
+    end
+    host:SetFrameLevel((frame:GetFrameLevel() or 1) + 70)
+    if Blackacre.UI.Theme.ApplyChromeInset then
+        local pad = 12
+        if not factionSkin then
+            pad = skin.chromePad or 18
+        end
+        Blackacre.UI.Theme.ApplyChromeInset(frame, pad)
     end
 end
 
---- Sidecar: simple dialog edge (not the Tome Alliance NineSlice).
+local function GarrSetAtlas(tex, names, useSize)
+    if not tex then return false end
+    for i = 1, #names do
+        if Blackacre.UI.Theme.TrySetAtlas(tex, names[i], useSize and true or false) then
+            return true
+        end
+    end
+    return false
+end
+
+--- Middle fill (inset) behind parchmentpopup corners/edges.
+--- Edges: atlas first, then inner-corner anchors, then thickness capped at 24 (fat atlas = cross).
+function Blackacre.UI.Theme.ApplyParchmentPopupFill(frame)
+    if not frame then return end
+    local function tex(key, layer, sub)
+        local t = frame[key]
+        if not t then
+            t = frame:CreateTexture(nil, layer, nil, sub)
+            frame[key] = t
+        end
+        return t
+    end
+    local function atlasInfo(name)
+        return C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(name)
+    end
+    local function setAtlas(t, name, useSize)
+        if not name or not t then return false end
+        if not atlasInfo(name) then
+            t:Hide()
+            return false
+        end
+        local ok = Blackacre.UI.Theme.TrySetAtlas(t, name, useSize and true or false)
+        if not ok then
+            t:Hide()
+            return false
+        end
+        t:Show()
+        return true
+    end
+    local function stripThick(info, dim)
+        local v = (info and info[dim]) or 48
+        return v
+    end
+
+    local bg = tex("_baParchBg", "BACKGROUND", -5)
+    local function layoutFill()
+        local w = frame:GetWidth() or 640
+        local h = frame:GetHeight() or 720
+        bg:ClearAllPoints()
+        bg:SetPoint("CENTER", frame, "CENTER", 0, 0)
+        bg:SetSize((w - 36) * 0.75, (h - 36) * 0.75)
+    end
+    layoutFill()
+    if not frame._baParchBgHooked then
+        frame:HookScript("OnSizeChanged", layoutFill)
+        frame._baParchBgHooked = true
+    end
+    if not setAtlas(bg, "parchmentpopup-background", false) then
+        bg:Hide()
+    end
+
+    local tl = tex("_baParchTL", "BACKGROUND", -3)
+    tl:ClearAllPoints()
+    tl:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    setAtlas(tl, "parchmentpopup-topleft", true)
+
+    local tr = tex("_baParchTR", "BACKGROUND", -3)
+    tr:ClearAllPoints()
+    tr:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+    setAtlas(tr, "parchmentpopup-topright", true)
+
+    local bl = tex("_baParchBL", "BACKGROUND", -3)
+    bl:ClearAllPoints()
+    bl:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+    setAtlas(bl, "parchmentpopup-bottomleft", true)
+
+    local br = tex("_baParchBR", "BACKGROUND", -3)
+    br:ClearAllPoints()
+    br:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    setAtlas(br, "parchmentpopup-bottomright", true)
+
+    -- parchmentpopup-top is NOT a tile (no _ prefix). HorizTile + SetTexCoord-after-SetAtlas
+    -- is what looked like striation / empty vs TAV.
+    local top = tex("_baParchTop", "BACKGROUND", -3)
+    local topInfo = atlasInfo("parchmentpopup-top")
+    if topInfo and (topInfo.filename or topInfo.file) then
+        top:SetTexture(topInfo.filename or topInfo.file)
+        top:SetTexCoord(
+            topInfo.leftTexCoord or topInfo.left or 0,
+            topInfo.rightTexCoord or topInfo.right or 1,
+            topInfo.topTexCoord or topInfo.top or 0,
+            topInfo.bottomTexCoord or topInfo.bottom or 1
+        )
+        if top.SetHorizTile then top:SetHorizTile(false) end
+        if top.SetVertTile then top:SetVertTile(false) end
+        top:ClearAllPoints()
+        top:SetPoint("TOPLEFT", tl, "TOPRIGHT", 0, 0)
+        top:SetPoint("TOPRIGHT", tr, "TOPLEFT", 0, 0)
+        top:SetHeight(167)
+        top:Show()
+    else
+        top:Hide()
+    end
+
+    local bot = tex("_baParchBot", "BACKGROUND", -3)
+    local botInfo = atlasInfo("parchmentpopup-bottom")
+    if botInfo and (botInfo.filename or botInfo.file) then
+        bot:SetTexture(botInfo.filename or botInfo.file)
+        bot:SetTexCoord(
+            botInfo.leftTexCoord or botInfo.left or 0,
+            botInfo.rightTexCoord or botInfo.right or 1,
+            botInfo.topTexCoord or botInfo.top or 0,
+            botInfo.bottomTexCoord or botInfo.bottom or 1
+        )
+        if bot.SetHorizTile then bot:SetHorizTile(false) end
+        if bot.SetVertTile then bot:SetVertTile(false) end
+        bot:ClearAllPoints()
+        bot:SetPoint("BOTTOMLEFT", bl, "BOTTOMRIGHT", 0, 0)
+        bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT", 0, 0)
+        bot:SetHeight(167)
+        bot:Show()
+    else
+        bot:Hide()
+    end
+
+    local left = tex("_baParchLeft", "BACKGROUND", -3)
+    local leftInfo = atlasInfo("parchmentpopup-left")
+    if leftInfo and (leftInfo.filename or leftInfo.file) then
+        left:SetTexture(leftInfo.filename or leftInfo.file)
+        left:SetTexCoord(
+            leftInfo.leftTexCoord or leftInfo.left or 0,
+            leftInfo.rightTexCoord or leftInfo.right or 1,
+            leftInfo.topTexCoord or leftInfo.top or 0,
+            leftInfo.bottomTexCoord or leftInfo.bottom or 1
+        )
+        if left.SetHorizTile then left:SetHorizTile(false) end
+        if left.SetVertTile then left:SetVertTile(false) end
+        left:ClearAllPoints()
+        left:SetPoint("TOPLEFT", tl, "BOTTOMLEFT", 0, 0)
+        left:SetPoint("BOTTOMLEFT", bl, "TOPLEFT", 0, 0)
+        left:SetWidth(167)
+        left:Show()
+    else
+        left:Hide()
+    end
+
+    local right = tex("_baParchRight", "BACKGROUND", -3)
+    local rightInfo = atlasInfo("parchmentpopup-right")
+    if rightInfo and (rightInfo.filename or rightInfo.file) then
+        right:SetTexture(rightInfo.filename or rightInfo.file)
+        right:SetTexCoord(
+            rightInfo.leftTexCoord or rightInfo.left or 0,
+            rightInfo.rightTexCoord or rightInfo.right or 1,
+            rightInfo.topTexCoord or rightInfo.top or 0,
+            rightInfo.bottomTexCoord or rightInfo.bottom or 1
+        )
+        if right.SetHorizTile then right:SetHorizTile(false) end
+        if right.SetVertTile then right:SetVertTile(false) end
+        right:ClearAllPoints()
+        right:SetPoint("TOPRIGHT", tr, "BOTTOMRIGHT", 0, 0)
+        right:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT", 0, 0)
+        right:SetWidth(167)
+        right:Show()
+    else
+        right:Hide()
+    end
+end
+
+--- B1: Garrison Landing Page fill + corners + edges. Neutral/QuestLog modes still exist.
+function Blackacre.UI.Theme.ApplyGarrisonLandingB1(frame)
+    if not frame then return end
+    local host = frame._baGarrHost
+    if not host then
+        host = CreateFrame("Frame", nil, frame)
+        frame._baGarrHost = host
+    end
+    host:Show()
+    host:ClearAllPoints()
+    host:SetAllPoints(frame)
+    host:EnableMouse(false)
+    host:SetFrameLevel((frame:GetFrameLevel() or 1) + 8)
+
+    local function piece(key, layer, sub)
+        local t = host[key]
+        if not t then
+            t = host:CreateTexture(nil, layer, nil, sub)
+            host[key] = t
+        end
+        t:Show()
+        return t
+    end
+
+    local fill = piece("fill", "BACKGROUND", -2)
+    fill:ClearAllPoints()
+    fill:SetAllPoints(host)
+    GarrSetAtlas(fill, { "GarrLanding-FollowerFrame" }, false)
+
+    local ul = piece("ul", "ARTWORK", 0)
+    ul:ClearAllPoints()
+    ul:SetPoint("TOPLEFT", host, "TOPLEFT", 0, 0)
+    GarrSetAtlas(ul, { "GarrLanding-upperleft", "GarrLanding-UpperLeft" }, true)
+
+    local ur = piece("ur", "ARTWORK", 0)
+    ur:ClearAllPoints()
+    ur:SetPoint("TOPRIGHT", host, "TOPRIGHT", 0, 0)
+    GarrSetAtlas(ur, { "GarrLanding-upperright", "GarrLanding-UpperRight" }, true)
+
+    local ll = piece("ll", "ARTWORK", 0)
+    ll:ClearAllPoints()
+    ll:SetPoint("BOTTOMLEFT", host, "BOTTOMLEFT", 0, 0)
+    GarrSetAtlas(ll, { "GarrLanding-lowerleft", "GarrLanding-LowerLeft" }, true)
+
+    local lr = piece("lr", "ARTWORK", 0)
+    lr:ClearAllPoints()
+    lr:SetPoint("BOTTOMRIGHT", host, "BOTTOMRIGHT", 0, 0)
+    GarrSetAtlas(lr, { "GarrLanding-lowerright", "GarrLanding-LowerRight" }, true)
+
+    local top = piece("top", "ARTWORK", 1)
+    top:ClearAllPoints()
+    top:SetPoint("TOPLEFT", ul, "TOPRIGHT", 0, 0)
+    top:SetPoint("TOPRIGHT", ur, "TOPLEFT", 0, 0)
+    if top.SetHorizTile then top:SetHorizTile(true) end
+    GarrSetAtlas(top, { "GarrLanding-Top" }, false)
+
+    local bot = piece("bot", "ARTWORK", 1)
+    bot:ClearAllPoints()
+    bot:SetPoint("BOTTOMLEFT", ll, "BOTTOMRIGHT", 0, 0)
+    bot:SetPoint("BOTTOMRIGHT", lr, "BOTTOMLEFT", 0, 0)
+    if bot.SetHorizTile then bot:SetHorizTile(true) end
+    GarrSetAtlas(bot, { "GarrLanding-Bottom", "GarLanding-Bottom" }, false)
+
+    local left = piece("left", "ARTWORK", 1)
+    left:ClearAllPoints()
+    left:SetPoint("TOPLEFT", ul, "BOTTOMLEFT", 0, 0)
+    left:SetPoint("BOTTOMLEFT", ll, "TOPLEFT", 0, 0)
+    if left.SetVertTile then left:SetVertTile(true) end
+    GarrSetAtlas(left, { "GarrLanding-Left", "GarLanding-Left" }, false)
+
+    local right = piece("right", "ARTWORK", 1)
+    right:ClearAllPoints()
+    right:SetPoint("TOPRIGHT", ur, "BOTTOMRIGHT", 0, 0)
+    right:SetPoint("BOTTOMRIGHT", lr, "TOPRIGHT", 0, 0)
+    if right.SetVertTile then right:SetVertTile(true) end
+    GarrSetAtlas(right, { "GarrLanding-Right", "GarLanding-Right" }, false)
+end
+
+--- Backstory B1. Neutral nineslice kept for regress (Textures.backstoryB1Mode = "neutral").
 function Blackacre.UI.Theme.ApplyFactionFrameChrome(frame)
-    if not frame or not frame.SetBackdrop then return end
-    if frame._baFactionBG then
-        frame._baFactionBG:Hide()
+    if not frame then return end
+    if frame.SetBackdrop then
+        frame:SetBackdrop(nil)
     end
     local T = Blackacre.UI.Theme.Textures
-    frame:SetBackdrop({
-        bgFile = T.white,
-        edgeFile = T.dialogEdge or T.goldEdge,
-        tile = true,
-        tileSize = 32,
-        edgeSize = 28,
-        insets = { left = 10, right = 10, top = 10, bottom = 10 },
-    })
-    local cover = Blackacre.UI.Theme.Colors.cover
-    frame:SetBackdropColor(cover[1], cover[2], cover[3], 0.97)
-    local eg = Blackacre.UI.Theme.Colors.edgeGold
-    frame:SetBackdropBorderColor(eg[1], eg[2], eg[3], 1)
+    local mode = T.backstoryB1Mode or "questlog"
+
+    if frame._baGarrHost then
+        frame._baGarrHost:Hide()
+    end
+    if frame._baNineSlice then frame._baNineSlice:Hide() end
+    if frame._baIslandsFill then frame._baIslandsFill:Hide() end
+    if frame._baClassTrialBg then frame._baClassTrialBg:Hide() end
+
+    local qlog = frame._baQuestLogBg
+    if not qlog then
+        qlog = frame:CreateTexture(nil, "BACKGROUND", nil, -1)
+        frame._baQuestLogBg = qlog
+    end
+
+    if mode == "questlog" then
+        Blackacre.UI.Theme.ApplyParchmentPopupFill(frame)
+        qlog:ClearAllPoints()
+        qlog:SetAllPoints(frame)
+        -- Stretch to sidecar size; do not useAtlasSize (that would keep native thickness).
+        if not Blackacre.UI.Theme.TrySetAtlas(qlog, T.backstoryQuestLogAtlas or "QuestLog-frame", false) then
+            if not Blackacre.UI.Theme.TrySetAtlas(qlog, "QuestLog-Frame", false) then
+                if not Blackacre.UI.Theme.TrySetAtlas(qlog, "QuestLogBackground", false) then
+                    qlog:SetTexture(T.backstoryQuestLogFile or "Interface\\QuestFrame\\UI-QuestLog-Empty-Top")
+                end
+            end
+        end
+        qlog:Show()
+        return
+    end
+    qlog:Hide()
+
+    local fill = frame._baIslandsFill
+    if not fill then
+        fill = frame:CreateTexture(nil, "BACKGROUND", nil, -2)
+        frame._baIslandsFill = fill
+    end
+    fill:ClearAllPoints()
+    fill:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -8)
+    fill:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -8, 8)
+    if not Blackacre.UI.Theme.TrySetAtlas(fill, "islands-queue-background", false) then
+        fill:SetTexture(Blackacre.UI.Theme.Textures.backstoryFillFile)
+    end
+    fill:Show()
+    if frame._baClassTrialBg then
+        frame._baClassTrialBg:Hide()
+    end
+
+    local host = frame._baNineSlice
+    if not host then
+        host = CreateFrame("Frame", nil, frame)
+        frame._baNineSlice = host
+    end
+    host:Show()
+    host:ClearAllPoints()
+    host:SetAllPoints(frame)
+    host:EnableMouse(false)
+    host:SetFrameLevel((frame:GetFrameLevel() or 1) + 45)
+    host.layoutTextureLayer = "OVERLAY"
+    host.layoutTextureSubLevel = 7
+    -- Official WoodenNeutralFrameTemplate offsets (x=±6). PAD=12 was Alliance-corner size and left gaps.
+    local corner = "Neutral-NineSlice-Corner"
+    local layout = {
+        mirrorLayout = true,
+        TopLeftCorner = { atlas = corner, x = -6, y = 6, layer = "OVERLAY", subLevel = 7 },
+        TopRightCorner = { atlas = corner, x = 6, y = 6, layer = "OVERLAY", subLevel = 7 },
+        BottomLeftCorner = { atlas = corner, x = -6, y = -6, layer = "OVERLAY", subLevel = 7 },
+        BottomRightCorner = { atlas = corner, x = 6, y = -6, layer = "OVERLAY", subLevel = 7 },
+        TopEdge = { atlas = "_Neutral-NineSlice-EdgeTop", layer = "OVERLAY", subLevel = 7 },
+        BottomEdge = { atlas = "_Neutral-NineSlice-EdgeBottom", mirrorLayout = false, layer = "OVERLAY", subLevel = 7 },
+        LeftEdge = { atlas = "!Neutral-NineSlice-EdgeLeft", layer = "OVERLAY", subLevel = 7 },
+        RightEdge = { atlas = "!Neutral-NineSlice-EdgeRight", mirrorLayout = false, layer = "OVERLAY", subLevel = 7 },
+    }
+    host.layoutType = "WoodenNeutralFrameTemplate"
+    if NineSliceUtil and NineSliceUtil.ApplyLayout then
+        NineSliceUtil.ApplyLayout(host, layout)
+    elseif NineSliceUtil and NineSliceUtil.ApplyLayoutByName then
+        NineSliceUtil.ApplyLayoutByName(host, "WoodenNeutralFrameTemplate")
+    end
+    local names = {
+        "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
+        "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
+    }
+    for _, name in ipairs(names) do
+        local piece = host[name]
+        if piece then
+            if piece.SetDrawLayer then piece:SetDrawLayer("OVERLAY", 7) end
+            if piece.SetHorizTile and (name == "TopEdge" or name == "BottomEdge") then
+                piece:SetHorizTile(true)
+            end
+            if piece.SetVertTile and (name == "LeftEdge" or name == "RightEdge") then
+                piece:SetVertTile(true)
+            end
+        end
+    end
+    -- Edges 10px into each corner so they sit flush with Neutral-NineSlice-Corner.
+    local tl, tr = host.TopLeftCorner, host.TopRightCorner
+    local bl, br = host.BottomLeftCorner, host.BottomRightCorner
+    if host.TopEdge and tl and tr then
+        host.TopEdge:ClearAllPoints()
+        host.TopEdge:SetPoint("TOPLEFT", tl, "TOPRIGHT", -10, 0)
+        host.TopEdge:SetPoint("TOPRIGHT", tr, "TOPLEFT", 10, 0)
+    end
+    if host.BottomEdge and bl and br then
+        host.BottomEdge:ClearAllPoints()
+        host.BottomEdge:SetPoint("BOTTOMLEFT", bl, "BOTTOMRIGHT", -10, 0)
+        host.BottomEdge:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT", 10, 0)
+    end
+    if host.LeftEdge and tl and bl then
+        host.LeftEdge:ClearAllPoints()
+        host.LeftEdge:SetPoint("TOPLEFT", tl, "BOTTOMLEFT", 0, 10)
+        host.LeftEdge:SetPoint("BOTTOMLEFT", bl, "TOPLEFT", 0, -10)
+    end
+    if host.RightEdge and tr and br then
+        host.RightEdge:ClearAllPoints()
+        host.RightEdge:SetPoint("TOPRIGHT", tr, "BOTTOMRIGHT", 0, 10)
+        host.RightEdge:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT", 0, -10)
+    end
+end
+
+--- B2: Neutral title left / tiled mid / right (not parchment).
+function Blackacre.UI.Theme.ApplyNeutralTitleBar(frame)
+    if not frame then return end
+    if frame.SetBackdrop then frame:SetBackdrop(nil) end
+    local h = frame:GetHeight() or 34
+    local left = frame._baTitleLeft
+    if not left then
+        left = frame:CreateTexture(nil, "ARTWORK")
+        frame._baTitleLeft = left
+    end
+    local right = frame._baTitleRight
+    if not right then
+        right = frame:CreateTexture(nil, "ARTWORK")
+        frame._baTitleRight = right
+    end
+    local mid = frame._baTitleMid
+    if not mid then
+        mid = frame:CreateTexture(nil, "ARTWORK")
+        frame._baTitleMid = mid
+    end
+    -- Mid fills the whole bar first; caps overlay the ends so their gradient sits on the tile, not a hard seam.
+    if mid.SetDrawLayer then mid:SetDrawLayer("ARTWORK", 0) end
+    if left.SetDrawLayer then left:SetDrawLayer("ARTWORK", 2) end
+    if right.SetDrawLayer then right:SetDrawLayer("ARTWORK", 2) end
+    mid:ClearAllPoints()
+    mid:SetPoint("LEFT", frame, "LEFT", 0, 0)
+    mid:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
+    mid:SetHeight(h)
+    if mid.SetHorizTile then mid:SetHorizTile(true) end
+    Blackacre.UI.Theme.TrySetAtlas(mid, "_UI-Frame-Neutral-TitleMiddle", false)
+    left:ClearAllPoints()
+    left:SetPoint("LEFT", frame, "LEFT", 0, 0)
+    left:SetHeight(h)
+    left:SetWidth(math.max(36, h * 1.6))
+    Blackacre.UI.Theme.TrySetAtlas(left, "UI-Frame-Neutral-TitleLeft", false)
+    right:ClearAllPoints()
+    right:SetPoint("RIGHT", frame, "RIGHT", 0, 0)
+    right:SetHeight(h)
+    right:SetWidth(math.max(36, h * 1.6))
+    Blackacre.UI.Theme.TrySetAtlas(right, "UI-Frame-Neutral-TitleRight", false)
+    left:Show()
+    right:Show()
+    mid:Show()
 end
 
 function Blackacre.UI.Theme.ApplyBookChromeBar(frame, which)
@@ -1210,7 +2266,7 @@ function Blackacre.UI.Theme.GetMapPinIconRef()
     return {
         -- try modern waypoint pin, then classic minimap-style paths
         atlas = "Waypoint-MapPin-Tracked",
-        path = "Interface\\MINIMAP\\UI-Minimap-Pin",
+        path = (Blackacre.Compat and Blackacre.Compat.ResolveTexture and Blackacre.Compat.ResolveTexture("Interface\\MINIMAP\\UI-Minimap-Pin")) or "Interface\\MINIMAP\\UI-Minimap-Pin",
         fallbackPath = "Interface\\Cursor\\MapPinCursor",
         fallbackIcon = "Interface\\Icons\\INV_Misc_Map_01",
     }
@@ -1265,29 +2321,270 @@ function Blackacre.UI.Theme.ApplyOpenBookPage(frame)
 end
 
 local toastFrame
-local toastTimer
+local toastQueue = {}
+local toastBusy = false
 
-function Blackacre.UI.Theme.Toast(message)
-    if not toastFrame then
-        toastFrame = CreateFrame("Frame", "BlackacreToast", UIParent)
-        toastFrame:SetSize(400, 72)
-        toastFrame:SetPoint("TOP", UIParent, "TOP", 0, -100)
-        toastFrame:SetFrameStrata("DIALOG")
-        toastFrame.bg = toastFrame:CreateTexture(nil, "BACKGROUND")
-        toastFrame.bg:SetAllPoints(toastFrame)
-        toastFrame.bg:SetColorTexture(0.15, 0.12, 0.08, 0.95)
-        toastFrame.text = toastFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        toastFrame.text:SetPoint("LEFT", 28, 0)
-        toastFrame.text:SetPoint("RIGHT", -28, 0)
-        toastFrame.text:SetJustifyH("CENTER")
-        Blackacre.UI.Theme.InkFont(toastFrame.text)
-        toastFrame.text:SetTextColor(1, 0.95, 0.85, 1)
-        toastFrame:Hide()
+-- Scenario-style title banners. Survival / pre-Legion / unknown = evergreen.
+-- atlas = TAV member; file = the Y in "X from Y" (used if GetAtlasInfo misses).
+Blackacre.UI.Theme.ToastKits = {
+    evergreen    = { atlas = "evergreen-scenario-titlebg", file = "Interface\\Scenarios\\ScenarioEvergreen2x" },
+    alliance     = { atlas = "AllianceScenario-TitleBG", file = "Interface\\Scenarios\\ScenarioHordeAlliance" },
+    horde        = { atlas = "HordeScenario-TitleBG", file = "Interface\\Scenarios\\ScenarioHordeAlliance" },
+    dragonflight = { atlas = "dragonflight-scenario-TitleBG", file = "Interface\\Scenarios\\ScenarioDragonflight" },
+    warwithin    = { atlas = "thewarwithin-scenario-titlebg", file = "Interface\\Scenarios\\ScenarioTheWarWithin2x" },
+    midnight     = { atlas = "midnight-scenario-titlebg", file = "Interface\\Scenarios\\ScenarioMidnight" },
+    legion       = { atlas = "legioninvasion-title-bg", file = "Interface\\Scenarios\\LegionInvasion" },
+    maw          = { atlas = "jailerstower-scenario-TitleBG", file = "Interface\\Scenarios\\ScenarioJailerstower" },
+    kyrian       = { atlas = "kyrian-scenario-TitleBG", file = "Interface\\Scenarios\\ScenarioKyrian" },
+    revendreth   = { atlas = "EmberCourtScenario-TitleBG", file = "Interface\\Scenarios\\ScenarioEmberCourt" },
+    nzoth        = { atlas = "NzothScenario-TitleBG", file = "Interface\\Scenarios\\Scenario0Nzoth2x" },
+}
+
+local TOAST_ALIASES = {
+    df = "dragonflight",
+    tww = "warwithin",
+    kyria = "kyrian",
+    ember = "revendreth",
+    jailer = "maw",
+    oldgod = "nzoth",
+    n = "nzoth",
+}
+
+function Blackacre.UI.Theme.ResolveToastKit(kit)
+    kit = strlower(strtrim(tostring(kit or "")))
+    if kit == "journal" then
+        local f = UnitFactionGroup and UnitFactionGroup("player")
+        kit = (f == "Horde") and "horde" or "alliance"
     end
-    toastFrame.text:SetText(message or "")
-    toastFrame:Show()
-    if toastTimer then toastTimer:Cancel() end
-    toastTimer = C_Timer.NewTimer(4, function() toastFrame:Hide() end)
+    kit = TOAST_ALIASES[kit] or kit
+    if kit == "" or not Blackacre.UI.Theme.ToastKits[kit] then
+        kit = "evergreen"
+    end
+    return kit
+end
+
+local function ResolveToastKit(kit)
+    return Blackacre.UI.Theme.ResolveToastKit(kit)
+end
+
+function Blackacre.UI.Theme.GetToastKitSpec(kit)
+    kit = Blackacre.UI.Theme.ResolveToastKit(kit)
+    return kit, Blackacre.UI.Theme.ToastKits[kit]
+end
+
+local function ApplyToastBanner(tex, kit)
+    kit = ResolveToastKit(kit)
+    local spec = Blackacre.UI.Theme.ToastKits[kit] or Blackacre.UI.Theme.ToastKits.evergreen
+    local atlasName = spec.atlas
+    local file = spec.file
+    if tex.SetHorizTile then tex:SetHorizTile(false) end
+    if tex.SetVertTile then tex:SetVertTile(false) end
+    local info = atlasName and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlasName)
+    if info and (info.filename or info.file) then
+        tex:SetTexture(info.filename or info.file)
+        tex:SetTexCoord(
+            info.leftTexCoord or info.left or 0,
+            info.rightTexCoord or info.right or 1,
+            info.topTexCoord or info.top or 0,
+            info.bottomTexCoord or info.bottom or 1
+        )
+        local w = info.width or 512
+        local h = info.height or 80
+        if w > 720 then
+            local s = 720 / w
+            w, h = w * s, h * s
+        end
+        return w, h, atlasName
+    end
+    if atlasName and tex.SetAtlas then
+        local ok = pcall(function() tex:SetAtlas(atlasName, true) end)
+        if ok then
+            return tex:GetWidth() or 520, tex:GetHeight() or 84, atlasName
+        end
+    end
+    -- Last resort: the file you named (may be a whole sheet if atlas lookup failed).
+    if file then
+        tex:SetTexture(file)
+        tex:SetTexCoord(0, 1, 0, 1)
+        return 520, 84, file
+    end
+    tex:SetColorTexture(0.08, 0.07, 0.05, 0.92)
+    return 520, 84, "fallback"
+end
+
+local function EnsureToastFrame()
+    if toastFrame then return toastFrame end
+    local f = CreateFrame("Frame", "BlackacreToast", UIParent)
+    f:SetSize(520, 84)
+    f:SetPoint("TOP", UIParent, "TOP", 0, -72)
+    f:SetFrameStrata("FULLSCREEN_DIALOG")
+    f:EnableMouse(false)
+    f.bg = f:CreateTexture(nil, "BACKGROUND")
+    f.bg:SetAllPoints()
+    f.fx = f:CreateTexture(nil, "ARTWORK")
+    f.fx:SetAllPoints()
+    if f.fx.SetBlendMode then f.fx:SetBlendMode("ADD") end
+    f.fx:Hide()
+    f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    f.title:SetPoint("LEFT", 48, 2)
+    f.title:SetPoint("RIGHT", -48, 2)
+    f.title:SetJustifyH("CENTER")
+    f.title:SetTextColor(1, 0.95, 0.75, 1)
+    f:Hide()
+    toastFrame = f
+    return f
+end
+
+local PlayNextToast
+local toastHold = false
+
+local function RunToast(item)
+    local f = EnsureToastFrame()
+    local w, h, used = ApplyToastBanner(f.bg, item.kit)
+    f:SetSize(w or 520, h or 84)
+    f._baKit = item.kit
+    f._baAtlas = used
+    f.fx:Hide()
+    f.title:SetText(item.message or "")
+    f:SetAlpha(1)
+    f.bg:SetAlpha(0)
+    f.title:SetAlpha(0)
+    f:Show()
+    toastBusy = true
+    toastHold = item.hold and true or false
+    f._t = 0
+    -- Banner fade in, then text fade in, then hold, then all fade out. No width wipe (that looked like typewriter).
+    f:SetScript("OnUpdate", function(self, elapsed)
+        self._t = (self._t or 0) + elapsed
+        local t = self._t
+        if t < 0.4 then
+            local p = t / 0.4
+            self.bg:SetAlpha(p)
+            self.title:SetAlpha(0)
+        elseif t < 0.85 then
+            self.bg:SetAlpha(1)
+            self.title:SetAlpha((t - 0.4) / 0.45)
+        elseif toastHold then
+            self.bg:SetAlpha(1)
+            self.title:SetAlpha(1)
+        elseif t < 3.6 then
+            self.bg:SetAlpha(1)
+            self.title:SetAlpha(1)
+        elseif t < 4.4 then
+            local p = 1 - ((t - 3.6) / 0.8)
+            self.bg:SetAlpha(p)
+            self.title:SetAlpha(p)
+        else
+            self:SetScript("OnUpdate", nil)
+            self:Hide()
+            toastBusy = false
+            toastHold = false
+            PlayNextToast()
+        end
+    end)
+end
+
+PlayNextToast = function()
+    if toastBusy then return end
+    local next = table.remove(toastQueue, 1)
+    if next then
+        RunToast(next)
+    end
+end
+
+--- Scenario-style banner. kit = evergreen|alliance|horde|dragonflight|warwithin|midnight|legion|maw|kyrian|revendreth|nzoth|journal
+function Blackacre.UI.Theme.Toast(message, kit, hold, replace)
+    if not message or message == "" then return end
+    kit = ResolveToastKit(kit)
+    if replace then
+        for i = #toastQueue, 1, -1 do toastQueue[i] = nil end
+        toastBusy = false
+        toastHold = false
+        if toastFrame then
+            toastFrame:SetScript("OnUpdate", nil)
+            toastFrame:Hide()
+        end
+    end
+    toastQueue[#toastQueue + 1] = { message = message, kit = kit, hold = hold and true or false }
+    PlayNextToast()
+end
+
+function Blackacre.UI.Theme.ToastHold(on)
+    toastHold = on and true or false
+    if not on and toastFrame and toastBusy then
+        toastFrame._t = 3.55
+    end
+end
+
+function Blackacre.UI.Theme.EnsureToastSkinGuide(shown)
+    local f = toastFrame
+    if not f then return end
+    if not f._baSkinGuide then
+        local ov = CreateFrame("Frame", nil, f)
+        ov:SetAllPoints(f)
+        ov:SetFrameStrata("TOOLTIP")
+        ov:EnableMouse(false)
+        f._baSkinGuide = ov
+        local function Tag(anchor, label, kind)
+            local fs = ov:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+            fs:SetPoint("CENTER", anchor, "CENTER", 0, 0)
+            fs:SetText((kind == "S" and "|cffffcc00" or "|cffffffff") .. label .. (kind == "S" and "S|r" or "F|r"))
+            fs:SetShadowColor(0, 0, 0, 1)
+            fs:SetShadowOffset(1, -1)
+        end
+        Tag(f, "T1", "S")
+        Tag(f.title, "T2", "F")
+    end
+    f._baSkinGuide:SetShown(shown and true or false)
+end
+
+local function EnsureBackstorySkinGuide(shown)
+    local menu = _G.BlackacreBackstoryMenu
+    if not menu then return end
+    if not menu._baSkinGuide then
+        local mOverlay = CreateFrame("Frame", nil, menu)
+        mOverlay:SetAllPoints(menu)
+        mOverlay:SetFrameStrata("DIALOG")
+        mOverlay:SetFrameLevel((menu:GetFrameLevel() or 1) + 80)
+        mOverlay:EnableMouse(false)
+        menu._baSkinGuide = mOverlay
+        local function MTag(anchor, label, kind, ox, oy)
+            if not anchor then return end
+            local fs = mOverlay:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+            fs:SetPoint("CENTER", anchor, "CENTER", ox or 0, oy or 0)
+            if kind == "S" then
+                fs:SetText("|cffffcc00" .. label .. "S|r")
+            else
+                fs:SetText("|cffffffff" .. label .. "F|r")
+            end
+            fs:SetShadowColor(0, 0, 0, 1)
+            fs:SetShadowOffset(1, -1)
+        end
+        MTag(menu, "B1", "S", 0, 0)
+        MTag(menu.header, "B2", "F", -40, 0)
+        MTag(menu.closeButton, "B3", "F", 0, 0)
+        MTag(menu.content, "B4", "F", 0, 0)
+        if menu.sideTabs and menu.sideTabs[1] then
+            MTag(menu.sideTabs[1], "B5", "F", 0, 0)
+        end
+    end
+    menu._baSkinGuide:SetShown(shown and true or false)
+    local lin = _G.BlackacreLineage
+    local ov = menu._baSkinGuide
+    if shown and lin and ov and not menu._baLinTags then
+        local function LTag(anchor, label, ox, oy)
+            if not anchor then return end
+            local fs = ov:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+            fs:SetPoint("CENTER", anchor, "CENTER", ox or 0, oy or 0)
+            fs:SetText("|cffffffff" .. label .. "F|r")
+            fs:SetShadowColor(0, 0, 0, 1)
+            fs:SetShadowOffset(1, -1)
+        end
+        LTag(lin.left, "L3", 0, 0)
+        LTag(lin.right, "L4", 0, 0)
+        LTag(lin.saveBtn, "L5", 0, 0)
+        menu._baLinTags = true
+    end
 end
 
 --- Numbered Tome map for TAV talk: /ba skin
@@ -1302,6 +2599,10 @@ function Blackacre.UI.Theme.ToggleTomeSkinGuide()
     if hub._baSkinGuide then
         local show = not hub._baSkinGuide:IsShown()
         hub._baSkinGuide:SetShown(show)
+        EnsureBackstorySkinGuide(show)
+        if Blackacre.UI.Theme.EnsureToastSkinGuide then
+            Blackacre.UI.Theme.EnsureToastSkinGuide(show)
+        end
         if Blackacre.Print then
             Blackacre.Print(show and "Skin guide ON — send REGION + ATLAS." or "Skin guide OFF.")
         end
@@ -1315,33 +2616,43 @@ function Blackacre.UI.Theme.ToggleTomeSkinGuide()
     overlay:EnableMouse(false)
     hub._baSkinGuide = overlay
 
-    local function Tag(anchor, label, ox, oy)
+    -- Gold = skin (art pack). White = function (layout/clicks; same on every skin).
+    local function Tag(anchor, label, kind, ox, oy)
         local fs = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
         fs:SetPoint("CENTER", anchor, "CENTER", ox or 0, oy or 0)
-        fs:SetText("|cffffcc00" .. label .. "|r")
+        if kind == "S" then
+            fs:SetText("|cffffcc00" .. label .. "S|r")
+        else
+            fs:SetText("|cffffffff" .. label .. "F|r")
+        end
         fs:SetShadowColor(0, 0, 0, 1)
         fs:SetShadowOffset(1, -1)
         return fs
     end
 
-    Tag(hub, "1", 0, 0)
-    if hub.header then Tag(hub.header, "2", -40, 0) end
-    if hub.closeButton then Tag(hub.closeButton, "3", 0, 0) end
-    if hub.bookOpen then Tag(hub.bookOpen, "4", 0, 40) end
-    if hub.leftPage then Tag(hub.leftPage, "5", 0, 0) end
-    if hub.rightPage then Tag(hub.rightPage, "6", 0, 0) end
+    local legend = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    legend:SetPoint("TOP", overlay, "TOP", 0, -4)
+    legend:SetText("|cffffcc00#S skin (art)|r   |cffffffff#F function (clicks/layout)|r")
+
+    Tag(hub, "1", "S", 0, 0)
+    if hub.header then Tag(hub.header, "2", "F", -40, 0) end
+    if hub.closeButton then Tag(hub.closeButton, "3", "F", 0, 0) end
+    if hub.addPageBtn then Tag(hub.addPageBtn, "+", "F", 0, 0) end
+    if hub.bookOpen then Tag(hub.bookOpen, "4", "F", 0, 40) end
+    if hub.leftPage then Tag(hub.leftPage, "5", "F", 0, 0) end
+    if hub.rightPage then Tag(hub.rightPage, "6", "F", 0, 0) end
     if hub.gutter then
-        local g = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-        g:SetPoint("CENTER", hub.bookOpen, "CENTER", 0, 0)
-        g:SetText("|cffffcc007|r")
+        Tag(hub.bookOpen, "7", "F", 0, 0)
     end
-    if hub.chronicleBookmark then Tag(hub.chronicleBookmark, "8", 0, 0) end
-    if hub.tabBar then Tag(hub.tabBar, "9", 0, 0) end
-    if hub.footer then Tag(hub.footer, "10", -80, 0) end
-    if hub.toolStrip then Tag(hub.toolStrip, "11", 0, 0) end
-    if hub.prevPageBtn then Tag(hub.prevPageBtn, "12", 20, 0) end
-    local menu = _G.BlackacreBackstoryMenu
-    if menu and menu:IsShown() then Tag(menu, "13", 0, 0) end
+    if hub.chronicleBookmark then Tag(hub.chronicleBookmark, "8", "S", 0, 0) end
+    if hub.tabBar then Tag(hub.tabBar, "9", "S", 0, 0) end
+    if hub.footer then Tag(hub.footer, "10", "F", -80, 0) end
+    if hub.toolStrip then Tag(hub.toolStrip, "11", "F", 0, 0) end
+    if hub.prevPageBtn then Tag(hub.prevPageBtn, "12", "F", 20, 0) end
+    EnsureBackstorySkinGuide(true)
+    if Blackacre.UI.Theme.EnsureToastSkinGuide then
+        Blackacre.UI.Theme.EnsureToastSkinGuide(true)
+    end
 
     if Blackacre.Print then
         Blackacre.Print("Skin guide ON. Copy: REGION:  ATLAS:  NOTE:")

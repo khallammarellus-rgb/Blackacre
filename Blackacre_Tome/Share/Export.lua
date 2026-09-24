@@ -3,7 +3,19 @@ Blackacre.Share = Blackacre.Share or {}
 Blackacre.Share.Export = {}
 
 local function Line(s)
-    return (s or "") .. "\n"
+    s = s or ""
+    s = s:gsub("\226\128\148", "'")
+    s = s:gsub("\226\128\147", "'")
+    s = s:gsub("\226\128\146", "'")
+    s = s:gsub("%-%-", "'")
+    return s .. "\n"
+end
+
+local function CloneTable(source)
+    if type(source) ~= "table" then return source end
+    local copy = {}
+    for key, value in pairs(source) do copy[CloneTable(key)] = CloneTable(value) end
+    return copy
 end
 
 function Blackacre.Share.Export.BuildSummaryText(maxEntries)
@@ -13,7 +25,7 @@ function Blackacre.Share.Export.BuildSummaryText(maxEntries)
     local class = UnitClass("player") or ""
     local race = UnitRace("player") or ""
     local parts = {}
-    parts[#parts + 1] = Line("— Blackacre summary —")
+    parts[#parts + 1] = Line("Blackacre summary")
     parts[#parts + 1] = Line(string.format("%s · %s %s · level %d", name, race, class, level))
 
     if Blackacre.Birthpath and Blackacre.YearCalendar and Blackacre.YearCalendar.GetBirthADP
@@ -82,7 +94,11 @@ function Blackacre.Share.Export.BuildSummaryText(maxEntries)
     end
 
     parts[#parts + 1] = Line("")
-    parts[#parts + 1] = Line("(Paste into TRP3 About/Notes if you wish. Full journal stays local unless shared via Blackacre.)")
+    if Blackacre.Compat and Blackacre.Compat.SupportsTRP3 and Blackacre.Compat.SupportsTRP3() then
+        parts[#parts + 1] = Line("(Paste into TRP3 About/Notes if you wish. Full journal stays local unless shared via Blackacre.)")
+    else
+        parts[#parts + 1] = Line("(Copy for notes or whispers. Total RP 3 is not available on WoW Forever. Full journal stays local unless shared via Blackacre.)")
+    end
     return table.concat(parts)
 end
 
@@ -92,7 +108,7 @@ function Blackacre.Share.Export.CopyToClipboard()
         Blackacre.Print("Nothing to export.")
         return
     end
-    -- Prefer WoW's editbox copy frame pattern for paste into TRP3
+    -- Editbox copy frame (Retail: paste into TRP3; Forever: notes / whispers only).
     if not Blackacre.Share.Export._box then
         local f = CreateFrame("Frame", "BlackacreExportFrame", UIParent, "BackdropTemplate")
         f:SetSize(480, 320)
@@ -102,9 +118,10 @@ function Blackacre.Share.Export.CopyToClipboard()
         f:Hide()
         tinsert(UISpecialFrames, "BlackacreExportFrame")
 
+        local forTrp3 = Blackacre.Compat and Blackacre.Compat.SupportsTRP3 and Blackacre.Compat.SupportsTRP3()
         local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
         title:SetPoint("TOP", 0, -12)
-        title:SetText("Export for TRP3 / notes")
+        title:SetText(forTrp3 and "Export for TRP3 / notes" or "Export summary")
         Blackacre.UI.Theme.GoldTitle(title)
 
         local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
@@ -112,7 +129,9 @@ function Blackacre.Share.Export.CopyToClipboard()
 
         local hint = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         hint:SetPoint("TOPLEFT", 16, -36)
-        hint:SetText("Select all (Ctrl+A) · Copy (Ctrl+C) · paste into TRP3 About/Notes")
+        hint:SetText(forTrp3
+            and "Select all (Ctrl+A) · Copy (Ctrl+C) · paste into TRP3 About/Notes"
+            or "Select all (Ctrl+A) · Copy (Ctrl+C) · paste into notes or a whisper")
         Blackacre.UI.Theme.InkFont(hint)
 
         local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
@@ -137,6 +156,70 @@ function Blackacre.Share.Export.CopyToClipboard()
     if Blackacre.UI and Blackacre.UI.Theme then
         Blackacre.UI.Theme.Toast("Summary ready to copy.")
     end
+end
+
+-- Full, lossless local backup. This is deliberately export-only: it cannot
+-- alter or merge SavedVariables, so the text can be kept outside the game.
+function Blackacre.Share.Export.CopyFullProfile()
+    local db = Blackacre.db
+    local profile = db and db.profile
+    if not profile then Blackacre.Print("Profile storage is not ready."); return end
+    local profileName = db:GetCurrentProfile()
+    local settings = CloneTable(profile)
+    settings.characterData = nil
+    local bundle = {
+        format = "BlackacreProfileBackup",
+        version = 1,
+        profileID = profileName,
+        profileName = profileName,
+        exportedAt = time(),
+        settings = settings,
+        characterData = CloneTable(profile.characterData),
+    }
+    local serialized = LibStub("AceSerializer-3.0"):Serialize(bundle)
+    local deflate = LibStub("LibDeflate")
+    local payload = "BLACKACRE_PROFILE_V1:" .. deflate:EncodeForPrint(deflate:CompressDeflate(serialized))
+    -- The copied text is a valid Lua file, so it can be saved directly as a
+    -- backup outside WoW.  The compressed payload remains opaque and compact.
+    local text = "-- Blackacre full profile backup\nBlackacreProfileBackup = "
+        .. string.format("%q", payload) .. "\n"
+
+    if not Blackacre.Share.Export._profileBox then
+        local f = CreateFrame("Frame", "BlackacreProfileExportFrame", UIParent, "BackdropTemplate")
+        f:SetSize(520, 340)
+        f:SetPoint("CENTER")
+        f:SetFrameStrata("DIALOG")
+        Blackacre.UI.Theme.ApplyParchmentBackdrop(f, 0.98)
+        tinsert(UISpecialFrames, "BlackacreProfileExportFrame")
+        local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        title:SetPoint("TOP", 0, -12)
+        title:SetText("Full Profile Backup")
+        Blackacre.UI.Theme.GoldTitle(title)
+        local hint = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        hint:SetPoint("TOPLEFT", 16, -36)
+        hint:SetText("Select all, copy, and save as a .lua file somewhere safe.")
+        Blackacre.UI.Theme.InkFont(hint)
+        local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+        close:SetPoint("TOPRIGHT", -2, -2)
+        local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
+        scroll:SetPoint("TOPLEFT", 16, -56)
+        scroll:SetPoint("BOTTOMRIGHT", -36, 16)
+        local edit = CreateFrame("EditBox", nil, scroll)
+        edit:SetMultiLine(true)
+        edit:SetFontObject(GameFontHighlightSmall)
+        edit:SetWidth(460)
+        edit:SetAutoFocus(true)
+        edit:SetScript("OnEscapePressed", function() f:Hide() end)
+        scroll:SetScrollChild(edit)
+        f.edit = edit
+        Blackacre.Share.Export._profileBox = f
+    end
+    local f = Blackacre.Share.Export._profileBox
+    f.edit:SetText(text)
+    f.edit:HighlightText()
+    f:Show()
+    f.edit:SetFocus()
+    if Blackacre.UI and Blackacre.UI.Theme then Blackacre.UI.Theme.Toast("Full profile backup ready to copy.") end
 end
 
 function Blackacre.Share.Export.BuildPeerPayload()

@@ -119,6 +119,7 @@ Blackacre.RaceLongevityMap = {
     Dracthyr = "dracthyr",
     Earthen = "earthen",
     EarthenDwarf = "earthen",
+    Skyborne = "mortal",
 }
 
 function Blackacre.DetectLongevityProfile()
@@ -133,6 +134,7 @@ function Blackacre.DetectLongevityProfile()
     if lower:find("draenei", 1, true) then return "long_lived" end
     if lower:find("dracthyr", 1, true) then return "dracthyr" end
     if lower:find("earthen", 1, true) then return "earthen" end
+    if lower:find("skyborne", 1, true) then return "mortal" end
     if lower:find("undead", 1, true) or lower:find("forsaken", 1, true) then return "undead" end
     return "mortal"
 end
