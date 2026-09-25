@@ -1,12 +1,10 @@
 # Blackacre
 
-A WoW addon for in-character immersive connections rather than OOC social utility.
-
-Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, expedition roadmaps, PvP field reports, and clipboard export — plus discovery beacons and bulletin boards. On Retail, complements Total RP 3 and never rewrites TRP3 data. On WoW Forever, TRP3 is not read (no Forever port yet).
+A WoW addon for in-character immersive connections.
 
 **Version:** 2.0.0-dev (renamed from In Character · Blackacre identity)  
 **Target:** Retail WoW 12.0.7+ (`120007`) and WoW Forever beta (`16001` / Camelot)  
-**Repo:** https://github.com/khallammarellus-rgb/Blackacre (GitHub name may lag product name)
+**Repo:** https://github.com/khallammarellus-rgb/blackacre-in-character (Retail). Forever fork: https://github.com/khallammarellus-rgb/blackacre-in-character-forever
 
 ---
 
@@ -14,12 +12,10 @@ Traveler’s Chronicle, hardcore honor log, survival meters, afterlife rites, ex
 
 | Folder | Title | Role |
 |---|---|---|
-| `Blackacre` | **Blackacre** | Core — SavedVariables, comms, lifecycle, minimap, theme |
-| `Blackacre_Presence` | Blackacre **Presence** | Beacons (talking-head, anti-spam) & Bulletins |
-| `Blackacre_Tome` | Blackacre **Tome** | Traveler’s Tome hub, chronicle, hardcore, voice, share… |
-| `Blackacre_Survival` | Blackacre **Survival** | Hunger / thirst / exposure meters |
-
-Child packages declare `## RequiredDeps: Blackacre`. Disable a package to drop that feature set without loading its UI.
+| `Blackacre` | **Blackacre** | Base |
+| `Blackacre_Presence` | Blackacre **Presence** | Connections |
+| `Blackacre_Tome` | Blackacre **Tome** | Journaling |
+| `Blackacre_Survival` | Blackacre **Survival** | Survival Immersion|
 
 ---
 
@@ -27,28 +23,20 @@ Child packages declare `## RequiredDeps: Blackacre`. Disable a package to drop t
 
 | Module | Package | Status |
 |---|---|---|
-| **Chronicle** — auto log + editable IC prose | Tome | 0.2+ |
-| **Hardcore honor log** — 6-slot bags, mount/fly rites | Tome | 0.3+ |
+| **Chronicle** — Tome with skins and voice prose | Tome | 0.2+ |
 | **Survival** — hunger, thirst, exposure | Survival | 0.4+ |
 | **Afterlife** — IC return rites | Tome | 0.5+ |
-| **Roadmap** — expedition chart | Tome | 0.6+ |
-| **PvP** — field reports | Tome | 0.7+ |
-| **Share** — export + peer cards | Tome | 0.7+ |
-| **Lineage** — birth year (ADP/BDP) | Tome | 0.8+ |
-| **Presence** — Beacons lite + Bulletins | Presence | 0.9+ |
-| **Multi-package layout** | all | 1.0.0 |
-| **Tome Theme 2.0** — book hub + tabs | Tome | 1.1.0 |
-| **Voice** — race accents (one profile, never mixed) | Tome | 1.1.0 |
-| **Bulletin polish** — more boards, wax seals, OOC lint | Presence | 1.1.0 |
-| **True book** — all Tome modules in one window | Tome | **1.2.0** |
-| **Setup wizard** — first-run character & lineage | Tome | **1.2.0** |
+| **Share** — Journal sharing | Tome | 0.7+ |
+| **Lineage** — Character development | Tome | 0.8+ |
+| **Presence** — Beacons + Bulletins | Presence | 0.9+ |
+| **Setup wizard** — rough non-operable right now | Tome | **1.2.0** |
 
 ---
 
 ## Install (development)
 
 ```powershell
-git clone https://github.com/khallammarellus-rgb/Blackacre.git
+git clone https://github.com/khallammarellus-rgb/blackacre-in-character.git
 ```
 
 Junction **all four** folders into WoW AddOns (Admin PowerShell if needed).
@@ -129,3 +117,6 @@ Slash aliases: **`/ba`**, **`/blackacre`**, and legacy **`/ic`**.
 ## Legal
 
 World of Warcraft © Blizzard Entertainment. This is a fan addon, not affiliated with Blizzard.
+
+## Credits
+Thanks to the Texture Atlas Viewer add on developer for making the visuals entirely possible
