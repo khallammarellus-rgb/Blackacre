@@ -1,6 +1,6 @@
 # Presence freeze — Bulletins & Beacons
 
-**Status:** Open for the **Forever viability pass** (set-then-emit beacons, inn bulletins, hidden `Blackacre` comms channel). Chrome restyle and talking-head art stay frozen until Phase 10.
+**Status:** This is the primary IC community feature now, not a someday-later add-on — see `BLACKACRE-BRIEF.md` priority list. Open for the **Forever viability pass** (set-then-emit beacons, inn bulletins, hidden `Blackacre` comms channel). Chrome restyle and talking-head art stay frozen until Phase 10 regardless of how important the feature is — the freeze is about art/chrome churn, not about the feature being low priority.
 
 **Package folder:** `Blackacre_Presence/`
 

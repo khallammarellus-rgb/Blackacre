@@ -15,27 +15,31 @@ This is about **in-game** experience design — **not** replacing Blizzard’s B
 **Result:** It should feel **familiar but bigger for adventure** — living more deeply in Azeroth, not installing a different game’s UI.
 
 **Do not confuse with:**
-- Replacing Base UI / default Blizzard frames wholesale  
-- Copying Skyrim’s HUD layout 1:1  
-- TRP3’s look-and-feel  
+- Replacing Base UI / default Blizzard frames wholesale
+- Copying Skyrim’s HUD layout 1:1
+- TRP3’s look-and-feel
 
 **Do aim for:** Bethesda-style *agency and immersion* expressed through *Warcraft-looking* frames. Trail-journal chrome (leather, parchment, gold titles) is the **texture** of that marriage — not a Skyrim skin.
 
-Living Theme code: `Blackacre/UI/Theme.lua` (see [`THEME-TOKENS.md`](THEME-TOKENS.md)).  
-**Frame/layer model (required):** [`FRAME-LAYERS.md`](FRAME-LAYERS.md) — Mayron Ep. 5: frame = canvas; BACKGROUND → BORDER → ARTWORK → OVERLAY → HIGHLIGHT; parent + unlimited children.  
-Custom art: [`MEDIA-GUIDE.md`](MEDIA-GUIDE.md).  
+Living Theme code: `Blackacre/UI/Theme.lua` (see [`THEME-TOKENS.md`](THEME-TOKENS.md)).
+**Frame/layer model (required):** [`FRAME-LAYERS.md`](FRAME-LAYERS.md) — Mayron Ep. 5: frame = canvas; BACKGROUND → BORDER → ARTWORK → OVERLAY → HIGHLIGHT; parent + unlimited children.
+Custom art: [`MEDIA-GUIDE.md`](MEDIA-GUIDE.md).
 Presence freeze: [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
+
+### The Tome as a physical object (idea, not built yet)
+
+The journal isn't just a UI skin, it's meant to feel like a real trail journal written in hand-script — leather or hardbound, pigment and parchment colors that default by race and can also be picked from a menu (not a raw color picker, the palette needs to stay realistic, same for the font). The book itself can age with the character: clean, crisp pages early on start showing soft wear around level 10 from general exposure to the elements, and a page can pick up something more specific, like coming out muddy if that stretch of the story happened while questing through Un'goro Crater. Small, quiet reflections of where the character's actually been, not a mechanic that needs its own UI. Not scoped or built yet, but worth keeping in mind whenever Tome page rendering gets touched.
 
 ---
 
 ## Design principles
 
-1. **Immersion + freedom + interaction** (Bethesda) delivered in **Warcraft visual grammar**.  
-2. **Journal is in-character** — Tome pages are the story. OOC controls live in the **Blackacre Menu**, never as settings inside journal pages.  
-3. **One Theme API** — feature UI uses Theme helpers; textures registered once.  
-4. **Familiar but expanded** — same art family as quest/spellbook; more adventure surface.  
-5. **Custom Media welcome** — your TGA under `Media/`, Theme keys, Blizzard fallbacks.  
-6. **Presence freeze** — no beacon/bulletin feature or cosmetic work until Phase 10.  
+1. **Immersion + freedom + interaction** (Bethesda) delivered in **Warcraft visual grammar**.
+2. **Journal is in-character** — Tome pages are the story, always first person. OOC controls live in the **Blackacre Menu**, never as settings inside journal pages.
+3. **One Theme API** — feature UI uses Theme helpers; textures registered once.
+4. **Familiar but expanded** — same art family as quest/spellbook; more adventure surface.
+5. **Custom Media welcome** — your TGA under `Media/`, Theme keys, Blizzard fallbacks.
+6. **Presence freeze** — no beacon/bulletin chrome or cosmetic work until Phase 10 (feature/comms work on Presence is open, see PRESENCE-FREEZE.md).
 7. **History has integrity** — changing past-affecting settings asks **retcon vs new event** (see below).
 
 ---
@@ -50,7 +54,7 @@ Presence freeze: [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 | **Parchment tool** | A **menu strip at the bottom of the Tome** that toggles **journaling mode** so players can edit contents — including auto-populated entries | Not a free-floating survival panel. Survival stays on **HUD meters**. |
 | **HUD meters** | Always-on survival (hunger / thirst / exposure…); **compact**; **minimizable or hideable** | See reminder rules below. |
 | **Modal / wizard step** | Setup / first-run flows | **No changes yet** — keep current approach until a later phase. |
-| **Presence** | Beacons & bulletins | **Freeze** until Phase 10. |
+| **Presence** | Beacons & bulletins | Chrome/art **frozen** until Phase 10, feature work is open. |
 | **Toast** | Short soft feedback when meters UI is visible | Parchment-style; not combat-red spam. |
 
 ### Book shell vs Blackacre Menu (hard split)
@@ -77,20 +81,20 @@ If a control **changes the rules of the experience** or **rewrites character his
 
 ### Page panel — what fills the pages
 
-Content is **populated by data** and player voice:
+Content is **populated by data** and player voice, meta-tier only (see AGENTS.md "Tome scope"), not a quest-by-quest log:
 
-- Achievements  
-- Quests  
-- Path completion (life paths / related beats)  
-- Leveling  
+- Achievements
+- Meta quests / chain finales / feats of strength
+- Path completion (life paths / related beats)
+- Leveling
 - Manual journaling (when parchment tool journaling mode is on)
 
 Players may edit auto-populated text while journaling mode is enabled; that is freedom (Bethesda), still presented as Warcraft book pages.
 
 ### Parchment tool — journaling toggle
 
-- Lives at the **bottom of the Tome** (book shell).  
-- Toggles whether the player can **edit** page contents (including auto entries).  
+- Lives at the **bottom of the Tome** (book shell).
+- Toggles whether the player can **edit** page contents (including auto entries).
 - Does **not** host survival meters or global settings.
 
 ### HUD meters — visibility and reminders
@@ -108,7 +112,7 @@ No design changes in this revision. First-run setup may later route OOC choices 
 
 ### Presence
 
-Frozen. See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
+Chrome frozen, feature work open. See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 
 ---
 
@@ -116,14 +120,14 @@ Frozen. See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
 
 When an OOC change would alter something **already written** into the character’s story (examples: death-realm attunement Revendreth → De Other Side; life path; other Tome-affecting decisions):
 
-1. Show a clear prompt: **“Do you want to retcon?”** with **Yes** / **No**.  
-2. **Yes — retcon**  
-   - Rewrite the decision **at the original time** it was chosen.  
-   - Example: the chronicle beat that recorded Revendreth now records De Other Side.  
-   - **Nothing else** is rewritten (later events stay; only that original choice is corrected).  
-3. **No — new event**  
-   - Leave the past as written.  
-   - Log a **new** beat (e.g. attunement shifted from Revendreth to De Other Side *now*).  
+1. Show a clear prompt: **“Do you want to retcon?”** with **Yes** / **No**.
+2. **Yes — retcon**
+   - Rewrite the decision **at the original time** it was chosen.
+   - Example: the chronicle beat that recorded Revendreth now records De Other Side.
+   - **Nothing else** is rewritten (later events stay; only that original choice is corrected).
+3. **No — new event**
+   - Leave the past as written.
+   - Log a **new** beat (e.g. attunement shifted from Revendreth to De Other Side *now*).
 
 This protects immersion and freedom: players can correct a mistake (retcon) or role-play a change (new event). Implementation lands when Menu + chronicle/path systems are built; this doc is the product law.
 
@@ -146,7 +150,7 @@ Also under Menu scope: **mount status** and other OOC experience toggles that mu
 
 ## Visual density
 
-Default: **trail journal (restrained)** — clear hierarchy, readable ink, modest ornament — still **Warcraft**, not a third-party UI pack.  
+Default: **trail journal (restrained)** — clear hierarchy, readable ink, modest ornament — still **Warcraft**, not a third-party UI pack.
 Richer “ornate grimoire” only if you choose it explicitly later.
 
 ---
@@ -168,23 +172,23 @@ Richer “ornate grimoire” only if you choose it explicitly later.
 
 ## UX checklist (any phase that ships UI)
 
-- [ ] Theme helpers / registered textures  
-- [ ] Journal vs Menu separation respected  
-- [ ] History-changing settings use retcon prompt (when applicable)  
-- [ ] HUD hide → system text only; HUD open → normal popups  
-- [ ] Gold title + ink body where appropriate  
-- [ ] IC empty / first-run states  
-- [ ] Readable at 1080p; Esc closes floaters  
-- [ ] Familiar Warcraft look, bigger adventure feel  
-- [ ] New texture keys documented  
+- [ ] Theme helpers / registered textures
+- [ ] Journal vs Menu separation respected
+- [ ] History-changing settings use retcon prompt (when applicable)
+- [ ] HUD hide → system text only; HUD open → normal popups
+- [ ] Gold title + ink body where appropriate
+- [ ] IC empty / first-run states
+- [ ] Readable at 1080p; Esc closes floaters
+- [ ] Familiar Warcraft look, bigger adventure feel
+- [ ] New texture keys documented
 
 ---
 
 ## How to proof in-game (today’s build)
 
-1. `/reload` after saves.  
-2. `/ic tome` — **book shell** only; note what is still mixed (settings tabs) as **debt** toward Blackacre Menu.  
-3. `/ic survival` — meters; later: hide vs visible reminder modes.  
-4. Compare to this doc: *familiar Warcraft, bigger adventure?*  
+1. `/reload` after saves.
+2. `/ba tome` — **book shell** only; note what is still mixed (settings tabs) as **debt** toward Blackacre Menu.
+3. `/ba survival` — meters; later: hide vs visible reminder modes.
+4. Compare to this doc: *familiar Warcraft, bigger adventure?*
 
 VS Code: `Blackacre/UI/Theme.lua`, then Tome / Survival UI files.

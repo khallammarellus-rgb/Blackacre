@@ -1,11 +1,11 @@
 # Blackacre — Project Brief & Operating Instructions
 
-**Status:** Packages renamed to **Blackacre** (v2.0.0-dev). Phase 1 tooling in place.  
-**Repo path:** `C:\Users\kvebe\InCharacter` (disk folder may lag; addon packages are `Blackacre*`)  
+**Status:** Packages renamed to **Blackacre** (v2.0.0-dev). Phase 1 tooling in place. Now splitting into two separate add ons/repos — Retail and Forever — see [`RETAIL-VS-FOREVER.md`](RETAIL-VS-FOREVER.md). This split is the current thing to plan around, everything below still applies to both but read that doc too before touching Forever-only or Retail-only code.  
+**Repo path:** `C:\Users\kvebe\InCharacter` (disk folder may lag; addon packages are `Blackacre*`) — will become two repo paths once the split happens, owner will say when.  
 **Target client:** Retail mainline (`## Interface: 120007`) and WoW Forever beta (`16001` / Camelot in `_classic_beta_`). Flavor helpers: `Blackacre/Core/Compat.lua`.  
 **Current suite version:** 2.0.0-dev.
 
-This document is the long-form product brief for humans and coding agents. Session-start rules for Grok CLI also live in root [`AGENTS.md`](../AGENTS.md).
+This document is the long-form product brief for humans and coding agents. Session-start rules also live in root [`AGENTS.md`](../AGENTS.md).
 
 ---
 
@@ -23,22 +23,22 @@ This document is the long-form product brief for humans and coding agents. Sessi
 
 ## Goal
 
-Rename and overhaul **Blackacre** into **Blackacre**: Skyrim-inspired RPG / solo RP in World of Warcraft (especially RP servers). Light community layer later so other Blackacre users can optionally see developments via signals.
+Blackacre: Skyrim-inspired RPG / solo RP in World of Warcraft (especially RP servers), now split across two flavors of the game that don't have the same amount of content to draw on. Beacons & Bulletins is the community layer, and it's not a "later" thing anymore, it's a top-priority feature — see below.
 
 ### Core features (priority order — solo first)
 
-1. **Survival meters** — Exposure, Thirst, Hunger (Fatigue later). Light, immersive, persistent.
-2. **Path / Alternate Start** — Data-driven origins (Druid of the Claw, Defias Bandit, etc.). Quest IDs filled manually later.
-3. **Quest ID repository + Roadmap** — Ordered/free-form chains, zone suggestions, level-lock *hints*.
-4. **Living Tome** — Journal/backstory from achievements, quests, character data; editable and growing.
-5. **Advanced setup** — TRP3 demographics if present; custom lineage; era/timeline flavor.
-6. **Light community signals** — Opt-in AceComm-style; minimal.
+1. **Tome** — the main feature. Has to work, has to look good. First-person always, meta-tier logging only (chain finales, meta achievements, FoS, big wins/losses), not a quest-by-quest logger. Opt-in toggle exists for full quest logging, default off.
+2. **Survival** — three meters, Exposure / Thirst / Hunger, no separate debuff system anymore. One buff, Preparation, shows when food and water are both on hand. Light, immersive, persistent.
+3. **Backstory menus** — the OOC setup/lineage/origin screens. Retail and Forever diverge here on purpose, don't force parity.
+4. **Beacons & Bulletins (Presence package)** — the primary IC community interaction feature. Chrome and talking-head art stay frozen until Phase 10, but the feature itself (viability, comms, gates) is active work. See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
+5. **Character Sheet** — TRP3-lite. Own data, own UI, not a hard TRP3 dependency (Forever can't use TRP3 at all, no official port).
+6. **Path / Alternate Start** — **Retail only.** Data-driven origins (Druid of the Claw, Defias Bandit, etc.), quest IDs filled manually from Wowhead/wiki research. Forever has no deep enough quest/canon reference yet to build these off of, so Forever simply has no Paths right now. That's not a gap to patch, it's a real limit of what's known about Forever content.
+7. **Quest ID repository + Roadmap** — feeds Paths, Retail only for the same reason.
+8. **Light community signals** — folded into Beacons & Bulletins above.
 
-### Explicit freeze
+### Presence status
 
-**Bulletins & Beacons (Presence package)** — leave untouched for feature work until Phase 10. Preserve working code. Rename-only touches in Phase 3 must not change behavior.
-
-See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
+Beacons & Bulletins feature work (comms, gates, crumb delivery, viability) is open. Chrome restyle and talking-head art specifically are frozen until Phase 10. See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md) for the exact line.
 
 ---
 
@@ -52,7 +52,7 @@ See [`PRESENCE-FREEZE.md`](PRESENCE-FREEZE.md).
   Blackacre/              # core
   Blackacre_Survival/
   Blackacre_Tome/
-  Blackacre_Presence/     # FREEZE feature work
+  Blackacre_Presence/     # beacons & bulletins — chrome/art frozen, feature work open
   ```
 
 - Single-folder `Modules/` layout is deferred unless we revisit after solo loop works.
@@ -128,7 +128,7 @@ Detail + per-phase UX: session plan / roadmap notes. Success = clean Ace3-style 
 | `Blackacre` | Core: DB, comms, lifecycle, theme, TRP3 bridge, minimap |
 | `Blackacre_Survival` | Hunger / thirst / exposure |
 | `Blackacre_Tome` | Chronicle, roadmap, lineage, setup, afterlife, hardcore, PvP, share |
-| `Blackacre_Presence` | **FREEZE** — beacons & bulletins |
+| `Blackacre_Presence` | Beacons & bulletins — primary IC community feature, chrome frozen till Phase 10 |
 
 ---
 
